@@ -5,62 +5,30 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": [
-        "app/*"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@services/*": [
-        "services/*"
-      ],
-      "@store/*": [
-        "store/*"
-      ],
-      "@hooks/*": [
-        "hooks/*"
-      ],
-      "@utils/*": [
-        "utils/*"
-      ],
-      "@types/*": [
-        "types/*"
-      ],
-      "@assets/*": [
-        "assets/*"
-      ],
-      "@lib/*": [
-        "lib/*"
-      ],
-      "@config/*": [
-        "config/*"
-      ],
-      "@contexts/*": [
-        "contexts/*"
-      ],
-      "@styles/*": [
-        "styles/*"
-      ],
-      "@locales/*": [
-        "locales/*"
-      ]
+      "@app/*": ["app/*"],
+      "@components/*": ["components/*"],
+      "@services/*": ["services/*"],
+      "@store/*": ["store/*"],
+      "@hooks/*": ["hooks/*"],
+      "@utils/*": ["utils/*"],
+      "@types/*": ["types/*"],
+      "@assets/*": ["assets/*"],
+      "@lib/*": ["lib/*"],
+      "@config/*": ["config/*"],
+      "@contexts/*": ["contexts/*"],
+      "@styles/*": ["styles/*"],
+      "@locales/*": ["locales/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "esnext",
     "target": "esnext",
-    "lib": [
-      "dom",
-      "es2022"
-    ],
-    "types": [
-      "react",
-      "react-native"
-    ]
+    "lib": ["dom", "es2022"],
+    "types": ["react", "react-native"]
   },
   "include": [
     "app",
@@ -82,12 +50,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "metro.config.js",
-    ".expo",
-    "dist",
-    "build"
-  ]
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", ".expo", "dist", "build"]
 }

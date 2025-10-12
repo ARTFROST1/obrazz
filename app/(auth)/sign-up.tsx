@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function FeedScreen() {
+export default function SignUpScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Community Feed</Text>
-      <Text style={styles.subtitle}>Discover outfits from the community</Text>
-      {/* TODO: Add community feed in Stage 6 */}
+      <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.subtitle}>Sign up to get started</Text>
+      {/* TODO: Add sign-up form in Stage 2 */}
     </View>
   );
 }

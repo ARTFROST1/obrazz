@@ -9,6 +9,16 @@
   [![Expo](https://img.shields.io/badge/Expo-SDK%2054-black)](https://expo.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
   [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+  
+  ---
+  
+  ### 🏗️ Development Status
+  
+  **Stage 1: Foundation & Setup** ✅ COMPLETED  
+  **Stage 2: Authentication** 🚧 IN PROGRESS  
+  **Progress:** 10% (1 of 10 stages complete)
+  
+  [View Full Roadmap](./Docs/Implementation.md) | [Quick Start Guide](./QUICKSTART.md)
 </div>
 
 ## 📱 About
@@ -38,12 +48,14 @@ Obrazz is a cutting-edge mobile application that transforms how you organize and
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/yourusername/obrazz.git
 cd obrazz
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 # or
@@ -51,17 +63,20 @@ yarn install
 ```
 
 3. **Set up environment variables**
+
 ```bash
 cp .env.example .env
 # Edit .env with your API keys
 ```
 
 4. **Start the development server**
+
 ```bash
 npx expo start
 ```
 
 5. **Run on your device**
+
 - Press `i` for iOS simulator
 - Press `a` for Android emulator
 - Scan QR code with Expo Go app for physical device
@@ -79,6 +94,7 @@ npx expo start
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React Native** 0.81.4 with **Expo SDK** 54
 - **TypeScript** 5.9.2
 - **React Navigation** 7.x + Expo Router
@@ -88,12 +104,14 @@ npx expo start
 - **NativeWind** 4.x for styling
 
 ### Backend
+
 - **Supabase** (PostgreSQL + Auth + Storage)
 - **NestJS** 10.5.x for AI microservices
 - **OpenAI API** for outfit generation
 - **Remove.bg API** for background removal
 
 ### Tools & Services
+
 - **RevenueCat** for subscriptions
 - **Sentry** for error tracking
 - **Expo EAS** for builds and OTA updates
@@ -162,6 +180,7 @@ EXPO_PUBLIC_SENTRY_DSN=your_sentry_dsn
 ### Code Style
 
 This project uses:
+
 - ESLint for linting
 - Prettier for code formatting
 - Husky for pre-commit hooks
@@ -172,21 +191,25 @@ This project uses:
 ### Using EAS Build
 
 1. **Install EAS CLI**
+
 ```bash
 npm install -g eas-cli
 ```
 
 2. **Configure EAS**
+
 ```bash
 eas build:configure
 ```
 
 3. **Build for iOS**
+
 ```bash
 eas build --platform ios
 ```
 
 4. **Build for Android**
+
 ```bash
 eas build --platform android
 ```

@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function FeedScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Community Feed</Text>
-      <Text style={styles.subtitle}>Discover outfits from the community</Text>
-      {/* TODO: Add community feed in Stage 6 */}
+      <Text style={styles.title}>My Profile</Text>
+      <Text style={styles.subtitle}>Manage your account and preferences</Text>
+      {/* TODO: Add profile UI in Stage 2 */}
     </View>
   );
 }

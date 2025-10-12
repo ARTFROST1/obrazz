@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function FeedScreen() {
+export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Community Feed</Text>
-      <Text style={styles.subtitle}>Discover outfits from the community</Text>
-      {/* TODO: Add community feed in Stage 6 */}
+      <Text style={styles.title}>Welcome to Obrazz</Text>
+      <Text style={styles.subtitle}>Your Personal Fashion Assistant</Text>
+      {/* TODO: Add welcome screen UI in Stage 2 */}
     </View>
   );
 }
@@ -21,11 +21,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: '#666',
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 10,
   },

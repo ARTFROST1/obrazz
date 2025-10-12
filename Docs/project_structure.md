@@ -1,103 +1,132 @@
 # Project Structure - Obrazz
 
+**Последнее обновление:** 13 января 2025  
+**Статус:** Stage 1 завершён ✅
+
 ## Overview
+
 This document defines the folder structure and organization guidelines for the Obrazz React Native application.
 
+**Легенда:**
+
+- ✅ Создано и настроено (Stage 1)
+- 📋 Создано, готово к использованию
+- 🚧 Будет создано в будущих стадиях
+
 ## Root Directory Structure
+
 ```
 obrazz/
-├── .vscode/                    # VS Code settings
-├── .windsurf/                  # Windsurf AI agent rules
+├── .vscode/ ✅                # VS Code settings
+├── .windsurf/ ✅              # Windsurf AI agent rules
 │   └── rules/
-├── app/                        # Expo Router app directory (screens)
-│   ├── (auth)/                 # Authentication flow screens
-│   ├── (tabs)/                 # Tab-based navigation screens
-│   ├── (modals)/              # Modal screens
-│   └── _layout.tsx            # Root layout
-├── assets/                     # Static assets
-│   ├── fonts/
-│   ├── images/
-│   ├── icons/
-│   └── animations/            # Lottie animations
-├── components/                 # Reusable components
-│   ├── common/                # Generic components
-│   ├── wardrobe/              # Wardrobe-specific components
-│   ├── outfit/                # Outfit creator components
-│   ├── community/             # Community feed components
-│   └── ui/                   # Base UI components
-├── config/                    # Configuration files
-│   ├── supabase.ts
-│   ├── constants.ts
-│   └── env.ts
-├── contexts/                  # React contexts
-├── Docs/                      # Documentation
-├── hooks/                     # Custom React hooks
-├── lib/                       # External library configurations
-│   ├── api/                  # API clients and endpoints
-│   ├── supabase/             # Supabase specific logic
-│   └── storage/              # Local storage helpers
-├── services/                  # Business logic services
-│   ├── auth/                 # Authentication service
-│   ├── wardrobe/             # Wardrobe management
-│   ├── outfit/               # Outfit creation/AI
-│   └── subscription/         # Payment handling
-├── store/                     # Zustand stores
-│   ├── auth/
-│   ├── wardrobe/
-│   └── ui/
-├── styles/                    # Global styles and themes
-│   ├── themes/
-│   └── global.ts
-├── types/                     # TypeScript type definitions
-│   ├── api/
-│   ├── models/
-│   └── navigation/
-├── utils/                     # Utility functions
-│   ├── image/
-│   ├── validation/
-│   └── helpers/
-├── locales/                   # i18n translations
-│   ├── en/
-│   └── ru/
-├── node_modules/
-├── .env                      # Environment variables
-├── .env.example              # Environment variables template
-├── .eslintrc.js              # ESLint configuration
-├── .gitignore
-├── .prettierrc               # Prettier configuration
-├── app.json                  # Expo configuration
-├── babel.config.js           # Babel configuration
-├── eas.json                  # EAS Build configuration
-├── metro.config.js           # Metro bundler configuration
-├── package.json
-├── tsconfig.json             # TypeScript configuration
-└── README.md
+├── .husky/ ✅                 # Git hooks (Husky)
+│   └── pre-commit
+├── app/ ✅                    # Expo Router app directory (screens)
+│   ├── (auth)/ ✅            # Authentication flow screens (placeholders)
+│   ├── (tabs)/ ✅            # Tab-based navigation screens (placeholders)
+│   ├── (modals)/ 🚧         # Modal screens (Stage 2+)
+│   ├── _layout.tsx ✅       # Root layout
+│   ├── +html.tsx ✅         # Web HTML root
+│   ├── +not-found.tsx ✅    # 404 screen
+│   └── modal.tsx ✅         # Example modal
+├── assets/ ✅                 # Static assets
+│   ├── fonts/ ✅
+│   ├── images/ ✅
+│   ├── icons/ 🚧
+│   └── animations/ 🚧       # Lottie animations
+├── components/ 📋             # Reusable components (готова структура)
+│   ├── common/ 🚧           # Generic components
+│   ├── wardrobe/ 🚧         # Wardrobe-specific components
+│   ├── outfit/ 🚧           # Outfit creator components
+│   ├── community/ 🚧        # Community feed components
+│   └── ui/ 🚧              # Base UI components
+├── config/ ✅                 # Configuration files
+│   └── env.ts ✅            # Environment config
+├── constants/ ✅              # Constants
+│   └── Colors.ts ✅
+├── contexts/ 📋               # React contexts (готова структура)
+├── Docs/ ✅                  # Documentation
+│   ├── TechStack.md ✅
+│   ├── Implementation.md ✅
+│   ├── project_structure.md ✅
+│   ├── Bug_tracking.md ✅
+│   ├── UI_UX_doc.md ✅
+│   ├── STAGE_1_COMPLETION.md ✅
+│   └── STAGE_1_SUMMARY.md ✅
+├── hooks/ 📋                  # Custom React hooks (готова структура)
+├── lib/ ✅                   # External library configurations
+│   └── supabase/ ✅         # Supabase specific logic
+│       ├── client.ts ✅
+│       └── schema.sql ✅
+├── services/ 📋               # Business logic services (готова структура)
+│   ├── auth/ 🚧            # Authentication service (Stage 2)
+│   ├── wardrobe/ 🚧        # Wardrobe management (Stage 3)
+│   ├── outfit/ 🚧          # Outfit creation/AI (Stage 4-5)
+│   └── subscription/ 🚧    # Payment handling (Stage 7)
+├── store/ 📋                  # Zustand stores (готова структура)
+│   ├── auth/ 🚧
+│   ├── wardrobe/ 🚧
+│   └── ui/ 🚧
+├── styles/ 📋                 # Global styles and themes (готова структура)
+│   ├── themes/ 🚧
+│   └── global.ts 🚧
+├── types/ ✅                  # TypeScript type definitions
+│   ├── api/ ✅
+│   ├── models/ ✅
+│   └── navigation/ ✅
+├── utils/ 📋                  # Utility functions (готова структура)
+│   ├── image/ 🚧
+│   ├── validation/ 🚧
+│   └── helpers/ 🚧
+├── locales/ 📋                # i18n translations (готова структура)
+│   ├── en/ 🚧
+│   └── ru/ 🚧
+├── node_modules/ ✅
+├── .env ✅                   # Environment variables
+├── .env.example 🚧          # Environment variables template
+├── .eslintrc.js 🚧          # ESLint configuration (пока нет, использует inline config)
+├── .gitignore ✅
+├── .prettierrc 🚧           # Prettier configuration (пока нет, использует defaults)
+├── app.json ✅              # Expo configuration
+├── babel.config.js ✅       # Babel configuration
+├── metro.config.js 🚧       # Metro bundler configuration (Expo defaults)
+├── package.json ✅
+├── package-lock.json ✅
+├── tsconfig.json ✅         # TypeScript configuration
+├── README.md ✅
+├── QUICKSTART.md ✅
+├── DEVELOPER_CHECKLIST.md ✅
+└── STATUS.md ✅
 ```
 
 ## Detailed Structure Guidelines
 
-### `/app` - Screens and Navigation
+### `/app` - Screens and Navigation ✅
+
+**Stage 1 Status:** Все основные экраны созданы как placeholders
+
 ```
 app/
-├── (auth)/
-│   ├── _layout.tsx           # Auth stack layout
-│   ├── welcome.tsx           # Welcome/splash screen
-│   ├── sign-in.tsx           # Sign in screen
-│   ├── sign-up.tsx           # Sign up screen
-│   └── forgot-password.tsx   # Password recovery
-├── (tabs)/
-│   ├── _layout.tsx           # Tab navigator layout
-│   ├── index.tsx             # Home/Community feed
-│   ├── wardrobe.tsx          # Wardrobe screen
-│   ├── create.tsx            # Create outfit screen
-│   └── profile.tsx           # User profile
-├── (modals)/
-│   ├── add-item.tsx          # Add wardrobe item modal
-│   ├── outfit-ai.tsx         # AI outfit generation
-│   ├── subscription.tsx      # Subscription management
-│   └── settings.tsx          # App settings
-├── outfit/
-│   ├── [id].tsx              # Outfit detail/edit screen
+├── (auth)/ ✅                # Authentication flow screens
+│   ├── _layout.tsx ✅       # Auth stack layout
+│   ├── welcome.tsx ✅       # Welcome/splash screen (placeholder)
+│   ├── sign-in.tsx ✅       # Sign in screen (placeholder)
+│   ├── sign-up.tsx ✅       # Sign up screen (placeholder)
+│   └── forgot-password.tsx ✅ # Password recovery (placeholder)
+├── (tabs)/ ✅               # Tab-based navigation
+│   ├── _layout.tsx ✅       # Tab navigator layout (configured)
+│   ├── index.tsx ✅         # Home/Community feed (placeholder)
+│   ├── wardrobe.tsx ✅      # Wardrobe screen (placeholder)
+│   ├── create.tsx ✅        # Create outfit screen (placeholder)
+│   └── profile.tsx ✅       # User profile (placeholder)
+├── (modals)/ 🚧            # Modal screens (Stage 2+)
+│   ├── add-item.tsx 🚧     # Add wardrobe item modal
+│   ├── outfit-ai.tsx 🚧    # AI outfit generation
+│   ├── subscription.tsx 🚧 # Subscription management
+│   └── settings.tsx 🚧     # App settings
+├── outfit/ 🚧              # Outfit screens (Stage 4)
+│   ├── [id].tsx 🚧         # Outfit detail/edit screen
 │   └── editor.tsx            # Outfit editor canvas
 ├── item/
 │   └── [id].tsx              # Item detail screen
@@ -109,6 +138,7 @@ app/
 ```
 
 ### `/components` - Reusable Components
+
 ```
 components/
 ├── common/
@@ -144,6 +174,7 @@ components/
 ```
 
 ### `/services` - Business Logic
+
 ```
 services/
 ├── auth/
@@ -163,6 +194,7 @@ services/
 ```
 
 ### `/store` - State Management
+
 ```
 store/
 ├── auth/
@@ -177,6 +209,7 @@ store/
 ```
 
 ### `/types` - TypeScript Definitions
+
 ```
 types/
 ├── api/
@@ -193,6 +226,7 @@ types/
 ```
 
 ### `/lib` - External Libraries Config
+
 ```
 lib/
 ├── api/
@@ -210,6 +244,7 @@ lib/
 ## Naming Conventions
 
 ### Files
+
 - **Components:** PascalCase (e.g., `ItemCard.tsx`)
 - **Screens:** kebab-case (e.g., `sign-in.tsx`)
 - **Utilities:** camelCase (e.g., `imageHelpers.ts`)
@@ -217,10 +252,12 @@ lib/
 - **Stores:** camelCase (e.g., `authStore.ts`)
 
 ### Folders
+
 - Use kebab-case for all folders (e.g., `outfit-creator`)
 - Group related files in descriptive folders
 
 ### Variables and Functions
+
 - **Variables:** camelCase (e.g., `currentUser`)
 - **Constants:** UPPER_SNAKE_CASE (e.g., `MAX_ITEMS_COUNT`)
 - **Functions:** camelCase (e.g., `getUserProfile()`)
@@ -228,6 +265,7 @@ lib/
 - **Types/Interfaces:** PascalCase (e.g., `interface UserProfile`)
 
 ## Import Aliases
+
 Configure these path aliases in `tsconfig.json` and `babel.config.js`:
 
 ```json
@@ -248,29 +286,34 @@ Configure these path aliases in `tsconfig.json` and `babel.config.js`:
 ## Best Practices
 
 ### Component Organization
+
 - Keep components small and focused (single responsibility)
 - Co-locate component-specific styles and tests
 - Use barrel exports (index.ts) for cleaner imports
 - Separate presentational and container components
 
 ### Code Splitting
+
 - Lazy load heavy components and screens
 - Use dynamic imports for optional features
 - Split vendor bundles appropriately
 
 ### Asset Management
+
 - Optimize images before adding to project
 - Use appropriate image formats (PNG for transparency, JPG for photos)
 - Keep asset file sizes minimal
 - Use vector icons when possible
 
 ### State Management
+
 - Keep stores focused on specific domains
 - Don't duplicate server state in local state
 - Use TanStack Query for server state caching
 - Persist only necessary data
 
 ### Testing Structure
+
 ```
 __tests__/
 ├── components/
@@ -280,7 +323,9 @@ __tests__/
 ```
 
 ### Environment Variables
+
 Required `.env` variables:
+
 ```
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
@@ -291,12 +336,14 @@ EXPO_PUBLIC_SENTRY_DSN=
 ```
 
 ## File Size Guidelines
+
 - Components: < 200 lines
 - Services: < 300 lines
 - Utilities: < 100 lines per function
 - Split larger files into smaller, focused modules
 
 ## Security Considerations
+
 - Never commit `.env` files
 - Store sensitive keys in Expo SecureStore
 - Validate all user inputs
@@ -305,6 +352,7 @@ EXPO_PUBLIC_SENTRY_DSN=
 - Implement proper authentication checks
 
 ## Performance Guidelines
+
 - Optimize list rendering with FlashList
 - Implement image caching strategy
 - Use memo and callbacks appropriately
@@ -313,6 +361,7 @@ EXPO_PUBLIC_SENTRY_DSN=
 - Profile performance regularly
 
 ## Documentation Requirements
+
 - Document all public APIs
 - Add JSDoc comments for complex functions
 - Include README in major folders

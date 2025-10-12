@@ -2,7 +2,7 @@
 
 > **Дата создания:** 12 января 2025  
 > **Версия документа:** 1.0.0  
-> **Статус:** Актуальный  
+> **Статус:** Актуальный
 
 ## 📋 Оглавление
 
@@ -27,6 +27,7 @@
 Приложение **Obrazz** построено на современном стеке технологий с акцентом на производительность, масштабируемость и отличный пользовательский опыт. Все версии библиотек проверены на совместимость друг с другом.
 
 ### Основные принципы выбора технологий:
+
 - ✅ Кроссплатформенность (iOS, Android, Web)
 - ✅ Типобезопасность (TypeScript)
 - ✅ Производительные нативные анимации
@@ -51,6 +52,8 @@
 
 ### Expo SDK модули
 
+**✅ Установлено (Stage 1):**
+
 ```json
 {
   "expo-constants": "~18.0.9",
@@ -59,19 +62,26 @@
   "expo-router": "~6.0.11",
   "expo-splash-screen": "~31.0.10",
   "expo-status-bar": "~3.0.8",
-  "expo-web-browser": "~15.0.8",
-  "expo-camera": "~16.0.9",
-  "expo-media-library": "~17.0.9",
-  "expo-image-picker": "~16.0.9",
+  "expo-web-browser": "~15.0.8"
+}
+```
+
+**📋 Будет установлено (Stage 3+):**
+
+```json
+{
+  "expo-camera": "~16.0.0",
+  "expo-media-library": "~17.0.0",
+  "expo-image-picker": "~16.0.0",
   "expo-file-system": "~18.0.8",
-  "expo-image": "~2.0.9",
-  "expo-image-manipulator": "~13.0.9",
+  "expo-image": "~2.0.0",
+  "expo-image-manipulator": "~13.0.0",
   "expo-localization": "~16.0.9",
   "expo-notifications": "~0.30.9",
   "expo-secure-store": "~14.0.9",
   "expo-updates": "~0.27.9",
-  "expo-device": "~7.0.9",
-  "expo-haptics": "~14.0.9",
+  "expo-device": "~7.0.0",
+  "expo-haptics": "~14.0.0",
   "expo-blur": "~14.0.9"
 }
 ```
@@ -82,14 +92,23 @@
 
 ### Supabase клиент и библиотеки
 
+**✅ Установлено:**
+
 ```json
 {
-  "@supabase/supabase-js": "^2.51.0",
-  "@supabase/auth-helpers-react": "^0.5.0",
-  "@supabase/storage-js": "^2.8.0",
-  "@supabase/realtime-js": "^2.14.0",
-  "@supabase/postgrest-js": "^1.18.0",
-  "@supabase/functions-js": "^2.5.0"
+  "@supabase/supabase-js": "^2.51.0"
+}
+```
+
+**📋 Включено в supabase-js (не требуется отдельная установка):**
+
+```json
+{
+  "@supabase/auth-helpers-react": "встроено",
+  "@supabase/storage-js": "встроено",
+  "@supabase/realtime-js": "встроено",
+  "@supabase/postgrest-js": "встроено",
+  "@supabase/functions-js": "встроено"
 }
 ```
 
@@ -119,15 +138,24 @@
 
 ### Основные UI компоненты
 
+**✅ Установлено:**
+
+```json
+{
+  "@expo/vector-icons": "^15.0.2",
+  "react-native-safe-area-context": "~5.6.0",
+  "react-native-screens": "~4.16.0",
+  "react-native-svg": "^15.10.0"
+}
+```
+
+**📋 Для будущих стадий:**
+
 ```json
 {
   "react-native-elements": "^4.0.0-rc.9",
   "react-native-paper": "^5.14.0",
   "react-native-vector-icons": "^10.3.0",
-  "@expo/vector-icons": "^15.0.2",
-  "react-native-safe-area-context": "~5.6.0",
-  "react-native-screens": "~4.16.0",
-  "react-native-svg": "^15.10.0",
   "@shopify/react-native-skia": "^1.8.0"
 }
 ```
@@ -162,14 +190,24 @@
 
 ## 🧭 Навигация
 
+**✅ Установлено:**
+
 ```json
 {
   "@react-navigation/native": "^7.1.8",
   "@react-navigation/native-stack": "^7.2.0",
   "@react-navigation/bottom-tabs": "^7.2.0",
+  "@react-navigation/stack": "^7.1.0",
+  "expo-router": "~6.0.11"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
   "@react-navigation/drawer": "^7.2.0",
   "@react-navigation/material-top-tabs": "^7.1.0",
-  "@react-navigation/stack": "^7.1.0",
   "@react-navigation/elements": "^2.2.0",
   "react-native-tab-view": "^4.0.1",
   "react-native-pager-view": "^7.0.3"
@@ -180,14 +218,23 @@
 
 ## 📦 State Management
 
+**✅ Установлено:**
+
 ```json
 {
   "zustand": "^5.0.3",
-  "immer": "^10.2.0",
+  "immer": "^10.1.1",
   "@tanstack/react-query": "^5.71.0",
+  "@tanstack/query-async-storage-persister": "^5.71.0"
+}
+```
+
+**📋 Опционально (для будущих стадий):**
+
+```json
+{
   "@tanstack/query-sync-storage-persister": "^5.71.0",
   "@tanstack/react-query-devtools": "^5.71.0",
-  "@tanstack/query-async-storage-persister": "^5.71.0",
   "valtio": "^2.2.0",
   "jotai": "^2.11.0"
 }
@@ -197,11 +244,20 @@
 
 ## ✨ Анимации и жесты
 
+**✅ Установлено:**
+
 ```json
 {
   "react-native-reanimated": "~4.1.1",
-  "react-native-worklets": "^1.0.0-beta.29",
-  "react-native-gesture-handler": "~2.24.0",
+  "react-native-worklets": "0.5.1",
+  "react-native-gesture-handler": "~2.24.0"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
   "lottie-react-native": "^7.2.0",
   "react-native-animatable": "^1.5.0",
   "react-native-spring-scrollview": "^3.1.0",
@@ -214,6 +270,16 @@
 
 ## 🖼️ Работа с изображениями
 
+**✅ Установлено:**
+
+```json
+{
+  "@react-native-async-storage/async-storage": "^2.1.0"
+}
+```
+
+**📋 Для Stage 3+ (Wardrobe Management):**
+
 ```json
 {
   "react-native-fast-image": "^8.7.0",
@@ -224,7 +290,6 @@
   "react-native-masonry-list": "^2.16.2",
   "react-native-draggable-flatlist": "^4.1.0",
   "react-native-sortable-list": "^0.0.27",
-  "@react-native-async-storage/async-storage": "^2.1.0",
   "react-native-fs": "^2.21.0"
 }
 ```
@@ -293,31 +358,51 @@
 
 ### Линтинг и форматирование
 
+**✅ Установлено (Stage 1):**
+
 ```json
 {
-  "@typescript-eslint/eslint-plugin": "^8.20.0",
-  "@typescript-eslint/parser": "^8.20.0",
-  "eslint": "^9.20.0",
+  "@typescript-eslint/eslint-plugin": "^7.18.0",
+  "@typescript-eslint/parser": "^7.18.0",
+  "eslint": "^8.57.0",
   "eslint-config-expo": "^8.0.0",
-  "eslint-plugin-react": "^7.38.0",
+  "eslint-plugin-import": "^2.31.0",
+  "eslint-plugin-prettier": "^5.2.1",
+  "eslint-plugin-react": "^7.37.2",
   "eslint-plugin-react-hooks": "^5.1.0",
-  "eslint-plugin-react-native": "^4.2.0",
+  "eslint-plugin-react-native": "^4.1.0",
   "prettier": "^3.5.0",
-  "husky": "^9.3.0",
-  "lint-staged": "^16.0.0"
+  "husky": "^9.1.7",
+  "lint-staged": "^15.2.10"
 }
 ```
 
 ### Сборка и оптимизация
 
+**✅ Установлено:**
+
 ```json
 {
   "@babel/core": "^7.27.0",
-  "@babel/preset-env": "^7.27.0",
-  "@babel/runtime": "^7.27.0",
-  "@react-native/babel-preset": "^0.81.0",
-  "babel-plugin-module-resolver": "^5.0.2",
-  "metro-react-native-babel-preset": "^0.81.0",
+  "babel-plugin-module-resolver": "^5.0.2"
+}
+```
+
+**📋 Входит в Expo (не требуется):**
+
+```json
+{
+  "@babel/preset-env": "включено в babel-preset-expo",
+  "@babel/runtime": "включено в Expo",
+  "@react-native/babel-preset": "включено в babel-preset-expo",
+  "metro-react-native-babel-preset": "включено в Expo"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
   "react-native-dotenv": "^3.5.0"
 }
 ```
@@ -339,6 +424,16 @@
 
 ## 🧪 Тестирование
 
+**✅ Установлено (Stage 1):**
+
+```json
+{
+  "react-test-renderer": "19.1.0"
+}
+```
+
+**📋 Для Stage 9 (Testing & QA):**
+
 ```json
 {
   "jest": "^30.0.0-alpha.9",
@@ -347,7 +442,6 @@
   "@testing-library/jest-native": "^6.0.0",
   "detox": "^20.32.0",
   "maestro": "^1.42.0",
-  "react-test-renderer": "19.1.0",
   "@testing-library/react-hooks": "^9.0.0",
   "msw": "^2.8.0"
 }
@@ -388,11 +482,20 @@
 
 ### Формы и валидация
 
+**✅ Установлено (Stage 1):**
+
 ```json
 {
   "react-hook-form": "^7.56.0",
   "yup": "^1.6.0",
-  "zod": "^3.24.0",
+  "zod": "^3.24.0"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
   "react-native-form-validator": "^0.6.0",
   "@hookform/resolvers": "^3.10.0"
 }
@@ -482,38 +585,43 @@
 
 ### Критически важные зависимости
 
-| Библиотека | Версия | Совместимость |
-|------------|--------|---------------|
-| React Native | 0.81.4 | ✅ Expo SDK 54 |
-| Expo | ~54.0.13 | ✅ RN 0.81.4 |
-| React | 19.1.0 | ✅ RN 0.81.4 |
-| TypeScript | ~5.9.2 | ✅ Все библиотеки |
-| React Navigation | ^7.1.8 | ✅ RN 0.81.4 |
-| Reanimated | ~4.1.1 | ✅ RN 0.81.4, Expo 54 |
-| Gesture Handler | ~2.24.0 | ✅ Reanimated 4 |
-| Zustand | ^5.0.3 | ✅ React 19 |
-| TanStack Query | ^5.71.0 | ✅ React 19 |
-| Supabase JS | ^2.51.0 | ✅ Все версии |
+| Библиотека       | Версия   | Совместимость         |
+| ---------------- | -------- | --------------------- |
+| React Native     | 0.81.4   | ✅ Expo SDK 54        |
+| Expo             | ~54.0.13 | ✅ RN 0.81.4          |
+| React            | 19.1.0   | ✅ RN 0.81.4          |
+| TypeScript       | ~5.9.2   | ✅ Все библиотеки     |
+| React Navigation | ^7.1.8   | ✅ RN 0.81.4          |
+| Reanimated       | ~4.1.1   | ✅ RN 0.81.4, Expo 54 |
+| Gesture Handler  | ~2.24.0  | ✅ Reanimated 4       |
+| Zustand          | ^5.0.3   | ✅ React 19           |
+| TanStack Query   | ^5.71.0  | ✅ React 19           |
+| Supabase JS      | ^2.51.0  | ✅ Все версии         |
 
 ---
 
 ## 📝 Примечания по установке
 
-### Базовая установка
+### Базовая установка (Stage 1 - Выполнено ✅)
 
 ```bash
-# Создание нового проекта
-npx create-expo-app obrazz --template
-
-# Переход в директорию
+# Проект уже создан и настроен
 cd obrazz
 
-# Установка всех зависимостей
+# Установка зависимостей (уже выполнено)
 npm install
 
-# Или через yarn
-yarn install
+# Запуск проекта
+npm start
 ```
+
+**Stage 1 выполнено:**
+
+- ✅ Все core dependencies установлены
+- ✅ TypeScript настроен
+- ✅ Babel сконфигурирован
+- ✅ ESLint и Prettier настроены
+- ✅ Husky pre-commit hooks активны
 
 ### Конфигурация для iOS
 
@@ -529,7 +637,7 @@ cd ios && pod install
 android {
     compileSdkVersion 35
     buildToolsVersion "35.0.0"
-    
+
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 35
@@ -537,48 +645,64 @@ android {
 }
 ```
 
-### Настройка Babel
+### Настройка Babel ✅
+
+**Текущая конфигурация (Stage 1):**
 
 ```javascript
 // babel.config.js
-module.exports = function(api) {
+module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      'react-native-worklets/plugin',
-      'nativewind/babel',
+      // Path aliases
       [
         'module-resolver',
         {
           root: ['./'],
           alias: {
-            '@': './',
+            '@app': './app',
             '@components': './components',
-            '@screens': './screens',
-            '@utils': './utils',
+            '@services': './services',
+            '@store': './store',
             '@hooks': './hooks',
-            '@api': './api',
+            '@utils': './utils',
+            '@types': './types',
             '@assets': './assets',
-            '@types': './types'
-          }
-        }
-      ]
-    ]
+            '@lib': './lib',
+            '@config': './config',
+            '@contexts': './contexts',
+            '@styles': './styles',
+            '@locales': './locales',
+          },
+        },
+      ],
+      // React Native Reanimated must be last (includes worklets)
+      'react-native-reanimated/plugin',
+    ],
   };
 };
 ```
 
+**Важно:**
+
+- ✅ `expo-router/babel` НЕ нужен (включен в babel-preset-expo SDK 54)
+- ✅ `react-native-worklets/plugin` НЕ нужен (включен в Reanimated 4)
+- ✅ `react-native-reanimated/plugin` должен быть последним
+
 ---
 
-## 🚨 Важные замечания
+## 🚨 Важные замечания (обновлено Stage 1)
 
-1. **React Native 0.81.4** - последняя стабильная версия, полностью совместимая с Expo SDK 54
-2. **React 19.1.0** - последняя версия с улучшенной производительностью
-3. **Reanimated 4** требует обязательной установки `react-native-worklets`
-4. **Zustand 5** имеет breaking changes по сравнению с v4, проверьте миграцию
-5. **TanStack Query v5** - значительные улучшения производительности
-6. **Supabase** - используйте последние версии для лучшей совместимости с Edge Functions
+1. **React Native 0.81.4** - последняя стабильная версия, полностью совместимая с Expo SDK 54 ✅
+2. **React 19.1.0** - последняя версия с улучшенной производительностью ✅
+3. **Reanimated 4** - worklets уже включены, отдельный пакет НЕ нужен ✅
+4. **Zustand 5** - breaking changes учтены, работает с React 19 ✅
+5. **TanStack Query v5** - установлена с async-storage persister ✅
+6. **Supabase** - v2.51.0 установлена, клиент настроен ✅
+7. **Expo Router** - babel plugin НЕ нужен (включен в babel-preset-expo) ✅
+8. **ESLint 8.57** - используется вместо v9 для совместимости ✅
 
 ---
 
@@ -586,6 +710,12 @@ module.exports = function(api) {
 
 При возникновении проблем с совместимостью версий обращайтесь к официальной документации каждой библиотеки или создавайте issue в репозитории проекта.
 
+**Актуальные версии:**
+
+- Все версии проверены и установлены в Stage 1
+- См. `package.json` для точных версий
+- См. `STAGE_1_COMPLETION.md` для деталей установки
+
 ---
 
-*Последнее обновление: 12 января 2025*
+_Последнее обновление: 13 января 2025 (Stage 1 завершён)_

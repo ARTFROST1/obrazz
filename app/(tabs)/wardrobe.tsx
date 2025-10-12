@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function FeedScreen() {
+export default function WardrobeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Community Feed</Text>
-      <Text style={styles.subtitle}>Discover outfits from the community</Text>
-      {/* TODO: Add community feed in Stage 6 */}
+      <Text style={styles.title}>My Wardrobe</Text>
+      <Text style={styles.subtitle}>Your clothing collection</Text>
+      {/* TODO: Add wardrobe grid in Stage 3 */}
     </View>
   );
 }

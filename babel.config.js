@@ -3,9 +3,6 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      // Required for React Native Reanimated 4
-      'react-native-worklets/plugin',
-      
       // Path aliases configuration
       [
         'module-resolver',
@@ -39,11 +36,8 @@ module.exports = function (api) {
           },
         },
       ],
-      
-      // Expo Router requirement
-      'expo-router/babel',
-      
-      // React Native Reanimated should be last
+
+      // React Native Reanimated must be last (includes worklets)
       'react-native-reanimated/plugin',
     ],
   };
