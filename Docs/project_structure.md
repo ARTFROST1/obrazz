@@ -1,7 +1,7 @@
 # Project Structure - Obrazz
 
 **Последнее обновление:** 13 января 2025  
-**Статус:** Stage 1 завершён ✅
+**Статус:** Stage 2 завершён ✅
 
 ## Overview
 
@@ -9,7 +9,7 @@ This document defines the folder structure and organization guidelines for the O
 
 **Легенда:**
 
-- ✅ Создано и настроено (Stage 1)
+- ✅ Создано и настроено (Stage 1-2)
 - 📋 Создано, готово к использованию
 - 🚧 Будет создано в будущих стадиях
 
@@ -23,8 +23,8 @@ obrazz/
 ├── .husky/ ✅                 # Git hooks (Husky)
 │   └── pre-commit
 ├── app/ ✅                    # Expo Router app directory (screens)
-│   ├── (auth)/ ✅            # Authentication flow screens (placeholders)
-│   ├── (tabs)/ ✅            # Tab-based navigation screens (placeholders)
+│   ├── (auth)/ ✅            # Authentication flow screens (IMPLEMENTED)
+│   ├── (tabs)/ ✅            # Tab-based navigation screens (profile implemented)
 │   ├── (modals)/ 🚧         # Modal screens (Stage 2+)
 │   ├── _layout.tsx ✅       # Root layout
 │   ├── +html.tsx ✅         # Web HTML root
@@ -35,12 +35,12 @@ obrazz/
 │   ├── images/ ✅
 │   ├── icons/ 🚧
 │   └── animations/ 🚧       # Lottie animations
-├── components/ 📋             # Reusable components (готова структура)
+├── components/ ✅             # Reusable components
 │   ├── common/ 🚧           # Generic components
 │   ├── wardrobe/ 🚧         # Wardrobe-specific components
 │   ├── outfit/ 🚧           # Outfit creator components
 │   ├── community/ 🚧        # Community feed components
-│   └── ui/ 🚧              # Base UI components
+│   └── ui/ ✅              # Base UI components (Button, Input, Loader)
 ├── config/ ✅                 # Configuration files
 │   └── env.ts ✅            # Environment config
 ├── constants/ ✅              # Constants
@@ -53,19 +53,20 @@ obrazz/
 │   ├── Bug_tracking.md ✅
 │   ├── UI_UX_doc.md ✅
 │   ├── STAGE_1_COMPLETION.md ✅
-│   └── STAGE_1_SUMMARY.md ✅
+│   ├── STAGE_1_SUMMARY.md ✅
+│   └── STAGE_2_COMPLETION.md ✅
 ├── hooks/ 📋                  # Custom React hooks (готова структура)
 ├── lib/ ✅                   # External library configurations
 │   └── supabase/ ✅         # Supabase specific logic
 │       ├── client.ts ✅
 │       └── schema.sql ✅
-├── services/ 📋               # Business logic services (готова структура)
-│   ├── auth/ 🚧            # Authentication service (Stage 2)
+├── services/ 📋               # Business logic services
+│   ├── auth/ ✅            # Authentication service (authService.ts)
 │   ├── wardrobe/ 🚧        # Wardrobe management (Stage 3)
 │   ├── outfit/ 🚧          # Outfit creation/AI (Stage 4-5)
 │   └── subscription/ 🚧    # Payment handling (Stage 7)
-├── store/ 📋                  # Zustand stores (готова структура)
-│   ├── auth/ 🚧
+├── store/ 📋                  # Zustand stores
+│   ├── auth/ ✅            # Auth store with persistence (authStore.ts)
 │   ├── wardrobe/ 🚧
 │   └── ui/ 🚧
 ├── styles/ 📋                 # Global styles and themes (готова структура)
@@ -75,9 +76,9 @@ obrazz/
 │   ├── api/ ✅
 │   ├── models/ ✅
 │   └── navigation/ ✅
-├── utils/ 📋                  # Utility functions (готова структура)
+├── utils/ 📋                  # Utility functions
 │   ├── image/ 🚧
-│   ├── validation/ 🚧
+│   ├── validation/ ✅       # Auth validation utilities
 │   └── helpers/ 🚧
 ├── locales/ 📋                # i18n translations (готова структура)
 │   ├── en/ 🚧
@@ -85,12 +86,12 @@ obrazz/
 ├── node_modules/ ✅
 ├── .env ✅                   # Environment variables
 ├── .env.example 🚧          # Environment variables template
-├── .eslintrc.js 🚧          # ESLint configuration (пока нет, использует inline config)
+├── .eslintrc.js ✅          # ESLint configuration
 ├── .gitignore ✅
-├── .prettierrc 🚧           # Prettier configuration (пока нет, использует defaults)
+├── .prettierrc ✅           # Prettier configuration
 ├── app.json ✅              # Expo configuration
 ├── babel.config.js ✅       # Babel configuration
-├── metro.config.js 🚧       # Metro bundler configuration (Expo defaults)
+├── metro.config.js ✅       # Metro bundler configuration (custom path resolver)
 ├── package.json ✅
 ├── package-lock.json ✅
 ├── tsconfig.json ✅         # TypeScript configuration
@@ -104,22 +105,22 @@ obrazz/
 
 ### `/app` - Screens and Navigation ✅
 
-**Stage 1 Status:** Все основные экраны созданы как placeholders
+**Stage 1-2 Status:** Все auth экраны полностью реализованы
 
 ```
 app/
-├── (auth)/ ✅                # Authentication flow screens
+├── (auth)/ ✅                # Authentication flow screens (FULLY IMPLEMENTED)
 │   ├── _layout.tsx ✅       # Auth stack layout
-│   ├── welcome.tsx ✅       # Welcome/splash screen (placeholder)
-│   ├── sign-in.tsx ✅       # Sign in screen (placeholder)
-│   ├── sign-up.tsx ✅       # Sign up screen (placeholder)
-│   └── forgot-password.tsx ✅ # Password recovery (placeholder)
+│   ├── welcome.tsx ✅       # Welcome screen with features
+│   ├── sign-in.tsx ✅       # Sign in with validation
+│   ├── sign-up.tsx ✅       # Sign up with full validation
+│   └── forgot-password.tsx ✅ # Password recovery flow
 ├── (tabs)/ ✅               # Tab-based navigation
-│   ├── _layout.tsx ✅       # Tab navigator layout (configured)
+│   ├── _layout.tsx ✅       # Tab navigator layout
 │   ├── index.tsx ✅         # Home/Community feed (placeholder)
 │   ├── wardrobe.tsx ✅      # Wardrobe screen (placeholder)
 │   ├── create.tsx ✅        # Create outfit screen (placeholder)
-│   └── profile.tsx ✅       # User profile (placeholder)
+│   └── profile.tsx ✅       # User profile with logout (IMPLEMENTED)
 ├── (modals)/ 🚧            # Modal screens (Stage 2+)
 │   ├── add-item.tsx 🚧     # Add wardrobe item modal
 │   ├── outfit-ai.tsx 🚧    # AI outfit generation
@@ -141,12 +142,14 @@ app/
 
 ```
 components/
+├── ui/ ✅                     # Base UI components (Stage 2)
+│   ├── Button.tsx ✅          # Primary/secondary button with loading
+│   ├── Input.tsx ✅           # Form input with validation
+│   ├── Loader.tsx ✅          # Loading spinner
+│   └── index.ts ✅           # Barrel export
 ├── common/
-│   ├── Button.tsx
-│   ├── Input.tsx
 │   ├── Card.tsx
 │   ├── Modal.tsx
-│   ├── Loader.tsx
 │   └── ErrorBoundary.tsx
 ├── wardrobe/
 │   ├── ItemCard.tsx
@@ -177,9 +180,8 @@ components/
 
 ```
 services/
-├── auth/
-│   ├── authService.ts        # Authentication logic
-│   └── tokenManager.ts       # JWT token handling
+├── auth/ ✅                   # Authentication (Stage 2)
+│   └── authService.ts ✅      # Complete auth logic (signUp, signIn, signOut, reset)
 ├── wardrobe/
 │   ├── itemService.ts        # Item CRUD operations
 │   ├── imageProcessor.ts     # Image manipulation
@@ -197,8 +199,8 @@ services/
 
 ```
 store/
-├── auth/
-│   └── authStore.ts          # User auth state
+├── auth/ ✅
+│   └── authStore.ts ✅        # User auth state with persistence
 ├── wardrobe/
 │   └── wardrobeStore.ts      # Items and categories
 ├── outfit/
@@ -208,21 +210,21 @@ store/
     └── navigationStore.ts    # Navigation state
 ```
 
-### `/types` - TypeScript Definitions
+### `/types` - TypeScript Definitions ✅
 
 ```
 types/
-├── api/
-│   ├── supabase.ts          # Supabase types
-│   └── responses.ts         # API response types
-├── models/
-│   ├── user.ts
-│   ├── item.ts
-│   ├── outfit.ts
-│   ├── post.ts
-│   └── subscription.ts
-└── navigation/
-    └── types.ts             # Navigation param lists
+├── api/ ✅
+│   ├── supabase.ts ✅        # Supabase types
+│   └── responses.ts ✅       # API response types
+├── models/ ✅
+│   ├── user.ts ✅
+│   ├── item.ts ✅
+│   ├── outfit.ts ✅
+│   ├── post.ts ✅
+│   └── subscription.ts ✅
+└── navigation/ ✅
+    └── types.ts ✅           # Navigation param lists
 ```
 
 ### `/lib` - External Libraries Config
@@ -232,10 +234,9 @@ lib/
 ├── api/
 │   ├── client.ts            # API client setup
 │   └── endpoints.ts         # API endpoints
-├── supabase/
-│   ├── client.ts            # Supabase client
-│   ├── queries.ts           # Database queries
-│   └── migrations/          # DB migrations
+├── supabase/ ✅
+│   ├── client.ts ✅          # Supabase client configured
+│   └── schema.sql ✅         # Complete DB schema (16 migrations applied)
 └── storage/
     ├── asyncStorage.ts      # AsyncStorage wrapper
     └── fileSystem.ts        # File system helpers
@@ -266,7 +267,7 @@ lib/
 
 ## Import Aliases
 
-Configure these path aliases in `tsconfig.json` and `babel.config.js`:
+Configure these path aliases in `tsconfig.json`, `babel.config.js`, and `metro.config.js` ✅:
 
 ```json
 {
