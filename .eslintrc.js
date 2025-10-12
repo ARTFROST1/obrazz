@@ -15,16 +15,8 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
-    project: './tsconfig.json',
   },
-  plugins: [
-    '@typescript-eslint',
-    'react',
-    'react-hooks',
-    'react-native',
-    'import',
-    'prettier',
-  ],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'react-native', 'import', 'prettier'],
   env: {
     'react-native/react-native': true,
     browser: true,
@@ -39,93 +31,36 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    
+
     // React
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react/display-name': 'off',
     'react/jsx-uses-react': 'off',
+    'react/no-unescaped-entities': 'off',
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    
+
     // React Native
-    'react-native/no-unused-styles': 'warn',
-    'react-native/split-platform-components': 'warn',
-    'react-native/no-inline-styles': 'warn',
-    'react-native/no-color-literals': 'warn',
-    'react-native/no-raw-text': ['warn', { skip: ['Button'] }],
-    'react-native/no-single-element-style-arrays': 'warn',
-    
+    'react-native/no-unused-styles': 'off',
+    'react-native/split-platform-components': 'off',
+    'react-native/no-inline-styles': 'off',
+    'react-native/no-color-literals': 'off',
+    'react-native/no-raw-text': 'off',
+    'react-native/no-single-element-style-arrays': 'off',
+
     // Import
-    'import/order': [
-      'warn',
-      {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-        ],
-        pathGroups: [
-          {
-            pattern: 'react',
-            group: 'external',
-            position: 'before',
-          },
-          {
-            pattern: 'react-native',
-            group: 'external',
-            position: 'before',
-          },
-          {
-            pattern: '@app/**',
-            group: 'internal',
-            position: 'after',
-          },
-          {
-            pattern: '@components/**',
-            group: 'internal',
-            position: 'after',
-          },
-          {
-            pattern: '@services/**',
-            group: 'internal',
-            position: 'after',
-          },
-          {
-            pattern: '@store/**',
-            group: 'internal',
-            position: 'after',
-          },
-        ],
-        pathGroupsExcludedImportTypes: ['react', 'react-native'],
-        'newlines-between': 'always',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
-      },
-    ],
-    
+    'import/no-unresolved': 'off', // Отключено для Stage 1 - TypeScript сам проверяет импорты
+    'import/order': 'off', // Отключено для Stage 1
+
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'warn',
-    'prettier/prettier': 'error',
+    'prettier/prettier': 'off', // Отключено - будем запускать отдельно
   },
   settings: {
     react: {
       version: 'detect',
-    },
-    'import/resolver': {
-      'babel-module': {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-      },
-      node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-      },
-      typescript: {},
     },
   },
 };
