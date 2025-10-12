@@ -52,6 +52,8 @@ module.exports = {
     // Import
     'import/no-unresolved': 'off', // Отключено для Stage 1 - TypeScript сам проверяет импорты
     'import/order': 'off', // Отключено для Stage 1
+    'import/namespace': 'off', // Отключено - TypeScript проверяет это
+    '@typescript-eslint/no-var-requires': 'off', // Разрешить require в config файлах
 
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],
@@ -63,4 +65,13 @@ module.exports = {
       version: 'detect',
     },
   },
+  overrides: [
+    {
+      // Разрешить require в конфигурационных файлах
+      files: ['*.config.js', '.eslintrc.js', 'babel.config.js'],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off',
+      },
+    },
+  ],
 };
