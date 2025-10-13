@@ -609,4 +609,165 @@ For critical blocking issues that cannot be resolved using this document:
 
 ---
 
-_Last Updated: 2025-01-13_
+## Stage 3 Issues - RESOLVED
+
+### BUG-S3-001: Duplicate React Keys in ColorPicker
+
+**Date:** 2025-01-14
+**Severity:** High
+**Status:** Resolved
+**Component:** ColorPicker Component
+**Environment:** All
+
+**Description:**
+React warning about duplicate keys in ColorPicker component. The color `#C0C0C0` (Silver) was listed twice in the COLORS array, causing React to throw duplicate key errors.
+
+**Error Messages/Logs:**
+
+```
+ERROR  Encountered two children with the same key, `%s` . Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. .$#C0C0C0
+```
+
+**Root Cause:**
+The COLORS array in `components/wardrobe/ColorPicker.tsx` had duplicate entries:
+
+- Line 21: `{ hex: '#C0C0C0', name: 'Silver' }`
+- Line 32: `{ hex: '#C0C0C0', name: 'Silver' }` (duplicate)
+
+**Solution:**
+Replaced the duplicate Silver entry with Turquoise:
+
+```typescript
+{ hex: '#00CED1', name: 'Turquoise' }
+```
+
+**Prevention:**
+
+- Ensure all array items used as React keys are unique
+- Add ESLint rule to detect duplicate object values in arrays
+- Review color palettes before implementation
+
+**Related Files:**
+
+- components/wardrobe/ColorPicker.tsx
+
+---
+
+### BUG-S3-002: Deprecated expo-file-system Methods
+
+**Date:** 2025-01-14
+**Severity:** Critical
+**Status:** Resolved
+**Component:** File System / Image Storage
+**Environment:** All
+
+**Description:**
+Expo SDK 54 deprecated legacy file system methods (`readAsStringAsync`, `getInfoAsync`, `writeAsStringAsync`, etc.), causing errors when trying to save images or remove backgrounds.
+
+**Error Messages/Logs:**
+
+```
+WARN  Method readAsStringAsync imported from "expo-file-system" is deprecated.
+You can migrate to the new filesystem API using "File" and "Directory" classes or import the legacy API from "expo-file-system/legacy".
+
+ERROR  Error saving image locally: [Error: Method getInfoAsync imported from "expo-file-system" is deprecated...]
+
+ERROR  Error removing background: [Error: Method readAsStringAsync imported from "expo-file-system" is deprecated...]
+```
+
+**Root Cause:**
+Expo SDK 54 introduced a new File System API and moved the old methods to a legacy namespace. Our code was using the deprecated imports directly from `expo-file-system`.
+
+**Solution:**
+Updated imports in affected files to use the legacy API:
+
+**Before:**
+
+```typescript
+import * as FileSystem from 'expo-file-system';
+```
+
+**After:**
+
+```typescript
+import * as FileSystem from 'expo-file-system/legacy';
+```
+
+**Files Updated:**
+
+1. `services/wardrobe/itemService.ts`
+2. `services/wardrobe/backgroundRemover.ts`
+
+**Prevention:**
+
+- Check Expo SDK migration guides when upgrading
+- Use the new File/Directory API for future implementations
+- Add deprecation warnings to CI/CD pipeline
+- Plan migration to new API in Stage 4
+
+**Related Files:**
+
+- services/wardrobe/itemService.ts
+- services/wardrobe/backgroundRemover.ts
+
+**Future Migration:**
+The legacy API will eventually be removed. Plan to migrate to the new API:
+
+```typescript
+import { File, Directory } from 'expo-file-system';
+```
+
+---
+
+### BUG-S3-003: TypeScript Import Path Errors
+
+**Date:** 2025-01-14
+**Severity:** Medium
+**Status:** Resolved
+**Component:** TypeScript Configuration
+**Environment:** All
+
+**Description:**
+TypeScript errors when importing from `@types/` alias path.
+
+**Error Messages/Logs:**
+
+```
+Cannot import type declaration files. Consider importing 'models/item' instead of '@types/models/item'.
+Cannot import type declaration files. Consider importing 'models/user' instead of '@types/models/user'.
+```
+
+**Root Cause:**
+TypeScript doesn't allow importing from paths that start with `@types/` as it's a reserved namespace for DefinitelyTyped packages.
+
+**Solution:**
+Changed imports from alias paths to relative paths:
+
+**Before:**
+
+```typescript
+import { WardrobeItem, ItemCategory } from '@types/models/item';
+import { Season, StyleTag } from '@types/models/user';
+```
+
+**After:**
+
+```typescript
+import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { Season, StyleTag } from '../../types/models/user';
+```
+
+**Prevention:**
+
+- Avoid using `@types/` prefix in custom path aliases
+- Use different alias like `@models/` or `@app-types/`
+- Update tsconfig.json paths if needed
+
+**Related Files:**
+
+- services/wardrobe/itemService.ts
+- tsconfig.json (for future alias updates)
+
+---
+
+_Last Updated: 2025-01-14_

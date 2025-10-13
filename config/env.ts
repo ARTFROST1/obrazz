@@ -144,4 +144,9 @@ if (process.env.NODE_ENV !== 'test') {
   validateEnv();
 }
 
+// Export individual values for convenience
+export const REMOVE_BG_API_KEY = env.removeBgApiKey;
+export const SUPABASE_URL = env.supabaseUrl;
+export const SUPABASE_ANON_KEY = env.supabaseAnonKey;
+
 export default env;

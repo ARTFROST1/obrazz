@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 
 export interface ButtonProps extends TouchableOpacityProps {
-  title: string;
+  title?: string;
+  children?: React.ReactNode;
   onPress: () => void;
   variant?: 'primary' | 'secondary';
   size?: 'large' | 'medium' | 'small';
@@ -22,6 +23,7 @@ export interface ButtonProps extends TouchableOpacityProps {
 
 export const Button: React.FC<ButtonProps> = ({
   title,
+  children,
   onPress,
   variant = 'primary',
   size = 'large',
@@ -32,6 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const isDisabled = disabled || loading;
+  const buttonText = children || title;
 
   return (
     <TouchableOpacity
@@ -53,7 +56,7 @@ export const Button: React.FC<ButtonProps> = ({
             textStyle,
           ]}
         >
-          {title}
+          {buttonText}
         </Text>
       )}
     </TouchableOpacity>

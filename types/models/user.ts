@@ -55,8 +55,18 @@ export interface SubscriptionFeatures {
   prioritySupport: boolean;
 }
 
-export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-export type StyleTag = 'casual' | 'formal' | 'sporty' | 'street' | 'boho' | 'minimalist' | 'vintage' | 'elegant' | 'business' | 'romantic';
+export type Season = 'spring' | 'summer' | 'fall' | 'winter';
+export type StyleTag =
+  | 'casual'
+  | 'formal'
+  | 'sporty'
+  | 'elegant'
+  | 'vintage'
+  | 'minimalist'
+  | 'bohemian'
+  | 'streetwear'
+  | 'preppy'
+  | 'romantic';
 
 export interface AuthSession {
   user: User;
