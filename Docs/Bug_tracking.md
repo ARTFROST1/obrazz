@@ -1236,8 +1236,9 @@ Ask the affected user to:
 ### BUG-S4-006: Items Table Category Check Constraint Mismatch
 
 **Date:** 2025-10-14  
+**Date Resolved:** 2025-10-14  
 **Severity:** Critical  
-**Status:** Resolved  
+**Status:** Resolved ✅  
 **Component:** Database Schema / Item Service  
 **Environment:** All
 
@@ -1342,10 +1343,295 @@ CHECK (category IN (
 - `services/wardrobe/itemService.ts` (uses category)
 - `lib/supabase/migrations/fix_items_category_constraint.sql` (fix migration)
 
+**Resolution Applied:**
+**Date:** 2025-10-14
+
+The migration was successfully applied using Supabase MCP server:
+
+1. ✅ Checked existing data - all items use compatible categories (accessories, bottoms, tops)
+2. ✅ Applied migration `fix_items_category_constraint`
+3. ✅ Verified new constraint includes all 9 categories:
+   - headwear, outerwear, tops, bottoms, footwear, accessories, dresses, suits, bags
+4. ✅ Database schema now matches TypeScript `ItemCategory` type perfectly
+
+**Test Results:**
+
+- Database accepts all valid TypeScript category values
+- No data migration was required
+- Constraint properly rejects invalid category values
+
 **Additional Notes:**
 
 - If you have existing items with categories 'shoes', 'hats', 'jewelry', or 'other', migrate them before applying this fix
 - Consider adding a data migration script if production database has affected records
+
+---
+
+### BUG-S4-007: Outfit Previews Not Displaying on Outfits Page
+
+**Date:** 2025-10-14  
+**Date Resolved:** 2025-10-14  
+**Severity:** High  
+**Status:** Resolved ✅  
+**Component:** Outfit Display / OutfitCard Component  
+**Environment:** All
+
+**Description:**
+Saved outfits on the Outfits page were displaying only placeholder icons instead of actual outfit previews showing the items and background. Users could not see what their outfits looked like in the grid view.
+
+**Steps to Reproduce:**
+
+1. Create and save an outfit with items
+2. Navigate to Outfits tab (main navigation)
+3. Observe the outfit cards in the grid
+4. Only placeholder shirt icons are visible instead of the actual outfit composition
+
+**Expected Behavior:**
+Outfit cards should display a preview/thumbnail showing:
+
+- The selected background
+- All items positioned as they were arranged
+- Proper scaling and transforms applied
+
+**Actual Behavior:**
+All outfit cards show a gray placeholder with a shirt icon, regardless of the outfit content.
+
+**Root Cause:**
+
+1. **Missing preview rendering logic** - `OutfitCard.tsx` line 89-91 had hardcoded `thumbnailUri = undefined`, always showing placeholder
+2. **Items not populated** - `outfitService.getUserOutfits()` returned outfits with only item IDs, not the full wardrobe item data needed to display images
+3. **No preview component** - No component existed to render static outfit previews for thumbnails
+
+**Solution:**
+
+**1. Created OutfitPreview Component** (`components/outfit/OutfitPreview.tsx`):
+
+```typescript
+export function OutfitPreview({
+  items,
+  background,
+  width,
+  height,
+  scaleToFit = true,
+}: OutfitPreviewProps) {
+  // Renders items with transforms on background
+  // Scales canvas to fit card dimensions
+  // Respects z-index ordering
+  // Shows only visible items with valid image paths
+}
+```
+
+**2. Updated outfitService** (`services/outfit/outfitService.ts`):
+
+Added `populateOutfitItems()` method:
+
+```typescript
+async getUserOutfits(...) {
+  const outfits = (data || []).map(this.mapDatabaseToOutfit);
+  return this.populateOutfitItems(outfits); // Populate items with full data
+}
+
+private async populateOutfitItems(outfits: Outfit[]): Promise<Outfit[]> {
+  // Batch fetch all wardrobe items in one query
+  // Map items to outfit items
+  // Return fully populated outfits
+}
+```
+
+**3. Updated OutfitCard** (`components/outfit/OutfitCard.tsx`):
+
+```typescript
+// Check if outfit has valid items
+const hasValidItems = hasItems && outfit.items.some(
+  (item) => item.item?.imageLocalPath || item.item?.imageUrl
+);
+
+// Render preview or placeholder
+{hasValidItems ? (
+  <OutfitPreview
+    items={outfit.items}
+    background={outfit.background}
+    width={CARD_WIDTH}
+    height={CARD_WIDTH * (4 / 3)}
+    scaleToFit={true}
+  />
+) : (
+  <PlaceholderView />
+)}
+```
+
+**4. Updated exports** (`components/outfit/index.ts`):
+
+```typescript
+export { OutfitPreview } from './OutfitPreview';
+export { OutfitCard } from './OutfitCard';
+export { OutfitGrid } from './OutfitGrid';
+export { OutfitEmptyState } from './OutfitEmptyState';
+```
+
+**Performance Optimization:**
+
+- Batch fetches all items in one database query instead of per-outfit queries
+- Uses Map for O(1) item lookup when populating outfits
+- Only fetches unique item IDs (eliminates duplicates)
+- Graceful degradation: shows placeholders if items fail to load
+
+**Prevention:**
+
+- Always populate related data when fetching entities that reference other tables
+- Create reusable preview components for consistent rendering
+- Test data loading and display together, not in isolation
+- Document component data requirements clearly
+
+**Related Files:**
+
+- `components/outfit/OutfitPreview.tsx` (new component)
+- `components/outfit/OutfitCard.tsx` (updated to use preview)
+- `services/outfit/outfitService.ts` (added populateOutfitItems method)
+- `components/outfit/index.ts` (added exports)
+
+**Testing:**
+
+- ✅ Outfits with items display proper previews
+- ✅ Item positions and transforms are preserved in thumbnails
+- ✅ Backgrounds render correctly
+- ✅ Placeholders shown for outfits without items
+- ✅ Performance: single query for all items across all outfits
+- ✅ TypeScript types all validated
+
+**Additional Notes:**
+
+- Preview scales content to fit card dimensions (3:4 aspect ratio)
+- Original canvas was 300x400px, scaled down to card size
+- Z-index ordering preserved in preview rendering
+- Only visible items with valid image paths are displayed
+
+**Enhancement Applied (2025-10-14):**
+
+Improved `OutfitPreview` to show entire outfit composition without cropping:
+
+- **Bounding box calculation**: Automatically calculates bounds of all items
+- **Smart scaling**: Scales entire composition to fit preview container
+- **Content centering**: Centers outfit in preview for balanced display
+- **Padding**: Adds 20px padding around content for breathing room
+
+Before: Items could be cropped at edges if positioned outside canvas bounds
+After: Entire outfit composition is always visible and centered in preview
+
+Related commit: Enhanced OutfitPreview component with bounding box calculation
+
+---
+
+### BUG-S4-008: Gradient Backgrounds Not Rendering in Outfit Editor
+
+**Date:** 2025-10-14  
+**Date Resolved:** 2025-10-14  
+**Severity:** High  
+**Status:** Resolved ✅  
+**Component:** Background Picker / Canvas Rendering  
+**Environment:** All
+
+**Description:**
+When selecting a gradient background in the outfit editor, the gradient would not render. The canvas would show either a solid color or throw errors. This was because gradients were stored as CSS strings (`linear-gradient(...)`) which React Native doesn't support natively.
+
+**Error Messages/Logs:**
+
+```
+WARN  It looks like you might be using shared value's .value inside reanimated inline style...
+[Multiple repeated Reanimated warnings]
+```
+
+**Root Cause:**
+
+1. **CSS gradient strings in React Native**: Gradients were stored as CSS values like `'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'` which don't work in React Native
+2. **Missing LinearGradient implementation**: Components weren't using `expo-linear-gradient` to render gradients
+3. **Type safety issues**: Gradient colors weren't properly typed as tuples
+
+**Solution:**
+
+**1. Updated BackgroundPicker** (`components/outfit/BackgroundPicker.tsx`):
+
+- Changed to store gradient colors as JSON array: `JSON.stringify(['#667eea', '#764ba2'])`
+- Added `expo-linear-gradient` import and usage for preview
+- Fixed TypeScript typing with `as const` for color tuples
+- Updated gradient selection comparison logic
+
+**2. Updated OutfitCanvas** (`components/outfit/OutfitCanvas.tsx`):
+
+- Added `LinearGradient` import from `expo-linear-gradient`
+- Created `renderBackground()` function to handle gradient rendering
+- Parses JSON color array and renders with LinearGradient component
+- Added graceful fallback for invalid JSON
+
+**3. Updated OutfitPreview** (`components/outfit/OutfitPreview.tsx`):
+
+- Added same LinearGradient support as OutfitCanvas
+- Ensures gradient backgrounds display in outfit card previews
+- Consistent rendering across editor and preview modes
+
+**Code Changes:**
+
+```typescript
+// BackgroundPicker - Store as JSON array
+const handleSelectGradient = (gradient) => {
+  onSelect({
+    type: 'gradient',
+    value: JSON.stringify(gradient.colors), // ["#667eea", "#764ba2"]
+    opacity: 1,
+  });
+};
+
+// OutfitCanvas & OutfitPreview - Render with LinearGradient
+const renderBackground = () => {
+  if (background.type === 'gradient') {
+    try {
+      const colors = JSON.parse(background.value) as [string, string, ...string[]];
+      return (
+        <LinearGradient
+          colors={colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { opacity: background.opacity || 1 }]}
+        />
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+};
+```
+
+**Note on Reanimated Warnings:**
+
+The Reanimated warnings about `.value` in inline styles are false positives. The code correctly uses `.value` within `useAnimatedStyle` which is the proper pattern. These warnings can be ignored or suppressed.
+
+**Prevention:**
+
+- Always use platform-appropriate APIs (LinearGradient instead of CSS gradients)
+- Store data in platform-agnostic formats (JSON arrays vs CSS strings)
+- Verify package dependencies are installed (`expo-linear-gradient`)
+- Type gradient colors as tuples for TypeScript safety
+
+**Related Files:**
+
+- `components/outfit/BackgroundPicker.tsx` (gradient storage format)
+- `components/outfit/OutfitCanvas.tsx` (gradient rendering)
+- `components/outfit/OutfitPreview.tsx` (gradient rendering in previews)
+
+**Testing:**
+
+- ✅ Gradient backgrounds render correctly in outfit editor
+- ✅ Gradient backgrounds display in outfit card previews
+- ✅ Graceful fallback for invalid gradient data
+- ✅ TypeScript types validated
+- ✅ Existing solid color backgrounds still work
+
+**Additional Notes:**
+
+- `expo-linear-gradient` was already installed in package.json
+- Gradient direction is diagonal (top-left to bottom-right via `start/end` props)
+- All 6 predefined gradients (Sunset, Ocean, Rose, Forest, Peach, Purple Haze) now work correctly
 
 ---
 

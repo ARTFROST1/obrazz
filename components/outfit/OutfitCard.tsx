@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
@@ -11,7 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Outfit } from '@types/models/outfit';
+import { Outfit } from '../../types/models/outfit';
+import { OutfitPreview } from './OutfitPreview';
 
 export interface OutfitCardProps {
   outfit: Outfit;
@@ -84,11 +84,10 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
 
   const badge = getVisibilityBadge();
 
-  // For MVP, we'll use a placeholder or generate a thumbnail
-  // In production, this would be a pre-generated thumbnail
-  const thumbnailUri = outfit.canvasSettings
-    ? undefined // Will need thumbnail generation
-    : undefined;
+  // Check if outfit has items to display
+  const hasItems = outfit.items && outfit.items.length > 0;
+  const hasValidItems =
+    hasItems && outfit.items.some((item) => item.item?.imageLocalPath || item.item?.imageUrl);
 
   return (
     <TouchableOpacity
@@ -107,8 +106,14 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
     >
       {/* Preview Image */}
       <View style={styles.imageContainer}>
-        {thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} style={styles.image} resizeMode="cover" />
+        {hasValidItems ? (
+          <OutfitPreview
+            items={outfit.items}
+            background={outfit.background}
+            width={CARD_WIDTH}
+            height={CARD_WIDTH * (4 / 3)} // 3:4 aspect ratio
+            scaleToFit={true}
+          />
         ) : (
           <View
             style={[styles.placeholderImage, { backgroundColor: isDark ? '#1C1C1E' : '#F8F8F8' }]}

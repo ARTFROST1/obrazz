@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { OutfitBackground } from '../../types/models/outfit';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -39,34 +40,34 @@ const GRADIENTS = [
   {
     name: 'Sunset',
     value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    colors: ['#667eea', '#764ba2'],
+    colors: ['#667eea', '#764ba2'] as const,
   },
   {
     name: 'Ocean',
     value: 'linear-gradient(135deg, #667eea 0%, #f09819 100%)',
-    colors: ['#2193b0', '#6dd5ed'],
+    colors: ['#2193b0', '#6dd5ed'] as const,
   },
   {
     name: 'Rose',
     value: 'linear-gradient(135deg, #ee9ca7 0%, #ffdde1 100%)',
-    colors: ['#ee9ca7', '#ffdde1'],
+    colors: ['#ee9ca7', '#ffdde1'] as const,
   },
   {
     name: 'Forest',
     value: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
-    colors: ['#134e5e', '#71b280'],
+    colors: ['#134e5e', '#71b280'] as const,
   },
   {
     name: 'Peach',
     value: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-    colors: ['#ffecd2', '#fcb69f'],
+    colors: ['#ffecd2', '#fcb69f'] as const,
   },
   {
     name: 'Purple Haze',
     value: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    colors: ['#a8edea', '#fed6e3'],
+    colors: ['#a8edea', '#fed6e3'] as const,
   },
-];
+] as const;
 
 export function BackgroundPicker({
   visible,
@@ -83,10 +84,10 @@ export function BackgroundPicker({
     onClose();
   };
 
-  const handleSelectGradient = (gradient: (typeof GRADIENTS)[0]) => {
+  const handleSelectGradient = (gradient: (typeof GRADIENTS)[number]) => {
     onSelect({
       type: 'gradient',
-      value: gradient.value,
+      value: JSON.stringify(gradient.colors), // Store colors array as JSON string
       opacity: 1,
     });
     onClose();
@@ -150,7 +151,7 @@ export function BackgroundPicker({
                 {GRADIENTS.map((gradient) => {
                   const isSelected =
                     currentBackground.type === 'gradient' &&
-                    currentBackground.value === gradient.value;
+                    currentBackground.value === JSON.stringify(gradient.colors);
 
                   return (
                     <TouchableOpacity
@@ -158,24 +159,12 @@ export function BackgroundPicker({
                       style={[styles.gradientCard, isSelected && styles.selectedCard]}
                       onPress={() => handleSelectGradient(gradient)}
                     >
-                      <View
-                        style={[
-                          styles.gradientPreview,
-                          {
-                            backgroundColor: gradient.colors[0],
-                          },
-                        ]}
-                      >
-                        <View
-                          style={[
-                            StyleSheet.absoluteFill,
-                            {
-                              backgroundColor: gradient.colors[1],
-                              opacity: 0.5,
-                            },
-                          ]}
-                        />
-                      </View>
+                      <LinearGradient
+                        colors={gradient.colors}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.gradientPreview}
+                      />
                       {isSelected && (
                         <View style={styles.checkmark}>
                           <Ionicons name="checkmark" size={24} color="#007AFF" />

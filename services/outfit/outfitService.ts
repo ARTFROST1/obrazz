@@ -101,7 +101,77 @@ class OutfitService {
       throw new Error(`Failed to fetch outfits: ${error.message}`);
     }
 
-    return (data || []).map(this.mapDatabaseToOutfit);
+    // Map outfits and populate items with full data
+    const outfits = (data || []).map(this.mapDatabaseToOutfit);
+    return this.populateOutfitItems(outfits);
+  }
+
+  /**
+   * Populate outfit items with full wardrobe item data
+   */
+  private async populateOutfitItems(outfits: Outfit[]): Promise<Outfit[]> {
+    if (outfits.length === 0) return outfits;
+
+    // Collect all unique item IDs
+    const allItemIds = new Set<string>();
+    outfits.forEach((outfit) => {
+      outfit.items.forEach((item) => {
+        if (item.itemId) {
+          allItemIds.add(item.itemId);
+        }
+      });
+    });
+
+    if (allItemIds.size === 0) return outfits;
+
+    // Fetch all items in one batch query
+    const { data: itemsData, error } = await supabase
+      .from('items')
+      .select('*')
+      .in('id', Array.from(allItemIds));
+
+    if (error) {
+      console.error('Error fetching outfit items:', error);
+      return outfits; // Return outfits without populated items
+    }
+
+    // Create a map for quick lookup
+    const itemsMap = new Map(
+      (itemsData || []).map((item) => [
+        item.id,
+        {
+          id: item.id,
+          userId: item.user_id,
+          title: item.title,
+          category: item.category,
+          primaryColor: item.primary_color || item.colors?.[0] || '#CCCCCC',
+          colors: item.colors,
+          styles: item.styles,
+          seasons: item.seasons,
+          imageLocalPath: item.image_local_path,
+          imageUrl: item.image_url,
+          imageHash: item.image_hash,
+          brand: item.brand,
+          size: item.size,
+          notes: item.notes,
+          isFavorite: item.is_favorite,
+          wearCount: item.wear_count,
+          lastWornAt: item.last_worn_at ? new Date(item.last_worn_at) : undefined,
+          createdAt: new Date(item.created_at),
+          updatedAt: new Date(item.updated_at),
+          isBuiltin: item.is_builtin || false,
+        },
+      ]),
+    );
+
+    // Populate items in each outfit
+    return outfits.map((outfit) => ({
+      ...outfit,
+      items: outfit.items.map((outfitItem) => ({
+        ...outfitItem,
+        item: itemsMap.get(outfitItem.itemId),
+      })),
+    }));
   }
 
   /**
