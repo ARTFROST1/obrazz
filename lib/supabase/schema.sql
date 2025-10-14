@@ -28,12 +28,19 @@ CREATE TABLE public.items (
   thumbnail_url TEXT,
   original_image_url TEXT,
   category TEXT NOT NULL CHECK (category IN (
-    'tops', 'bottoms', 'dresses', 'outerwear', 'shoes', 
-    'accessories', 'bags', 'jewelry', 'hats', 'other'
+    'headwear',      -- Головные уборы
+    'outerwear',     -- Верхняя одежда
+    'tops',          -- Верх
+    'bottoms',       -- Низ
+    'footwear',      -- Обувь
+    'accessories',   -- Аксессуары
+    'dresses',       -- Платья
+    'suits',         -- Костюмы
+    'bags'           -- Сумки
   )),
   color TEXT,
   style TEXT[] DEFAULT '{}',
-  season TEXT[] DEFAULT '{}' CHECK (season <@ ARRAY['spring', 'summer', 'fall', 'winter', 'all']::TEXT[]),
+  season TEXT[] DEFAULT '{}' CHECK (season <@ ARRAY['spring', 'summer', 'fall', 'winter']::TEXT[]),
   tags TEXT[] DEFAULT '{}',
   favorite BOOLEAN DEFAULT FALSE,
   is_default BOOLEAN DEFAULT FALSE,

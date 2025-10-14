@@ -1233,4 +1233,120 @@ Ask the affected user to:
 
 ---
 
+### BUG-S4-006: Items Table Category Check Constraint Mismatch
+
+**Date:** 2025-10-14  
+**Severity:** Critical  
+**Status:** Resolved  
+**Component:** Database Schema / Item Service  
+**Environment:** All
+
+**Description:**
+When attempting to add a wardrobe item, the database throws a check constraint violation error: `"new row for relation \"items\" violates check constraint"`. This occurs because there's a mismatch between the TypeScript `ItemCategory` type definition and the database schema's CHECK constraint.
+
+**Error Messages/Logs:**
+
+```
+ERROR  Error creating item: {"code": "23514", "details": null, "hint": null, "message": "new row for relation \"items\" violates check constrain
+```
+
+**Steps to Reproduce:**
+
+1. Navigate to Add Item screen
+2. Select an image from gallery or camera
+3. Choose any of these categories: 'headwear', 'footwear', or 'suits'
+4. Fill in required fields (colors, seasons, etc.)
+5. Click "Save to Wardrobe"
+6. Error appears: check constraint violation
+
+**Expected Behavior:**
+Item should be saved successfully to the database regardless of which valid category is selected.
+
+**Actual Behavior:**
+Database rejects the insert with PostgreSQL error code 23514 (CHECK constraint violation).
+
+**Root Cause:**
+
+**Database Schema** (`lib/supabase/schema.sql` line 30-33):
+
+```sql
+category TEXT NOT NULL CHECK (category IN (
+  'tops', 'bottoms', 'dresses', 'outerwear', 'shoes',
+  'accessories', 'bags', 'jewelry', 'hats', 'other'
+))
+```
+
+**TypeScript Type** (`types/models/item.ts` line 41-50):
+
+```typescript
+export type ItemCategory =
+  | 'headwear' // Головные уборы
+  | 'outerwear' // Верхняя одежда
+  | 'tops' // Верх
+  | 'bottoms' // Низ
+  | 'footwear' // Обувь
+  | 'accessories' // Аксессуары
+  | 'dresses' // Платья
+  | 'suits' // Костюмы
+  | 'bags'; // Сумки
+```
+
+**Mismatches:**
+
+- TypeScript `'headwear'` ≠ Database `'hats'`
+- TypeScript `'footwear'` ≠ Database `'shoes'`
+- TypeScript `'suits'` not in Database
+- Database `'jewelry'` not in TypeScript
+- Database `'other'` not in TypeScript
+
+**Solution:**
+
+1. **Created migration file** `lib/supabase/migrations/fix_items_category_constraint.sql` to update the database constraint:
+
+```sql
+-- Drop the old check constraint
+ALTER TABLE public.items DROP CONSTRAINT IF EXISTS items_category_check;
+
+-- Add the new check constraint with updated category values
+ALTER TABLE public.items ADD CONSTRAINT items_category_check
+CHECK (category IN (
+  'headwear',      -- Головные уборы (was 'hats')
+  'outerwear',     -- Верхняя одежда
+  'tops',          -- Верх
+  'bottoms',       -- Низ
+  'footwear',      -- Обувь (was 'shoes')
+  'accessories',   -- Аксессуары
+  'dresses',       -- Платья
+  'suits',         -- Костюмы (new)
+  'bags'           -- Сумки
+));
+```
+
+2. **Run the migration** in Supabase SQL Editor:
+   - Go to Supabase Dashboard → SQL Editor
+   - Copy the contents of `fix_items_category_constraint.sql`
+   - Execute the migration
+   - Verify with: `SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'public.items'::regclass AND conname = 'items_category_check';`
+
+**Prevention:**
+
+- Always keep TypeScript types and database schemas in sync
+- Add schema validation tests in CI/CD
+- Document all database constraints in comments
+- Review both TypeScript and SQL when adding new enum values
+
+**Related Files:**
+
+- `lib/supabase/schema.sql` (original constraint)
+- `types/models/item.ts` (ItemCategory type)
+- `services/wardrobe/itemService.ts` (uses category)
+- `lib/supabase/migrations/fix_items_category_constraint.sql` (fix migration)
+
+**Additional Notes:**
+
+- If you have existing items with categories 'shoes', 'hats', 'jewelry', or 'other', migrate them before applying this fix
+- Consider adding a data migration script if production database has affected records
+
+---
+
 _Last Updated: 2025-10-14_
