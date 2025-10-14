@@ -7,9 +7,12 @@
 
 This document defines the folder structure and organization guidelines for the Obrazz React Native application.
 
+**Last Updated:** January 14, 2025  
+**Current Stage:** Stage 4 Complete ✅
+
 **Легенда:**
 
-- ✅ Создано и настроено (Stage 1-2)
+- ✅ Создано и настроено (Stages 1-4)
 - 📋 Создано, готово к использованию
 - 🚧 Будет создано в будущих стадиях
 
@@ -37,8 +40,8 @@ obrazz/
 │   └── animations/ 🚧       # Lottie animations
 ├── components/ ✅             # Reusable components
 │   ├── common/ 🚧           # Generic components
-│   ├── wardrobe/ 🚧         # Wardrobe-specific components
-│   ├── outfit/ 🚧           # Outfit creator components
+│   ├── wardrobe/ ✅         # Wardrobe-specific components (Stage 3)
+│   ├── outfit/ ✅           # Outfit creator components (Stage 4)
 │   ├── community/ 🚧        # Community feed components
 │   └── ui/ ✅              # Base UI components (Button, Input, Loader)
 ├── config/ ✅                 # Configuration files
@@ -62,12 +65,13 @@ obrazz/
 │       └── schema.sql ✅
 ├── services/ 📋               # Business logic services
 │   ├── auth/ ✅            # Authentication service (authService.ts)
-│   ├── wardrobe/ 🚧        # Wardrobe management (Stage 3)
-│   ├── outfit/ 🚧          # Outfit creation/AI (Stage 4-5)
+│   ├── wardrobe/ ✅        # Wardrobe management (Stage 3)
+│   ├── outfit/ ✅          # Outfit creation (outfitService.ts - Stage 4)
 │   └── subscription/ 🚧    # Payment handling (Stage 7)
 ├── store/ 📋                  # Zustand stores
 │   ├── auth/ ✅            # Auth store with persistence (authStore.ts)
-│   ├── wardrobe/ 🚧
+│   ├── wardrobe/ ✅        # Wardrobe store (Stage 3)
+│   ├── outfit/ ✅          # Outfit store with undo/redo (Stage 4)
 │   └── ui/ 🚧
 ├── styles/ 📋                 # Global styles and themes (готова структура)
 │   ├── themes/ 🚧
@@ -115,20 +119,21 @@ app/
 │   ├── sign-in.tsx ✅       # Sign in with validation
 │   ├── sign-up.tsx ✅       # Sign up with full validation
 │   └── forgot-password.tsx ✅ # Password recovery flow
-├── (tabs)/ ✅               # Tab-based navigation
+├── (tabs)/ ✅               # Tab-based navigation (4 tabs)
 │   ├── _layout.tsx ✅       # Tab navigator layout
-│   ├── index.tsx ✅         # Home/Community feed (placeholder)
-│   ├── wardrobe.tsx ✅      # Wardrobe screen (placeholder)
-│   ├── create.tsx ✅        # Create outfit screen (placeholder)
-│   └── profile.tsx ✅       # User profile with logout (IMPLEMENTED)
+│   ├── index.tsx ✅         # Home/Community feed (Stage 6)
+│   ├── wardrobe.tsx ✅      # Wardrobe screen (IMPLEMENTED - Stage 3)
+│   ├── outfits.tsx 🚧       # Saved outfits collection (Stage 4.5 - IN PROGRESS)
+│   └── profile.tsx ✅       # User profile with logout (IMPLEMENTED - Stage 2)
 ├── (modals)/ 🚧            # Modal screens (Stage 2+)
 │   ├── add-item.tsx 🚧     # Add wardrobe item modal
 │   ├── outfit-ai.tsx 🚧    # AI outfit generation
 │   ├── subscription.tsx 🚧 # Subscription management
 │   └── settings.tsx 🚧     # App settings
-├── outfit/ 🚧              # Outfit screens (Stage 4)
-│   ├── [id].tsx 🚧         # Outfit detail/edit screen
-│   └── editor.tsx            # Outfit editor canvas
+├── outfit/ ✅              # Outfit screens (Stage 4 + 4.5)
+│   ├── create.tsx ✅        # Create outfit screen (moved from tabs, Stage 4)
+│   ├── [id].tsx 🚧         # Outfit detail/view screen (Stage 4.5)
+│   └── edit.tsx 🚧         # Outfit editor (Stage 4.5)
 ├── item/
 │   └── [id].tsx              # Item detail screen
 ├── onboarding/
@@ -157,12 +162,13 @@ components/
 │   ├── ItemFilter.tsx
 │   ├── CategoryPicker.tsx
 │   └── ColorPicker.tsx
-├── outfit/
-│   ├── Canvas.tsx            # Drag & drop canvas
-│   ├── CategoryCarousel.tsx  # Horizontal item carousel
-│   ├── OutfitCard.tsx
-│   ├── BackgroundPicker.tsx
-│   └── TransformControls.tsx # Scale/rotate controls
+├── outfit/ ✅
+│   ├── Canvas.tsx ✅          # Drag & drop canvas (Stage 4)
+│   ├── CategoryCarousel.tsx ✅ # Horizontal item carousel (Stage 4)
+│   ├── OutfitCard.tsx 🚧      # Outfit preview card (Stage 4.5)
+│   ├── OutfitGrid.tsx 🚧      # Grid of outfit cards (Stage 4.5)
+│   ├── BackgroundPicker.tsx ✅ # Background selector (Stage 4)
+│   └── TransformControls.tsx ✅ # Scale/rotate controls (Stage 4)
 ├── community/
 │   ├── PostCard.tsx
 │   ├── FeedList.tsx

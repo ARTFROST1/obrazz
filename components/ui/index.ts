@@ -6,3 +6,6 @@ export type { InputProps } from './Input';
 
 export { Loader } from './Loader';
 export type { LoaderProps } from './Loader';
+
+export { FAB } from './FAB';
+export type { FABProps } from './FAB';

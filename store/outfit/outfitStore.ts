@@ -1,0 +1,286 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
+
+interface HistoryState {
+  items: OutfitItem[];
+  background: OutfitBackground;
+}
+
+interface OutfitState {
+  // Current outfit being created/edited
+  currentOutfit: Partial<Outfit> | null;
+  currentItems: OutfitItem[];
+  currentBackground: OutfitBackground;
+  canvasSettings: CanvasSettings;
+
+  // Saved outfits
+  outfits: Outfit[];
+
+  // UI state
+  isLoading: boolean;
+  error: string | null;
+
+  // Undo/Redo
+  history: HistoryState[];
+  historyIndex: number;
+  maxHistorySize: number;
+
+  // Actions
+  setCurrentOutfit: (outfit: Partial<Outfit> | null) => void;
+  addItemToCanvas: (item: OutfitItem) => void;
+  updateItemTransform: (itemId: string, transform: Partial<OutfitItem['transform']>) => void;
+  removeItemFromCanvas: (itemId: string) => void;
+  setItemVisibility: (itemId: string, isVisible: boolean) => void;
+  setBackground: (background: OutfitBackground) => void;
+  updateCanvasSettings: (settings: Partial<CanvasSettings>) => void;
+
+  // Outfit management
+  setOutfits: (outfits: Outfit[]) => void;
+  addOutfit: (outfit: Outfit) => void;
+  updateOutfit: (id: string, updates: Partial<Outfit>) => void;
+  deleteOutfit: (id: string) => void;
+
+  // History
+  pushHistory: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+  clearHistory: () => void;
+
+  // Reset
+  resetCurrentOutfit: () => void;
+  clearCanvas: () => void;
+
+  // Loading & Error
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+}
+
+const defaultBackground: OutfitBackground = {
+  type: 'color',
+  value: '#FFFFFF',
+  opacity: 1,
+};
+
+const defaultCanvasSettings: CanvasSettings = {
+  width: 300,
+  height: 400,
+  aspectRatio: '3:4',
+  showGrid: false,
+  snapToGrid: false,
+  gridSize: 20,
+};
+
+export const useOutfitStore = create<OutfitState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      currentOutfit: null,
+      currentItems: [],
+      currentBackground: defaultBackground,
+      canvasSettings: defaultCanvasSettings,
+      outfits: [],
+      isLoading: false,
+      error: null,
+      history: [],
+      historyIndex: -1,
+      maxHistorySize: 20,
+
+      // Current outfit actions
+      setCurrentOutfit: (outfit) => {
+        set({
+          currentOutfit: outfit,
+          currentItems: outfit?.items || [],
+          currentBackground: outfit?.background || defaultBackground,
+          error: null,
+        });
+      },
+
+      addItemToCanvas: (item) => {
+        const currentItems = get().currentItems;
+
+        // Check if item already exists
+        const existingIndex = currentItems.findIndex((i) => i.itemId === item.itemId);
+
+        if (existingIndex >= 0) {
+          // Update existing item
+          const updatedItems = [...currentItems];
+          updatedItems[existingIndex] = item;
+          set({ currentItems: updatedItems });
+        } else {
+          // Add new item
+          set({ currentItems: [...currentItems, item] });
+        }
+
+        get().pushHistory();
+      },
+
+      updateItemTransform: (itemId, transform) => {
+        const currentItems = get().currentItems;
+        const updatedItems = currentItems.map((item) =>
+          item.itemId === itemId
+            ? { ...item, transform: { ...item.transform, ...transform } }
+            : item,
+        );
+        set({ currentItems: updatedItems });
+        get().pushHistory();
+      },
+
+      removeItemFromCanvas: (itemId) => {
+        const currentItems = get().currentItems;
+        set({ currentItems: currentItems.filter((item) => item.itemId !== itemId) });
+        get().pushHistory();
+      },
+
+      setItemVisibility: (itemId, isVisible) => {
+        const currentItems = get().currentItems;
+        const updatedItems = currentItems.map((item) =>
+          item.itemId === itemId ? { ...item, isVisible } : item,
+        );
+        set({ currentItems: updatedItems });
+      },
+
+      setBackground: (background) => {
+        set({ currentBackground: background });
+        get().pushHistory();
+      },
+
+      updateCanvasSettings: (settings) => {
+        set({
+          canvasSettings: {
+            ...get().canvasSettings,
+            ...settings,
+          },
+        });
+      },
+
+      // Outfit management
+      setOutfits: (outfits) => {
+        set({ outfits, error: null });
+      },
+
+      addOutfit: (outfit) => {
+        set({ outfits: [outfit, ...get().outfits] });
+      },
+
+      updateOutfit: (id, updates) => {
+        const outfits = get().outfits;
+        set({
+          outfits: outfits.map((outfit) =>
+            outfit.id === id ? { ...outfit, ...updates, updatedAt: new Date() } : outfit,
+          ),
+        });
+      },
+
+      deleteOutfit: (id) => {
+        set({ outfits: get().outfits.filter((outfit) => outfit.id !== id) });
+      },
+
+      // History management
+      pushHistory: () => {
+        const { currentItems, currentBackground, history, historyIndex, maxHistorySize } = get();
+
+        const newHistoryState: HistoryState = {
+          items: JSON.parse(JSON.stringify(currentItems)),
+          background: JSON.parse(JSON.stringify(currentBackground)),
+        };
+
+        // Remove any history after current index (if we're not at the end)
+        const newHistory = history.slice(0, historyIndex + 1);
+
+        // Add new state
+        newHistory.push(newHistoryState);
+
+        // Limit history size
+        if (newHistory.length > maxHistorySize) {
+          newHistory.shift();
+        }
+
+        set({
+          history: newHistory,
+          historyIndex: newHistory.length - 1,
+        });
+      },
+
+      undo: () => {
+        const { history, historyIndex } = get();
+
+        if (historyIndex > 0) {
+          const newIndex = historyIndex - 1;
+          const state = history[newIndex];
+
+          set({
+            currentItems: JSON.parse(JSON.stringify(state.items)),
+            currentBackground: JSON.parse(JSON.stringify(state.background)),
+            historyIndex: newIndex,
+          });
+        }
+      },
+
+      redo: () => {
+        const { history, historyIndex } = get();
+
+        if (historyIndex < history.length - 1) {
+          const newIndex = historyIndex + 1;
+          const state = history[newIndex];
+
+          set({
+            currentItems: JSON.parse(JSON.stringify(state.items)),
+            currentBackground: JSON.parse(JSON.stringify(state.background)),
+            historyIndex: newIndex,
+          });
+        }
+      },
+
+      canUndo: () => {
+        const { historyIndex } = get();
+        return historyIndex > 0;
+      },
+
+      canRedo: () => {
+        const { history, historyIndex } = get();
+        return historyIndex < history.length - 1;
+      },
+
+      clearHistory: () => {
+        set({ history: [], historyIndex: -1 });
+      },
+
+      // Reset
+      resetCurrentOutfit: () => {
+        set({
+          currentOutfit: null,
+          currentItems: [],
+          currentBackground: defaultBackground,
+          error: null,
+        });
+        get().clearHistory();
+      },
+
+      clearCanvas: () => {
+        set({ currentItems: [] });
+        get().pushHistory();
+      },
+
+      // Loading & Error
+      setLoading: (isLoading) => {
+        set({ isLoading });
+      },
+
+      setError: (error) => {
+        set({ error });
+      },
+    }),
+    {
+      name: 'outfit-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        outfits: state.outfits,
+        canvasSettings: state.canvasSettings,
+      }),
+    },
+  ),
+);

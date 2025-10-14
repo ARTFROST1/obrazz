@@ -4,6 +4,46 @@
 
 This document tracks all bugs, errors, and their solutions encountered during the development of the Obrazz application. Each entry includes error details, root cause analysis, and resolution steps.
 
+## Known Issues & Warnings
+
+### ISSUE-001: Missing Outfits Collection Screen
+
+**Date:** 2025-01-14  
+**Severity:** High (Architecture Issue)  
+**Status:** Resolved (Documentation Updated)  
+**Component:** Navigation Structure  
+**Environment:** All
+
+**Description:**
+В текущей реализации отсутствует основная страница для просмотра коллекции сохранённых образов (Outfits). Таб "Create" занимает место в главной навигации, что противоречит документации и UX best practices.
+
+**Impact:**
+
+- Пользователь не может просматривать сохранённые образы
+- Нарушена архитектура из документации (должно быть 4 таба: Home, Wardrobe, Outfits, Profile)
+- Create функция занимает основной таб, хотя это вторичное действие
+
+**Resolution:**
+**Date Resolved:** 2025-01-14
+
+Создан Stage 4.5 для реорганизации навигации:
+
+1. Заменить таб "Create" на "Outfits" с коллекцией образов
+2. Перенести create.tsx в stack screen `/outfit/create`
+3. Добавить FAB (Floating Action Button) для создания образов
+4. Добавить кнопку в хедер как альтернативный способ
+
+**Documentation:**
+
+- `Docs/STAGE_4.5_OUTFITS_NAVIGATION_PLAN.md` - детальный план реализации
+- `Docs/STAGE_4.5_SUMMARY.md` - краткое описание изменений
+- Обновлены все основные документы (Implementation.md, PRDobrazz.md, AppMapobrazz.md, UI_UX_doc.md)
+
+**Next Steps:**
+Реализация согласно плану Stage 4.5 (оценка: 3-5 дней)
+
+---
+
 ## Bug Entry Template
 
 ```markdown
@@ -767,6 +807,220 @@ import { Season, StyleTag } from '../../types/models/user';
 
 - services/wardrobe/itemService.ts
 - tsconfig.json (for future alias updates)
+
+---
+
+## Stage 4 Issues - RESOLVED
+
+### BUG-S4-001: Missing GestureHandlerRootView Wrapper
+
+**Date:** 2025-01-14
+**Severity:** Critical
+**Status:** Resolved
+**Component:** Gesture Handler / Navigation
+**Environment:** All
+
+**Description:**
+GestureDetector components throwing error: "GestureDetector must be used as a descendant of GestureHandlerRootView"
+
+**Error Messages/Logs:**
+
+```
+ERROR  [Error: GestureDetector must be used as a descendant of GestureHandlerRootView. Otherwise the gestures will not be recognized.]
+```
+
+**Root Cause:**
+The app's root layout was not wrapped with `GestureHandlerRootView`, which is required for React Native Gesture Handler to work properly.
+
+**Solution:**
+Wrapped the root navigation stack with `GestureHandlerRootView` in `app/_layout.tsx`:
+
+**Before:**
+
+```typescript
+return (
+  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <Stack screenOptions={{ headerShown: false }}>
+      ...
+    </Stack>
+  </ThemeProvider>
+);
+```
+
+**After:**
+
+```typescript
+return (
+  <GestureHandlerRootView style={{ flex: 1 }}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }}>
+        ...
+      </Stack>
+    </ThemeProvider>
+  </GestureHandlerRootView>
+);
+```
+
+**Prevention:**
+
+- Always wrap app root with GestureHandlerRootView when using Gesture Handler
+- Check installation documentation for required setup steps
+
+**Related Files:**
+
+- app/\_layout.tsx
+
+---
+
+### BUG-S4-002: Reanimated Shared Value Warnings
+
+**Date:** 2025-01-14
+**Severity:** Medium
+**Status:** Resolved
+**Component:** Reanimated / Gestures
+**Environment:** All
+
+**Description:**
+Multiple warnings about using shared value's `.value` inside reanimated inline style. This occurred when mixing React state with Reanimated shared values.
+
+**Error Messages/Logs:**
+
+```
+WARN  It looks like you might be using shared value's .value inside reanimated inline style.
+If you want a component to update when shared value changes you should use the shared value
+directly instead of its current state represented by `.value`.
+```
+
+**Root Cause:**
+Used React `useState` for tracking gesture start values instead of shared values. This caused improper value access patterns in gesture handlers.
+
+**Solution:**
+Replaced React state with Reanimated shared values for all gesture tracking:
+
+**Before:**
+
+```typescript
+const [startValues, setStartValues] = useState({
+  x: transform.x,
+  y: transform.y,
+  scale: transform.scale,
+  rotation: transform.rotation,
+});
+
+const panGesture = Gesture.Pan()
+  .onStart(() => {
+    runOnJS(setStartValues)({...});
+  })
+  .onUpdate((event) => {
+    translateX.value = startValues.x + event.translationX;
+  });
+```
+
+**After:**
+
+```typescript
+const startX = useSharedValue(0);
+const startY = useSharedValue(0);
+const startScale = useSharedValue(1);
+const startRotation = useSharedValue(0);
+
+const panGesture = Gesture.Pan()
+  .onStart(() => {
+    startX.value = translateX.value;
+    startY.value = translateY.value;
+  })
+  .onUpdate((event) => {
+    translateX.value = startX.value + event.translationX;
+  });
+```
+
+**Additional Changes:**
+
+- Removed unused `useState` import
+- Added `'worklet'` directive to `snapToGridValue` helper function
+
+**Prevention:**
+
+- Use shared values for all gesture-related state
+- Avoid mixing React state with Reanimated worklets
+- Always use `useSharedValue` for values that update during gestures
+
+**Related Files:**
+
+- components/outfit/OutfitCanvas.tsx
+
+---
+
+### BUG-S4-003: Missing Outfits Table Columns
+
+**Date:** 2025-01-14
+**Severity:** Critical
+**Status:** Resolved
+**Component:** Database Schema / Outfit Service
+**Environment:** All
+
+**Description:**
+Database schema for `outfits` table was missing required columns for Stage 4, causing outfit creation to fail with error: "Could not find the 'background' column of 'outfits' in the schema cache"
+
+**Error Messages/Logs:**
+
+```
+ERROR  Error creating outfit: {"code": "PGRST204", "details": null, "hint": null, "message": "Could not find the 'background' column of 'outfits' in the schema cache"}
+ERROR  Error saving outfit: [Error: Failed to create outfit: Could not find the 'background' column of 'outfits' in the schema cache]
+```
+
+**Root Cause:**
+
+1. The `outfits` table schema from earlier stages didn't include all columns needed for Stage 4
+2. Service was using camelCase TypeScript names instead of snake_case database column names
+
+**Solution:**
+
+**1. Applied database migration** to add missing columns:
+
+```sql
+-- Added columns: items, background, visibility, styles, seasons, occasions,
+-- tags, is_favorite, wear_count, last_worn_at, views_count, shares_count,
+-- canvas_settings, ai_metadata
+-- Renamed 'name' column to 'title'
+-- Added indexes for performance
+```
+
+**2. Fixed service mapping** in `services/outfit/outfitService.ts`:
+
+**Before:**
+
+```typescript
+const newOutfit: Partial<Outfit> = {
+  userId, // ❌ camelCase
+  title: params.title,
+  isAiGenerated: false, // ❌ camelCase
+  // ...
+};
+```
+
+**After:**
+
+```typescript
+const newOutfit = {
+  user_id: userId, // ✅ snake_case
+  title: params.title,
+  is_ai_generated: false, // ✅ snake_case
+  // All fields properly mapped
+};
+```
+
+**Prevention:**
+
+- Always use snake_case for database column names in Supabase
+- Create comprehensive migrations before implementing features
+- Test database operations early in development
+- Document required schema changes in Implementation.md
+
+**Related Files:**
+
+- services/outfit/outfitService.ts (field mapping fixed)
+- Database migration: `update_outfits_schema_stage_4_safe`
 
 ---
 

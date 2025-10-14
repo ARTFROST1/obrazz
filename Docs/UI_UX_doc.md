@@ -1,9 +1,11 @@
 # UI/UX Design System - Obrazz
 
 ## Design Philosophy
+
 Obrazz следует принципам минималистичного дизайна с фокусом на визуальный контент. Интерфейс должен быть чистым, интуитивным и не отвлекать от главного — одежды и образов пользователя.
 
 ## Visual Style
+
 - **Концепция:** Минимализм, чистые линии, много воздуха
 - **Вдохновение:** Whering, Pinterest, Figma
 - **Приоритет:** Визуальный контент над UI элементами
@@ -11,6 +13,7 @@ Obrazz следует принципам минималистичного диз
 ## Color Palette
 
 ### Light Theme (Default)
+
 ```
 Primary Colors:
 - Background: #FFFFFF
@@ -38,6 +41,7 @@ Borders & Dividers:
 ```
 
 ### Dark Theme
+
 ```
 Primary Colors:
 - Background: #000000
@@ -67,6 +71,7 @@ Borders & Dividers:
 ## Typography
 
 ### Font Family
+
 ```
 Primary Font: Inter
 Fallback: System Default
@@ -74,6 +79,7 @@ Monospace: SF Mono (iOS), Roboto Mono (Android)
 ```
 
 ### Font Sizes & Weights
+
 ```
 Display:
 - Large: 34px, Bold (600)
@@ -101,13 +107,16 @@ Button:
 ```
 
 ### Line Heights
+
 - Display: 1.2
 - Headlines: 1.3
 - Body: 1.5
 - Caption: 1.4
 
 ## Spacing System
+
 Using 4px base unit:
+
 ```
 xxs: 4px
 xs: 8px
@@ -122,16 +131,19 @@ xxxl: 64px
 ## Grid System
 
 ### Mobile Grid
+
 - Columns: 4
 - Gutter: 16px
 - Margin: 16px
 
 ### Tablet Grid
+
 - Columns: 8
 - Gutter: 24px
 - Margin: 24px
 
 ### Item Grid (Wardrobe)
+
 - Mobile: 2 columns
 - Tablet: 3-4 columns
 - Desktop: 4-6 columns
@@ -142,6 +154,7 @@ xxxl: 64px
 ### Buttons
 
 #### Primary Button
+
 ```
 Height: 52px
 Border Radius: 26px
@@ -156,6 +169,7 @@ States:
 ```
 
 #### Secondary Button
+
 ```
 Height: 52px
 Border Radius: 26px
@@ -166,6 +180,7 @@ Padding: 16px 32px
 ```
 
 #### Icon Button
+
 ```
 Size: 44x44px
 Border Radius: 22px
@@ -174,18 +189,36 @@ Icon Size: 24px
 ```
 
 #### Floating Action Button (FAB)
+
 ```
 Size: 56x56px
 Border Radius: 28px
 Background: Primary Color
-Icon: 24px, Inverse Text
+Icon: 24px, Inverse Text (add/plus icon)
 Shadow: 0px 8px 24px rgba(0,0,0,0.15)
 Position: Bottom-right, 16px margin
+Z-index: Above all content, below modals
+
+Usage:
+- Outfits screen: Create new outfit (navigates to /outfit/create)
+- Wardrobe screen: Add new item (navigates to add item screen)
+
+States:
+- Default: 100% opacity, scale(1)
+- Pressed: 95% opacity, scale(0.95)
+- Hidden: When scrolling down (optional UX enhancement)
+- Visible: When scrolling up or at top
+
+Animation:
+- Entrance: Scale from 0 + fade in, 250ms, decelerate curve
+- Press: Scale to 0.95, 150ms
+- Hide/Show: Slide down/up with fade, 200ms
 ```
 
 ### Cards
 
 #### Item Card (Wardrobe)
+
 ```
 Aspect Ratio: 3:4
 Border Radius: 12px
@@ -195,16 +228,40 @@ Image Padding: 8px
 Hover/Press: scale(0.98), shadow increase
 ```
 
-#### Outfit Card
+#### Outfit Card (Saved Outfits Grid)
+
 ```
-Aspect Ratio: 1:1
+Aspect Ratio: 3:4 (same as canvas)
 Border Radius: 16px
 Background: Card Color
-Padding: 12px
+Padding: 0
 Shadow: 0px 4px 12px rgba(0,0,0,0.08)
+
+Structure:
+- Preview Image: Full card height, composited outfit collage
+- Info Overlay (bottom): Gradient overlay for text readability
+  - Title: Body Medium, Primary Text (white on dark gradient)
+  - Visibility Badge: Small pill (Private/Shared/Public)
+  - Like Count: If shared, show count with heart icon
+- Quick Action Menu: Three-dot menu icon (top-right)
+
+Interactions:
+- Tap: Navigate to outfit detail/view screen
+- Long Press: Show context menu (Edit, Duplicate, Share, Delete)
+- Three-dot menu: Quick actions dropdown
+
+States:
+- Default: Shadow normal
+- Pressed: scale(0.98), shadow increase
+- Selected: 2px Primary Color border (multi-select mode)
+
+Responsive:
+- Mobile (portrait): 2 columns, 12px gap
+- Tablet (landscape): 3-4 columns, 16px gap
 ```
 
 #### Post Card (Community)
+
 ```
 Width: 100%
 Border Radius: 16px
@@ -222,16 +279,25 @@ Structure:
 ### Navigation
 
 #### Tab Bar
+
 ```
+Tabs: 4 (Home, Wardrobe, Outfits, Profile)
 Height: 83px (49px bar + 34px safe area)
 Background: Surface Color with blur
 Border Top: 1px solid Border Color
 Icons: 28px
 Label: Caption Small
 Active Indicator: 4px dot below icon
+
+Tab Icons:
+- Home: home / home-outline
+- Wardrobe: shirt / shirt-outline
+- Outfits: albums / albums-outline
+- Profile: person / person-outline
 ```
 
 #### Header
+
 ```
 Height: 44px + status bar
 Background: Background Color
@@ -243,6 +309,7 @@ Back Button: Chevron left icon
 ### Forms
 
 #### Text Input
+
 ```
 Height: 52px
 Border Radius: 12px
@@ -260,6 +327,7 @@ States:
 ```
 
 #### Select/Picker
+
 ```
 Height: 52px
 Border Radius: 12px
@@ -269,6 +337,7 @@ Chevron Icon: Right aligned
 ```
 
 #### Checkbox/Radio
+
 ```
 Size: 24x24px
 Border Radius: 6px (checkbox), 12px (radio)
@@ -279,6 +348,7 @@ Check Mark: 3px thick
 ### Modals & Sheets
 
 #### Bottom Sheet
+
 ```
 Max Height: 90% screen
 Border Radius: 24px top corners
@@ -289,6 +359,7 @@ Animation: Slide up with spring
 ```
 
 #### Modal
+
 ```
 Width: 90% (max 400px)
 Border Radius: 16px
@@ -301,6 +372,7 @@ Animation: Fade + scale from 0.9
 ### Lists
 
 #### List Item
+
 ```
 Height: 60px minimum
 Padding: 16px horizontal
@@ -311,6 +383,7 @@ Press State: Background to Surface Color
 ### Loading States
 
 #### Skeleton
+
 ```
 Background: Linear gradient animated
 Border Radius: Match component
@@ -318,6 +391,7 @@ Animation: Shimmer effect, 1.5s duration
 ```
 
 #### Spinner
+
 ```
 Size: 24px (small), 36px (medium), 48px (large)
 Color: Primary Color
@@ -327,6 +401,7 @@ Animation: Rotate 360deg, 1s, ease-in-out
 ### Canvas (Outfit Creator)
 
 #### Canvas Area
+
 ```
 Aspect Ratio: 3:4
 Background: Selected background or gradient
@@ -335,6 +410,7 @@ Grid: Optional 3x3 guide lines
 ```
 
 #### Item on Canvas
+
 ```
 Initial Scale: Fit to category slot
 Min Scale: 0.5x
@@ -346,6 +422,7 @@ Handles: Corner dots for resize
 ```
 
 #### Category Carousel
+
 ```
 Height: 120px
 Item Size: 80x80px
@@ -359,6 +436,7 @@ Padding: 16px
 ## Animation Guidelines
 
 ### Timing
+
 ```
 Instant: 0ms (state changes)
 Fast: 150ms (micro-interactions)
@@ -367,6 +445,7 @@ Slow: 350ms (complex animations)
 ```
 
 ### Easing Curves
+
 ```
 Standard: cubic-bezier(0.4, 0, 0.2, 1)
 Decelerate: cubic-bezier(0, 0, 0.2, 1)
@@ -375,6 +454,7 @@ Spring: tension: 170, friction: 26
 ```
 
 ### Common Animations
+
 - **Page Transition:** Slide + fade, 250ms
 - **Modal Open:** Fade overlay + scale content, 250ms
 - **Button Press:** Scale 0.98, 150ms
@@ -385,20 +465,24 @@ Spring: tension: 170, friction: 26
 ## Gesture Interactions
 
 ### Swipe Gestures
+
 - **Horizontal Swipe:** Navigate carousel, delete item
 - **Vertical Swipe:** Scroll, dismiss modal
 - **Velocity Threshold:** 800px/s
 
 ### Pinch & Rotate
+
 - **Pinch:** Scale items on canvas
 - **Rotate:** Two-finger rotation on canvas
 - **Sensitivity:** 1:1 mapping
 
 ### Long Press
+
 - **Duration:** 500ms
 - **Feedback:** Haptic + visual scale
 
 ### Drag & Drop
+
 - **Activation:** Long press or immediate
 - **Feedback:** Scale 1.05, shadow increase
 - **Drop Zones:** Highlight on hover
@@ -406,6 +490,7 @@ Spring: tension: 170, friction: 26
 ## Responsive Design
 
 ### Breakpoints
+
 ```
 Mobile: 0-599px
 Tablet: 600-1023px
@@ -413,6 +498,7 @@ Desktop: 1024px+
 ```
 
 ### Adaptive Layouts
+
 - **Navigation:** Bottom tabs (mobile), side rail (tablet+)
 - **Grid Columns:** 2 (mobile), 3-4 (tablet), 4-6 (desktop)
 - **Modals:** Full screen (mobile), centered (tablet+)
@@ -421,21 +507,25 @@ Desktop: 1024px+
 ## Accessibility
 
 ### Touch Targets
+
 - Minimum size: 44x44px
 - Spacing between targets: 8px minimum
 
 ### Color Contrast
+
 - Normal text: 4.5:1 minimum
 - Large text: 3:1 minimum
 - Icons: 3:1 minimum
 
 ### Screen Reader Support
+
 - All interactive elements have labels
 - Image alt texts for wardrobe items
 - Announce state changes
 - Logical focus order
 
 ### Motion Preferences
+
 - Respect reduce motion settings
 - Provide alternative transitions
 - Disable auto-playing animations
@@ -443,19 +533,23 @@ Desktop: 1024px+
 ## Platform-Specific Considerations
 
 ### iOS
+
 - Use native iOS patterns where applicable
 - Safe area insets for notch devices
 - Haptic feedback for interactions
 - Support Dynamic Type
 
 ### Android
+
 - Material Design influences
 - Back button handling
 - Navigation drawer option
 - Support display cutouts
 
 ## Icon Library
+
 Using Expo Vector Icons (Ionicons as primary):
+
 ```
 Common Icons:
 - Home: home-outline / home
@@ -481,6 +575,7 @@ Common Icons:
 ## Error States
 
 ### Empty States
+
 ```
 Icon: 64px, Secondary Text Color
 Title: H2, Primary Text
@@ -489,6 +584,7 @@ CTA Button: Primary Button (optional)
 ```
 
 ### Error Messages
+
 ```
 Background: Error Color with 10% opacity
 Border: 1px solid Error Color
@@ -499,6 +595,7 @@ Border Radius: 8px
 ```
 
 ### Validation Feedback
+
 - Inline below input field
 - Red text for errors
 - Green checkmark for success
@@ -507,6 +604,7 @@ Border Radius: 8px
 ## Loading & Progress
 
 ### Progress Bar
+
 ```
 Height: 4px
 Background: Surface Color
@@ -516,6 +614,7 @@ Animation: Smooth transition
 ```
 
 ### Upload Progress
+
 ```
 Circular progress: 48px
 Stroke Width: 3px
@@ -527,17 +626,20 @@ Percentage Text: Center aligned
 ## Micro-interactions
 
 ### Like Animation
+
 - Heart scales up to 1.3x
 - Fills with red color
 - Particle burst effect
 - Duration: 350ms
 
 ### Add to Wardrobe
+
 - Item flies to wardrobe icon
 - Success checkmark appears
 - Duration: 500ms
 
 ### Pull to Refresh
+
 - Custom Lottie animation
 - Elastic overscroll
 - Haptic feedback on trigger
@@ -545,18 +647,21 @@ Percentage Text: Center aligned
 ## Performance Considerations
 
 ### Image Optimization
+
 - Lazy loading for off-screen images
 - Progressive image loading
 - Thumbnail placeholders
 - WebP format where supported
 
 ### Animation Performance
+
 - Use native driver
 - Avoid layout animations during scroll
 - GPU-accelerated transforms only
 - 60fps target for all animations
 
 ### List Performance
+
 - Virtualized lists for large datasets
 - Item height optimization
 - Minimal re-renders

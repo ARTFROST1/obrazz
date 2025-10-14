@@ -45,11 +45,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="create"
+        name="outfits"
         options={{
-          title: 'Create',
-          tabBarIcon: ({ color }) => <TabBarIcon name="plus-circle" color={color} />,
-          headerTitle: 'Create Outfit',
+          title: 'Outfits',
+          tabBarIcon: ({ color }) => <TabBarIcon name="th-large" color={color} />,
+          headerTitle: 'My Outfits',
         }}
       />
       <Tabs.Screen
