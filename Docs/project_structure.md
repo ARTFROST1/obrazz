@@ -191,7 +191,7 @@ services/
 ├── wardrobe/
 │   ├── itemService.ts        # Item CRUD operations
 │   ├── imageProcessor.ts     # Image manipulation
-│   └── backgroundRemover.ts  # Remove.bg integration
+│   └── backgroundRemover.ts  # Pixian.ai integration
 ├── outfit/
 │   ├── outfitService.ts      # Outfit management
 │   ├── aiGenerator.ts        # AI outfit generation
@@ -336,7 +336,8 @@ Required `.env` variables:
 ```
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
-EXPO_PUBLIC_REMOVE_BG_API_KEY=
+EXPO_PUBLIC_PIXIAN_API_ID=
+EXPO_PUBLIC_PIXIAN_API_SECRET=
 EXPO_PUBLIC_OPENAI_API_KEY=
 EXPO_PUBLIC_REVENUECAT_API_KEY=
 EXPO_PUBLIC_SENTRY_DSN=

@@ -11,7 +11,9 @@ interface EnvConfig {
   supabaseAnonKey: string;
 
   // APIs
-  removeBgApiKey: string;
+  pixianApiId: string;
+  pixianApiSecret: string;
+  pixianTestMode: boolean;
   openAiApiKey: string;
   aiServiceUrl: string;
 
@@ -77,7 +79,9 @@ export const env: EnvConfig = {
   supabaseAnonKey: getEnvValue('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
 
   // APIs
-  removeBgApiKey: getEnvValue('EXPO_PUBLIC_REMOVE_BG_API_KEY'),
+  pixianApiId: getEnvValue('EXPO_PUBLIC_PIXIAN_API_ID'),
+  pixianApiSecret: getEnvValue('EXPO_PUBLIC_PIXIAN_API_SECRET'),
+  pixianTestMode: getBooleanEnv('EXPO_PUBLIC_PIXIAN_TEST_MODE', true),
   openAiApiKey: getEnvValue('EXPO_PUBLIC_OPENAI_API_KEY'),
   aiServiceUrl: getEnvValue('EXPO_PUBLIC_AI_SERVICE_URL', 'http://localhost:3001'),
 
@@ -145,7 +149,9 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Export individual values for convenience
-export const REMOVE_BG_API_KEY = env.removeBgApiKey;
+export const PIXIAN_API_ID = env.pixianApiId;
+export const PIXIAN_API_SECRET = env.pixianApiSecret;
+export const PIXIAN_TEST_MODE = env.pixianTestMode;
 export const SUPABASE_URL = env.supabaseUrl;
 export const SUPABASE_ANON_KEY = env.supabaseAnonKey;
 

@@ -67,8 +67,8 @@
 - **Animations:** React Native Reanimated 4.x - Нативные 60fps анимации
 - **Documentation:** [https://docs.swmansion.com/react-native-reanimated/](https://docs.swmansion.com/react-native-reanimated/)
 
-- **Image Processing:** Remove.bg API - Автоматическое удаление фона
-- **Documentation:** [https://www.remove.bg/api](https://www.remove.bg/api)
+- **Image Processing:** Pixian.ai API - Автоматическое удаление фона
+- **Documentation:** [https://ru.pixian.ai/api](https://ru.pixian.ai/api)
 
 - **AI Services:** OpenAI API / Custom NestJS microservice - Генерация образов
 - **Documentation:** [https://platform.openai.com/docs](https://platform.openai.com/docs)
@@ -126,7 +126,7 @@
 - [x] Реализация добавления вещей из галереи (expo-image-picker)
 - [x] Настройка локального хранения изображений (expo-file-system)
 - [x] Создание формы метаданных для вещей (категория, цвет, стиль, сезон)
-- [x] Интеграция Remove.bg API для удаления фона
+- [x] Интеграция Pixian.ai API для удаления фона
 - [x] Реализация просмотра детальной информации о вещи
 - [x] Функционал редактирования метаданных вещи
 - [x] Реализация удаления вещей с подтверждением
@@ -349,7 +349,7 @@
 - [React Native Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/)
 - [NestJS Documentation](https://docs.nestjs.com/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-- [Remove.bg API Documentation](https://www.remove.bg/api)
+- [Pixian.ai API Documentation](https://ru.pixian.ai/api)
 
 ## Important Notes
 
