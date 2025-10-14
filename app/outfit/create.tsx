@@ -1,67 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  TextInput,
-  Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, Alert, TextInput, Dimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
 import { outfitService } from '@services/outfit/outfitService';
-import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
-import { CategoryCarousel } from '@components/outfit/CategoryCarousel';
-import { BackgroundPicker } from '@components/outfit/BackgroundPicker';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { OutfitItem } from '../../types/models/outfit';
+import { ItemSelectionStep, CompositionStep } from '@components/outfit';
+import { Text, TouchableOpacity } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CANVAS_WIDTH = SCREEN_WIDTH - 32;
-const CANVAS_HEIGHT = (CANVAS_WIDTH / 3) * 4;
 
-const CATEGORIES: ItemCategory[] = [
-  'headwear',
-  'outerwear',
-  'tops',
-  'bottoms',
-  'footwear',
-  'accessories',
-  'bags',
-];
-
+/**
+ * CreateScreen - Two-step outfit creation process
+ * Step 1: Select items from wardrobe by category
+ * Step 2: Compose items on canvas with drag & drop
+ */
 export default function CreateScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
 
   const { user } = useAuthStore();
-  const { items: wardrobeItems } = useWardrobeStore();
   const {
+    creationStep,
     currentItems,
-    currentBackground,
-    canvasSettings,
-    addItemToCanvas,
-    updateItemTransform,
-    removeItemFromCanvas,
-    setBackground,
     setCurrentOutfit,
     resetCurrentOutfit,
-    clearCanvas,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
+    setCreationStep,
+    goBackToSelection,
   } = useOutfitStore();
 
-  // const [selectedCategory] = useState<ItemCategory>('tops');
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [lockedCategories, setLockedCategories] = useState<Set<ItemCategory>>(new Set());
-  const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [outfitTitle, setOutfitTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -86,6 +52,8 @@ export default function CreateScreen() {
       const outfit = await outfitService.getOutfitById(outfitId);
       setCurrentOutfit(outfit);
       setOutfitTitle(outfit.title || '');
+      // Skip Step 1 when editing - go straight to composition
+      setCreationStep(2);
     } catch (error) {
       console.error('Error loading outfit:', error);
       Alert.alert('Error', 'Failed to load outfit for editing');
@@ -93,89 +61,39 @@ export default function CreateScreen() {
     }
   };
 
-  // Get items for each category
-  const getItemsByCategory = useCallback(
-    (category: ItemCategory) => {
-      return wardrobeItems.filter((item) => item.category === category);
-    },
-    [wardrobeItems],
-  );
+  // Navigation handlers
+  const handleBackFromStep1 = () => {
+    if (isEditMode) {
+      router.back();
+    } else {
+      // Confirm if user has selected items
+      Alert.alert(
+        'Discard Changes?',
+        'Are you sure you want to go back? Your selections will be lost.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Discard',
+            style: 'destructive',
+            onPress: () => {
+              resetCurrentOutfit();
+              router.back();
+            },
+          },
+        ],
+      );
+    }
+  };
 
-  // Get current outfit item for a category
-  const getCategoryItem = useCallback(
-    (category: ItemCategory) => {
-      return currentItems.find((item) => item.category === category);
-    },
-    [currentItems],
-  );
+  const handleNextToComposition = () => {
+    // Store handles the transition
+    setCreationStep(2);
+  };
 
-  // Handle item selection from carousel
-  const handleItemSelect = useCallback(
-    (category: ItemCategory, item: WardrobeItem | null) => {
-      if (!item) {
-        // Remove item from canvas
-        const existingItem = getCategoryItem(category);
-        if (existingItem) {
-          removeItemFromCanvas(existingItem.itemId);
-        }
-        return;
-      }
+  const handleBackToSelection = () => {
+    goBackToSelection();
+  };
 
-      // Calculate initial position based on category
-      const categoryIndex = CATEGORIES.indexOf(category);
-      const centerX = CANVAS_WIDTH / 2 - 50;
-      const spacing = CANVAS_HEIGHT / (CATEGORIES.length + 1);
-      const centerY = spacing * (categoryIndex + 1) - 50;
-
-      const newOutfitItem: OutfitItem = {
-        itemId: item.id,
-        item,
-        category,
-        slot: categoryIndex,
-        transform: {
-          x: centerX,
-          y: centerY,
-          scale: 1,
-          rotation: 0,
-          zIndex: categoryIndex,
-        },
-        isVisible: true,
-      };
-
-      addItemToCanvas(newOutfitItem);
-    },
-    [getCategoryItem, addItemToCanvas, removeItemFromCanvas],
-  );
-
-  // Handle randomize
-  const handleRandomize = useCallback(() => {
-    CATEGORIES.forEach((category) => {
-      // Skip locked categories
-      if (lockedCategories.has(category)) return;
-
-      const categoryItems = getItemsByCategory(category);
-      if (categoryItems.length === 0) return;
-
-      // Pick random item
-      const randomItem = categoryItems[Math.floor(Math.random() * categoryItems.length)];
-      handleItemSelect(category, randomItem);
-    });
-  }, [lockedCategories, getItemsByCategory, handleItemSelect]);
-
-  // Toggle category lock
-  const toggleCategoryLock = useCallback((category: ItemCategory) => {
-    setLockedCategories((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
-    });
-  }, []);
-
-  // Handle save
   const handleSave = useCallback(async () => {
     if (!user?.id) {
       Alert.alert('Error', 'You must be logged in to save outfits');
@@ -195,6 +113,8 @@ export default function CreateScreen() {
 
     setIsSaving(true);
     try {
+      const { currentBackground } = useOutfitStore.getState();
+
       if (isEditMode && id) {
         // Update existing outfit
         await outfitService.updateOutfit(id, {
@@ -208,7 +128,8 @@ export default function CreateScreen() {
             text: 'OK',
             onPress: () => {
               setShowSaveModal(false);
-              router.back(); // Go back to outfits screen
+              resetCurrentOutfit();
+              router.back();
             },
           },
         ]);
@@ -228,7 +149,7 @@ export default function CreateScreen() {
               setShowSaveModal(false);
               setOutfitTitle('');
               resetCurrentOutfit();
-              router.back(); // Go back to outfits screen
+              router.back();
             },
           },
         ]);
@@ -239,119 +160,16 @@ export default function CreateScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, currentItems, currentBackground, outfitTitle, isEditMode, id, resetCurrentOutfit]);
+  }, [user, currentItems, outfitTitle, isEditMode, id, resetCurrentOutfit]);
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{isEditMode ? 'Edit Outfit' : 'Create Outfit'}</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={handleSave}
-            style={styles.saveButton}
-            disabled={currentItems.length === 0}
-          >
-            <Ionicons
-              name="checkmark"
-              size={24}
-              color={currentItems.length > 0 ? '#007AFF' : '#CCC'}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Canvas */}
-        <View style={styles.canvasContainer}>
-          <OutfitCanvas
-            items={currentItems}
-            background={currentBackground}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            onItemTransformUpdate={updateItemTransform}
-            onItemSelect={setSelectedItemId}
-            selectedItemId={selectedItemId}
-            showGrid={canvasSettings.showGrid}
-            snapToGrid={canvasSettings.snapToGrid}
-            gridSize={canvasSettings.gridSize}
-          />
-
-          {/* Canvas Controls */}
-          <View style={styles.canvasControls}>
-            <TouchableOpacity
-              onPress={() => undo()}
-              style={[styles.controlButton, !canUndo() && styles.controlButtonDisabled]}
-              disabled={!canUndo()}
-            >
-              <Ionicons name="arrow-undo" size={20} color={canUndo() ? '#000' : '#CCC'} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => redo()}
-              style={[styles.controlButton, !canRedo() && styles.controlButtonDisabled]}
-              disabled={!canRedo()}
-            >
-              <Ionicons name="arrow-redo" size={20} color={canRedo() ? '#000' : '#CCC'} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setShowBackgroundPicker(true)}
-              style={styles.controlButton}
-            >
-              <Ionicons name="color-palette-outline" size={20} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={clearCanvas} style={styles.controlButton}>
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            onPress={handleRandomize}
-            style={styles.randomButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="shuffle" size={20} color="#FFF" />
-            <Text style={styles.randomButtonText}>Randomize</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Category Carousels */}
-        <View style={styles.carouselsContainer}>
-          {CATEGORIES.map((category) => {
-            const categoryItems = getItemsByCategory(category);
-            const currentCategoryItem = getCategoryItem(category);
-
-            return (
-              <CategoryCarousel
-                key={category}
-                category={category}
-                items={categoryItems}
-                selectedItemId={currentCategoryItem?.itemId}
-                isLocked={lockedCategories.has(category)}
-                onItemSelect={(item) => handleItemSelect(category, item)}
-                onLockToggle={() => toggleCategoryLock(category)}
-              />
-            );
-          })}
-        </View>
-      </ScrollView>
-
-      {/* Background Picker */}
-      <BackgroundPicker
-        visible={showBackgroundPicker}
-        currentBackground={currentBackground}
-        onSelect={setBackground}
-        onClose={() => setShowBackgroundPicker(false)}
-      />
+      {/* Render appropriate step */}
+      {creationStep === 1 ? (
+        <ItemSelectionStep onNext={handleNextToComposition} onBack={handleBackFromStep1} />
+      ) : (
+        <CompositionStep onSave={handleSave} onBack={handleBackToSelection} />
+      )}
 
       {/* Save Modal */}
       {showSaveModal && (
@@ -387,56 +205,41 @@ export default function CreateScreen() {
 }
 
 const styles = StyleSheet.create({
-  actionButtons: {
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  canvasContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  canvasControls: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  carouselsContainer: {
-    paddingBottom: 40,
-    paddingHorizontal: 16,
-  },
   container: {
-    backgroundColor: '#fff',
     flex: 1,
+    backgroundColor: '#FFF',
   },
-  controlButton: {
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 20,
-    height: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    width: 40,
+    zIndex: 1000,
   },
-  controlButtonDisabled: {
-    opacity: 0.5,
+  saveModal: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 24,
+    width: SCREEN_WIDTH - 64,
   },
-  header: {
-    alignItems: 'center',
-    borderBottomColor: '#E5E5E5',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalTitle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  titleInput: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    color: '#000',
+    fontSize: 16,
     paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
-  headerActions: {
-    alignItems: 'center',
+  modalButtons: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 24,
   },
   modalButton: {
     alignItems: 'center',
@@ -454,64 +257,5 @@ const styles = StyleSheet.create({
   },
   modalButtonTextPrimary: {
     color: '#FFF',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    color: '#000',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  randomButton: {
-    alignItems: 'center',
-    backgroundColor: '#000',
-    borderRadius: 26,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: 14,
-  },
-  randomButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    padding: 8,
-  },
-  saveModal: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 24,
-    width: SCREEN_WIDTH - 64,
-  },
-  scrollContent: {
-    paddingTop: 24,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  title: {
-    color: '#000',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  titleInput: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    color: '#000',
-    fontSize: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
   },
 });

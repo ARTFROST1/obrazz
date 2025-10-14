@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
+import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
 interface HistoryState {
   items: OutfitItem[];
@@ -14,6 +15,10 @@ interface OutfitState {
   currentItems: OutfitItem[];
   currentBackground: OutfitBackground;
   canvasSettings: CanvasSettings;
+
+  // Two-step creation process
+  creationStep: 1 | 2;
+  selectedItemsForCreation: Record<ItemCategory, WardrobeItem | null>;
 
   // Saved outfits
   outfits: Outfit[];
@@ -35,6 +40,14 @@ interface OutfitState {
   setItemVisibility: (itemId: string, isVisible: boolean) => void;
   setBackground: (background: OutfitBackground) => void;
   updateCanvasSettings: (settings: Partial<CanvasSettings>) => void;
+
+  // Two-step creation actions
+  setCreationStep: (step: 1 | 2) => void;
+  selectItemForCategory: (category: ItemCategory, item: WardrobeItem | null) => void;
+  getSelectedItemsCount: () => number;
+  confirmItemSelection: () => void;
+  clearItemSelection: () => void;
+  goBackToSelection: () => void;
 
   // Outfit management
   setOutfits: (outfits: Outfit[]) => void;
@@ -74,6 +87,18 @@ const defaultCanvasSettings: CanvasSettings = {
   gridSize: 20,
 };
 
+const emptySelectedItems: Record<ItemCategory, WardrobeItem | null> = {
+  headwear: null,
+  outerwear: null,
+  tops: null,
+  bottoms: null,
+  footwear: null,
+  accessories: null,
+  bags: null,
+  dresses: null,
+  suits: null,
+};
+
 export const useOutfitStore = create<OutfitState>()(
   persist(
     (set, get) => ({
@@ -82,6 +107,8 @@ export const useOutfitStore = create<OutfitState>()(
       currentItems: [],
       currentBackground: defaultBackground,
       canvasSettings: defaultCanvasSettings,
+      creationStep: 1,
+      selectedItemsForCreation: { ...emptySelectedItems },
       outfits: [],
       isLoading: false,
       error: null,
@@ -154,6 +181,101 @@ export const useOutfitStore = create<OutfitState>()(
             ...get().canvasSettings,
             ...settings,
           },
+        });
+      },
+
+      // Two-step creation actions
+      setCreationStep: (step) => {
+        set({ creationStep: step });
+      },
+
+      selectItemForCategory: (category, item) => {
+        set({
+          selectedItemsForCreation: {
+            ...get().selectedItemsForCreation,
+            [category]: item,
+          },
+        });
+      },
+
+      getSelectedItemsCount: () => {
+        const selected = get().selectedItemsForCreation;
+        return Object.values(selected).filter((item) => item !== null).length;
+      },
+
+      confirmItemSelection: () => {
+        // Convert selected items to OutfitItems with initial transforms
+        const selected = get().selectedItemsForCreation;
+        const categories: ItemCategory[] = [
+          'headwear',
+          'outerwear',
+          'tops',
+          'bottoms',
+          'footwear',
+          'accessories',
+          'bags',
+        ];
+
+        const CANVAS_WIDTH = 300;
+        const CANVAS_HEIGHT = 400;
+
+        const outfitItems: OutfitItem[] = [];
+        let slotIndex = 0;
+
+        categories.forEach((category) => {
+          const item = selected[category];
+          if (item) {
+            const categoryIndex = categories.indexOf(category);
+            const centerX = CANVAS_WIDTH / 2 - 50;
+            const spacing = CANVAS_HEIGHT / (categories.length + 1);
+            const centerY = spacing * (categoryIndex + 1) - 50;
+
+            outfitItems.push({
+              itemId: item.id,
+              item,
+              category,
+              slot: slotIndex++,
+              transform: {
+                x: centerX,
+                y: centerY,
+                scale: 1,
+                rotation: 0,
+                zIndex: categoryIndex,
+              },
+              isVisible: true,
+            });
+          }
+        });
+
+        set({
+          currentItems: outfitItems,
+          creationStep: 2,
+        });
+
+        get().pushHistory();
+      },
+
+      clearItemSelection: () => {
+        set({
+          selectedItemsForCreation: { ...emptySelectedItems },
+          creationStep: 1,
+        });
+      },
+
+      goBackToSelection: () => {
+        // Save current canvas items back to selected items
+        const currentItems = get().currentItems;
+        const selectedItems: Record<ItemCategory, WardrobeItem | null> = { ...emptySelectedItems };
+
+        currentItems.forEach((outfitItem) => {
+          if (outfitItem.item) {
+            selectedItems[outfitItem.category] = outfitItem.item;
+          }
+        });
+
+        set({
+          selectedItemsForCreation: selectedItems,
+          creationStep: 1,
         });
       },
 
@@ -255,6 +377,8 @@ export const useOutfitStore = create<OutfitState>()(
           currentOutfit: null,
           currentItems: [],
           currentBackground: defaultBackground,
+          creationStep: 1,
+          selectedItemsForCreation: { ...emptySelectedItems },
           error: null,
         });
         get().clearHistory();

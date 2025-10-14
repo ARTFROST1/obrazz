@@ -3,8 +3,8 @@
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
 **Latest Update:** January 14, 2025  
-**Current Stage:** Stage 4.5 Complete ✅  
-**Project Status:** Wardrobe Management, Manual Outfit Creator, and Outfits Collection - FULLY IMPLEMENTED
+**Current Stage:** Stage 4.6 Complete ✅  
+**Project Status:** Wardrobe Management, Manual Outfit Creator (Ultra Minimalist), and Outfits Collection - FULLY IMPLEMENTED
 
 ---
 
@@ -98,6 +98,26 @@
 
 - Outfits tab in main navigation (replaced Create tab)
 - Outfit grid display with OutfitCard components
+
+#### ✅ Stage 4.6: Outfit Creator UX Refactoring - Ultra Minimalist
+
+- **Two-step creation process:**
+  - Step 1: Item Selection - vertical scroll of seamless carousels
+  - Step 2: Composition - canvas with drag & drop and tools
+- **Ultra-minimalist carousel design:**
+  - NO category labels
+  - NO pin buttons
+  - NO selection indicators
+  - Pure image strip with center-based selection
+  - Optimized sizes for multiple rows: Large 220x290, Medium 170x226, Small 130x173
+  - Minimal spacing: 6px, 5px, 4px
+  - resizeMode="cover" for maximum fill
+- **Three view modes:** Large (1-2 rows), Medium (2-3 rows), Small (3-4 rows)
+- **View mode switcher** at bottom of selection screen
+- **Seamless vertical flow** - no separators between categories
+- **Progress indicator** showing X/7 categories selected
+- **Edit mode** loads directly to Step 2 (composition)
+- **Create mode** starts from Step 1 (selection)
 - FAB (Floating Action Button) for creating outfits
 - Search and filter (all/private/shared)
 - Sort options (newest, favorites, most worn)

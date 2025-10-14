@@ -1,17 +1,28 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
-// const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const ITEM_SIZE = 80;
-const ITEM_SPACING = 12;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const ITEM_SIZE = 180; // Larger items for better visibility
+const ITEM_SPACING = 16;
+const SIDE_PADDING = (SCREEN_WIDTH - ITEM_SIZE) / 2; // Center the middle item
 
 interface CategoryCarouselProps {
   category: ItemCategory;
   items: WardrobeItem[];
-  selectedItemId?: string | null;
-  isLocked?: boolean;
+  selectedItemId: string | null;
+  isLocked: boolean;
   onItemSelect: (item: WardrobeItem | null) => void;
   onLockToggle: () => void;
 }
