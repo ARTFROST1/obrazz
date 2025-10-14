@@ -1,35 +1,41 @@
-# Obrazz — Detailed App Map & Full Page & Function Descriptions (English)
+# Obrazz — Detailed App Map & Full Page & Function Descriptions (English + Russian)
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
+
+**Latest Update:** January 14, 2025  
+**Current Stage:** Stage 4.5 Complete ✅  
+**Project Status:** Wardrobe Management, Manual Outfit Creator, and Outfits Collection - FULLY IMPLEMENTED
 
 ---
 
 ## Table of Contents
 
 1. Product summary
-2. High-level architecture & data model
-3. Global UI patterns and components
-4. Full screen list and detailed behavior
-   - Authentication & Onboarding
-   - Main (Home / Community feed)
-   - Wardrobe (library)
-   - Item Add / Edit / Detail
-   - Outfit Creator (manual)
-   - Outfit Editor (saved outfits)
-   - AI Outfit Generator
-   - Saved Outfits (collection)
-   - Profile
-   - Settings
-   - Web Capture (in-app browser + item grab)
-   - Subscription & Payments
-   - Admin & content automation notes
-5. API endpoints / backend responsibilities (Supabase + microservices)
-6. Data flows and storage details
-7. Edge cases, errors & validation
-8. Security, permissions, privacy
-9. Accessibility & localization
-10. Analytics and instrumentation
-11. Appendix: assets / visuals / export formats
+2. Implementation status & current features
+3. High-level architecture & data model
+4. Global UI patterns and components
+5. Full screen list and detailed behavior (UPDATED WITH ACTUAL IMPLEMENTATION)
+   - Authentication & Onboarding ✅
+   - Main (Home / Community feed) 🚧
+   - Wardrobe (library) ✅
+   - Item Add / Edit / Detail ✅
+   - Outfit Creator (manual) ✅
+   - Outfit Detail / View ✅
+   - Saved Outfits (collection) ✅
+   - AI Outfit Generator 🚧
+   - Profile ✅
+   - Settings 🚧
+   - Web Capture (in-app browser + item grab) 🚧
+   - Subscription & Payments 🚧
+   - Admin & content automation notes 🚧
+6. Navigation flow & screen transitions (DETAILED)
+7. API endpoints / backend responsibilities (Supabase + microservices)
+8. Data flows and storage details
+9. Edge cases, errors & validation
+10. Security, permissions, privacy
+11. Accessibility & localization
+12. Analytics and instrumentation
+13. Appendix: assets / visuals / export formats
 
 ---
 
@@ -37,16 +43,126 @@
 
 **Obrazz** is a mobile-first application for users to upload and organize their clothing items, build outfits manually with an editor (collage), and generate outfits automatically using an AI assistant that picks items from the user's wardrobe and built-in presets. The app contains a community feed where users share looks and like each other's outfits. The MVP focuses on email-based authentication, local image storage, metadata persistence (Supabase), manual outfit editor and basic AI generation (server or third-party API). Subscription unlocks higher quotas and premium features.
 
-## 2. High-level architecture & data model
+---
 
-### 2.1 Architecture overview
+## 2. Implementation Status & Current Features
 
-- **Frontend**: React Native (Expo recommended for MVP), TypeScript. State management via Zustand (or Redux) for app-wide state, React Query for server data sync. Use `react-native-reanimated` and `gesture-handler` for interactive editor and animations.
-- **Backend**: Supabase as primary backend (Auth, Postgres DB, Functions). Minimal Node.js microservice for AI orchestration (optional hosting on same server or small VPS). Background removal handled via third-party API (Remove.bg style) — could be proxied through backend.
-- **Storage**: Images stored locally on device filesystem (per requirement). Only metadata (file URI, attributes) stored in Supabase. Built-in items and presets stored in Supabase or embedded in app bundle for fast access.
-- **AI**: External model(s) for style analysis and outfit generation. The AI microservice receives metadata (colors, style tags, season) and returns ranked combinations + layout hints (optional). Visual layout generation happens client-side by placing photo assets into the canvas.
+### Completed Stages (As of January 14, 2025)
 
-### 2.2 Key database entities (Postgres via Supabase)
+#### ✅ Stage 1: Foundation & Setup
+
+- Expo project with TypeScript fully configured
+- Complete folder structure with path aliases
+- Supabase client integration
+- Database schema with 16 migrations applied
+- ESLint, Prettier, Husky configured
+- TypeScript types for all entities
+
+#### ✅ Stage 2: Authentication & User Management
+
+- Email-based registration and sign-in
+- Password reset flow
+- JWT token management with auto-refresh
+- Zustand auth store with AsyncStorage persistence
+- Protected route navigation
+- Profile screen with logout functionality
+- Welcome/onboarding screens
+
+#### ✅ Stage 3: Wardrobe Management Core
+
+- Wardrobe grid screen with ItemCard components
+- Camera integration (expo-camera)
+- Gallery picker (expo-image-picker)
+- Background removal service (Remove.bg integration)
+- Item metadata form (category, colors, styles, seasons, brand, size)
+- Full CRUD operations for wardrobe items
+- Local image storage using expo-file-system
+- Advanced filtering (category, color, style, season, favorite)
+- Search functionality
+- Item detail screen with statistics
+
+#### ✅ Stage 4: Manual Outfit Creator
+
+- Interactive canvas with drag & drop gestures
+- Pinch to zoom/scale items
+- Two-finger rotation
+- 7 category carousels (headwear, outerwear, tops, bottoms, footwear, accessories, bags)
+- Randomize function with category locking
+- Multiple background options
+- Undo/Redo functionality
+- Save outfit with title and metadata
+- Edit existing outfits
+- Full gesture handler integration
+
+#### ✅ Stage 4.5: Outfits Collection & Navigation
+
+- Outfits tab in main navigation (replaced Create tab)
+- Outfit grid display with OutfitCard components
+- FAB (Floating Action Button) for creating outfits
+- Search and filter (all/private/shared)
+- Sort options (newest, favorites, most worn)
+- Quick actions (edit, duplicate, delete, share)
+- Outfit detail/view screen
+- Navigation to /outfit/create stack screen
+
+### 🚧 In Progress / Planned
+
+#### Stage 5: AI Outfit Generation (Planned)
+
+- AI microservice setup
+- Style and season-based outfit generation
+- Color harmony algorithms
+- 3 outfit variant generation
+
+#### Stage 6: Community & Social Features (Planned)
+
+- Community feed implementation
+- Post creation and sharing
+- Like/reaction system
+- Copy outfit functionality
+
+#### Stage 7-10: Remaining stages as per Implementation.md
+
+### Current Application Structure
+
+**Main Navigation Tabs (Bottom Tab Bar):**
+
+1. 🏠 **Home/Feed** (`/(tabs)/index.tsx`) - Placeholder for community feed
+2. 👔 **Wardrobe** (`/(tabs)/wardrobe.tsx`) - Fully functional wardrobe management
+3. 📸 **Outfits** (`/(tabs)/outfits.tsx`) - Collection of saved outfits
+4. 👤 **Profile** (`/(tabs)/profile.tsx`) - User profile and settings
+
+**Stack Screens (Full-screen modals/pages):**
+
+- 🔐 Authentication flow (`/(auth)/`)
+- ➕ Add Item (`/add-item.tsx`)
+- 📝 Item Detail (`/item/[id].tsx`)
+- ✨ Create Outfit (`/outfit/create.tsx`)
+- 👁️ Outfit Detail (`/outfit/[id].tsx`)
+
+---
+
+## 3. High-level architecture & data model
+
+### 3.1 Architecture overview
+
+**Current Implementation:**
+
+- **Frontend**: React Native 0.81.4 with Expo SDK 54, TypeScript
+- **State Management**: Zustand with AsyncStorage persistence
+- **Navigation**: Expo Router (file-based routing)
+- **Gestures & Animations**: React Native Gesture Handler 2.x + Reanimated 4.x
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Image Processing**: Expo Image Picker, Expo Camera, Remove.bg API
+- **File Storage**: Local device storage using expo-file-system (legacy API)
+
+**Planned:**
+
+- TanStack Query for server state (Stage 5+)
+- Node.js microservice for AI (Stage 5)
+- RevenueCat for subscriptions (Stage 7)
+
+### 3.2 Key database entities (Postgres via Supabase)
 
 - **users**: id, email, name, avatar_url (nullable), created_at, subscription_plan, locale, created_default_items (bool)
 - **items**: id, user_id, title (nullable), category, color(s) (hex or label), material, style_tags (simple enumerated string), season_tags, image_local_path (client-only), image_hash, builtin_flag (boolean), created_at
@@ -57,7 +173,9 @@
 
 > Note: Images remain local on device. `items` table stores a stable identifier linked to local files. For syncing in the future, a migration path to cloud storage will be needed.
 
-## 3. Global UI patterns and components
+---
+
+## 4. Global UI patterns and components
 
 - **App bar**: Left: menu/back, center: screen title or search, right: actions (add, profile). Large on main screens, compact on editors.
 - **Bottom navigation**: 4 tabs: Home (Feed), Wardrobe, Outfits, Profile. Secondary flows (Create Outfit, AI, Settings) are modals or stack screens.
@@ -68,40 +186,169 @@
 - **Canvas**: Editable layered canvas used by Outfit Creator/Editor with gestures to move/scale/rotate items.
 - **Toast & Snackbars**: For success/failure messages and quota warnings.
 
-## 4. Full screen list and detailed behavior
+---
 
-Below are the pages with full, explicit behavior and each function described.
+## 5. Full screen list and detailed behavior (ACTUAL IMPLEMENTATION)
+
+Below are the pages with full, explicit behavior and each function described based on the current implementation.
 
 ---
 
-### A. Authentication & Onboarding
+### A. Authentication & Onboarding ✅ IMPLEMENTED
 
-#### Screens
+**Route:** `/(auth)/`  
+**Layout:** Stack navigation with no header  
+**State Management:** Zustand authStore with AsyncStorage persistence
 
-1. **Splash / Welcome**
-   - Purpose: Brand entry, quick pitch, Sign in / Sign up CTA.
-   - If user already has session, route to Home.
+#### 1. Welcome Screen (`/(auth)/welcome.tsx`) ✅
 
-2. **Sign Up (Email)**
-   - Inputs: email, password, confirm password.
-   - Button: Create account (calls Supabase signUp)
-   - On success: create default built-in items and few sample outfits in DB for new user metadata (not images), or set a flag for the app to provide local built-in assets.
-   - Validation: email format, password length.
+**Purpose:** Initial entry point for unauthenticated users
 
-3. **Sign In (Email)**
-   - Inputs: email, password
-   - Actions: sign in, forgot password (email reset), link to sign up.
+**UI Elements:**
 
-4. **Onboarding sequence** (shown after first sign-in)
-   - Step 1: Short intro slides — what the app does
-   - Step 2: Optional import hint (how to add items)
-   - Step 3: Quick preferences — choose 1–3 style keywords (optional) and default season
-   - Final: Call-to-action to add first item or open Wardrobe
+- Large emoji logo (👔)
+- App title: "Welcome to Obrazz"
+- Subtitle: "Your Personal Fashion Assistant / Create stunning outfits with AI"
+- 4 Feature highlights with icons:
+  - ✨ AI-powered outfit suggestions
+  - 👗 Manage your digital wardrobe
+  - 🎨 Create custom outfits
+  - 🌐 Share with the community
+- Primary button: "Sign In"
+- Secondary button: "Create Account"
 
-Notes:
+**Navigation:**
 
-- Guest mode is not allowed to use core features, but the UI should allow browsing the app visually with CTAs to sign up.
-- Onboarding is a small sequence, can be revisited from Profile.
+- "Sign In" → `/(auth)/sign-in`
+- "Create Account" → `/(auth)/sign-up`
+
+**State Logic:**
+
+- If user has active session → Auto-navigate to `/(tabs)` home
+
+---
+
+#### 2. Sign Up Screen (`/(auth)/sign-up.tsx`) ✅
+
+**Purpose:** User registration with email and password
+
+**UI Elements:**
+
+- Back button (navigates to welcome)
+- Title: "Create Account"
+- Email input with validation
+- Password input with show/hide toggle
+- Confirm password input
+- "Create Account" button
+- Link to "Already have an account? Sign In"
+
+**Validation:**
+
+- Email format check
+- Password minimum 8 characters
+- Password and confirm password match
+
+**Actions:**
+
+- On submit → Call `authService.signUp(email, password)`
+- On success → Store user data in authStore → Navigate to `/(tabs)`
+- On error → Display error alert with specific message
+
+**Navigation:**
+
+- "Sign In" link → `/(auth)/sign-in`
+- Success → `/(tabs)` (authenticated area)
+
+---
+
+#### 3. Sign In Screen (`/(auth)/sign-in.tsx`) ✅
+
+**Purpose:** User authentication
+
+**UI Elements:**
+
+- Back button
+- Title: "Sign In"
+- Email input
+- Password input with show/hide toggle
+- "Forgot Password?" link
+- "Sign In" button
+- Link to "Don't have an account? Sign Up"
+
+**Actions:**
+
+- On submit → Call `authService.signIn(email, password)`
+- On success → Store session in authStore → Navigate to `/(tabs)`
+- On error → Display error alert
+- "Forgot Password" → Navigate to `/(auth)/forgot-password`
+
+**Navigation:**
+
+- "Sign Up" link → `/(auth)/sign-up`
+- "Forgot Password" → `/(auth)/forgot-password`
+- Success → `/(tabs)`
+
+---
+
+#### 4. Forgot Password Screen (`/(auth)/forgot-password.tsx`) ✅
+
+**Purpose:** Password reset flow
+
+**UI Elements:**
+
+- Back button
+- Title: "Reset Password"
+- Email input
+- "Send Reset Link" button
+- Instructions text
+
+**Actions:**
+
+- On submit → Call `authService.resetPassword(email)`
+- On success → Show success alert with instructions
+- Email sent to user with reset link
+- User clicks link → Opens in browser → Supabase hosted reset page
+
+**Navigation:**
+
+- Back button → `/(auth)/sign-in`
+
+---
+
+#### 5. Onboarding Sequence 🚧 PLANNED
+
+**Note:** Not yet implemented. Planned for Stage 2 enhancement.
+
+**Planned flow:**
+
+- Step 1: App intro slides
+- Step 2: Import hint
+- Step 3: Style preferences
+- Final: CTA to add first item
+
+---
+
+### Auth Flow Logic (Root Layout) ✅
+
+**File:** `app/_layout.tsx`
+
+**Session Management:**
+
+1. On app start → Check for existing session
+2. Initialize auth listener for state changes
+3. Auto-refresh JWT tokens
+
+**Navigation Guards:**
+
+- If not authenticated and outside `(auth)` → Redirect to `/(auth)/welcome`
+- If authenticated and in `(auth)` → Redirect to `/(tabs)`
+- Loading state shows full-screen spinner
+
+**Session Persistence:**
+
+- Stored in AsyncStorage via Zustand persist middleware
+- Survives app restarts
+- Cleared on logout
 
 ---
 
@@ -449,6 +696,419 @@ Security: AI endpoints require valid JWT and rate-limiting.
 2. **Local images first**: keep implementation that stores images locally and references them via stable IDs. This simplifies privacy and reduces storage costs early on.
 3. **AI as a service**: begin with a deterministic scoring algorithm that matches color harmony rules and style tags; complement with a lightweight ML model later.
 4. **Testing**: build a test harness for the creator/editor (unit-tests for transforms serialization). Manual QA for gestures.
+
+---
+
+## 6. DETAILED NAVIGATION FLOW & SCREEN TRANSITIONS (ACTUAL IMPLEMENTATION)
+
+### Navigation Architecture
+
+**Navigation System:** Expo Router (file-based routing)  
+**Root Layout:** `app/_layout.tsx` with GestureHandlerRootView  
+**Auth Protection:** Automatic redirect based on authentication state
+
+---
+
+### Complete Screen Inventory
+
+#### ✅ Fully Implemented Screens
+
+**Authentication Flow (`/(auth)/` stack):**
+
+1. `welcome.tsx` - Welcome/landing screen
+2. `sign-in.tsx` - Sign in form
+3. `sign-up.tsx` - Registration form
+4. `forgot-password.tsx` - Password reset
+
+**Main Tabs (`/(tabs)/` bottom navigation):**
+
+1. `index.tsx` - Home/Feed (placeholder)
+2. `wardrobe.tsx` - Wardrobe management
+3. `outfits.tsx` - Outfits collection
+4. `profile.tsx` - User profile
+
+**Stack Screens (modals/full-screen):**
+
+1. `/add-item.tsx` - Add new wardrobe item
+2. `/item/[id].tsx` - Item detail view
+3. `/outfit/create.tsx` - Create/edit outfit
+4. `/outfit/[id].tsx` - Outfit detail view
+
+---
+
+### Navigation Map (All Transitions)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     APP START                                │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │  Check Auth Session  │
+              └──────────┬───────────┘
+                         │
+        ┌────────────────┴────────────────┐
+        │                                 │
+        ▼                                 ▼
+┌───────────────┐                 ┌──────────────┐
+│ NOT LOGGED IN │                 │  LOGGED IN   │
+└───────┬───────┘                 └──────┬───────┘
+        │                                │
+        ▼                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│            AUTHENTICATION FLOW                               │
+│  ┌─────────────┐                                            │
+│  │  Welcome    │                                            │
+│  └──────┬──────┘                                            │
+│         │                                                    │
+│    ┌────┴────┐                                             │
+│    │         │                                              │
+│    ▼         ▼                                              │
+│ ┌──────┐  ┌────────┐                                       │
+│ │SignIn│  │Sign Up │                                       │
+│ └───┬──┘  └───┬────┘                                       │
+│     │         │                                             │
+│     │    ┌────┘                                             │
+│     ▼    ▼                                                  │
+│  ┌────────────┐                                            │
+│  │Forgot Pass │                                            │
+│  └────────────┘                                            │
+└─────────────────────────────────────────────────────────────┘
+                         │
+                         │ On Success
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   MAIN APP (TABS)                           │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐   │
+│  │           BOTTOM TAB NAVIGATION                     │   │
+│  ├───────┬──────────┬──────────┬─────────────────────┤   │
+│  │ HOME  │ WARDROBE │ OUTFITS  │      PROFILE        │   │
+│  └───┬───┴─────┬────┴────┬─────┴──────┬──────────────┘   │
+│      │         │          │            │                   │
+│      ▼         ▼          ▼            ▼                   │
+│  ┌───────┐ ┌─────────┐ ┌────────┐ ┌────────┐            │
+│  │ Feed  │ │Wardrobe │ │Outfits │ │Profile │            │
+│  │(TODO) │ │  Grid   │ │  Grid  │ │Settings│            │
+│  └───────┘ └────┬────┘ └────┬───┘ └───┬────┘            │
+│                  │           │         │                   │
+│                  │           │         │                   │
+└──────────────────┼───────────┼─────────┼───────────────────┘
+                   │           │         │
+                   │           │         │
+         ┌─────────┴──────┐    │         └──► (Settings screens planned)
+         │                │    │
+         ▼                ▼    ▼
+    ┌─────────┐      ┌────────────┐
+    │ Add Item│      │Create Outfit│ ◄─── FAB Button
+    └────┬────┘      └─────┬──────┘
+         │                 │
+         ▼                 ▼
+    ┌─────────┐      ┌────────────┐
+    │Item [id]│      │Outfit [id] │
+    └─────────┘      └────────────┘
+```
+
+---
+
+### Detailed Navigation Flows
+
+#### 1. Authentication Journey
+
+**Flow: New User Registration**
+
+```
+Welcome → Sign Up → Success → /(tabs)/ Home
+```
+
+**Actions:**
+
+1. User opens app
+2. No session found → Redirect to `/(auth)/welcome`
+3. User taps "Create Account"
+4. Navigate to `/(auth)/sign-up`
+5. User fills form and submits
+6. `authService.signUp()` called
+7. On success: authStore updated, navigate to `/(tabs)/`
+
+**Flow: Returning User Sign In**
+
+```
+Welcome → Sign In → Success → /(tabs)/ (last visited tab)
+```
+
+**Flow: Forgot Password**
+
+```
+Sign In → Forgot Password → Email sent → External Reset → Sign In
+```
+
+---
+
+#### 2. Wardrobe Management Flow
+
+**Flow: Add New Item**
+
+```
+Wardrobe → [+] Button → /add-item → Save → Back to Wardrobe
+```
+
+**Step-by-Step:**
+
+1. User on `/(tabs)/wardrobe`
+2. Taps header [+] button
+3. Navigate to `/add-item` (full-screen modal)
+4. User captures/selects image
+5. (Optional) Runs background removal
+6. Fills metadata (category, colors, styles, seasons)
+7. Taps "Save to Wardrobe"
+8. `itemService.createItem()` saves to database
+9. Item added to wardrobeStore
+10. Navigate back to `/(tabs)/wardrobe`
+11. New item visible in grid
+
+**Flow: View Item Details**
+
+```
+Wardrobe → Tap ItemCard → /item/[id] → Actions → Back
+```
+
+**Available Actions in Item Detail:**
+
+- Toggle favorite (heart icon)
+- Delete item (with confirmation)
+- View statistics (wear count, added date)
+- (Planned) Edit item
+- (Planned) Add to outfit
+
+**Flow: Search & Filter Items**
+
+```
+Wardrobe → Search/Filter → Filtered Results → Clear → All Items
+```
+
+**Filter Modal Navigation:**
+
+1. Tap "Filter" button
+2. Full-screen modal opens
+3. Select filters (categories, colors, styles, seasons)
+4. Tap "Apply Filters"
+5. Modal closes
+6. Grid updates with filtered items
+7. "Clear All" button visible when filters active
+
+---
+
+#### 3. Outfit Creation Flow
+
+**Flow: Create New Outfit**
+
+```
+Outfits → FAB [+] → /outfit/create → Build → Save → Back to Outfits
+```
+
+**Detailed Steps:**
+
+1. User on `/(tabs)/outfits`
+2. Taps FAB (Floating Action Button) or header [+]
+3. Navigate to `/outfit/create`
+4. Canvas loads with empty state
+5. User selects items from category carousels
+6. Items appear on canvas with gestures enabled
+7. User arranges items (drag, scale, rotate)
+8. (Optional) User taps "Randomize" for quick combination
+9. (Optional) User changes background
+10. User taps checkmark to save
+11. Save modal appears
+12. User enters outfit title (optional)
+13. Taps "Save"
+14. `outfitService.createOutfit()` saves metadata
+15. Navigate back to `/(tabs)/outfits`
+16. New outfit appears in grid
+
+**Flow: Edit Existing Outfit**
+
+```
+Outfits → Tap Card → /outfit/[id] → Edit → /outfit/create?id=X → Save
+```
+
+**Edit Actions:**
+
+1. User views outfit detail
+2. Taps "Edit" button
+3. Navigate to `/outfit/create` with query param `?id=[outfit_id]`
+4. Canvas loads with saved outfit data
+5. User makes changes
+6. Save updates existing outfit via `outfitService.updateOutfit()`
+
+---
+
+#### 4. Outfit Collection Management
+
+**Flow: View Outfit Details**
+
+```
+Outfits → Tap OutfitCard → /outfit/[id] → View/Actions
+```
+
+**Available Actions:**
+
+- **Edit** → Navigate to `/outfit/create?id=X`
+- **Duplicate** → Create copy via `outfitService.duplicateOutfit()`
+- **I Wore This** → Increment wear count
+- **Delete** → Remove outfit (with confirmation)
+- **Favorite** → Toggle favorite status (heart icon)
+- **(Planned) Share** → Export or share to community
+
+**Flow: Filter/Sort Outfits**
+
+```
+Outfits → Search/Filter/Sort → Results Update
+```
+
+**Filter Options:**
+
+- All / Private / Shared / Public (chips)
+- Search by title/description
+
+**Sort Options:**
+
+- Newest first
+- Favorites
+- Most worn
+
+---
+
+#### 5. Profile & Settings Flow
+
+**Flow: View Profile**
+
+```
+Profile Tab → View Account → Settings Options
+```
+
+**Available Sections:**
+
+- Account (Edit Profile, Change Password) - Placeholders
+- App Settings (Notifications, Dark Mode, Language) - Placeholders
+- Subscription (Upgrade to Pro) - Placeholder
+- Support (Help, Terms, About) - Placeholders
+- **Sign Out** → Confirmation → Logout → /(auth)/welcome
+
+**Sign Out Flow:**
+
+1. User taps "Sign Out" button
+2. Confirmation alert appears
+3. User confirms
+4. `authService.signOut()` called
+5. authStore cleared
+6. Navigate to `/(auth)/welcome`
+
+---
+
+### Navigation Patterns
+
+#### Stack Navigation
+
+All full-screen modals use stack navigation with:
+
+- Back button (top-left chevron or X)
+- Title (center)
+- Action buttons (top-right)
+
+**Examples:**
+
+- `/add-item` - Close (X) button
+- `/item/[id]` - Back chevron
+- `/outfit/create` - Back chevron + Save checkmark
+- `/outfit/[id]` - Back chevron + Heart icon
+
+#### Tab Navigation
+
+Bottom tab bar always visible except:
+
+- During authentication flow
+- On full-screen stack screens
+
+**Tab Bar Icons:**
+
+- Home: `home` icon
+- Wardrobe: `th` icon (grid)
+- Outfits: `th-large` icon
+- Profile: `user` icon
+
+#### Gesture Navigation
+
+- **Swipe back:** Enabled on all stack screens
+- **Pull to refresh:** Enabled on Wardrobe and Outfits grids
+- **Drag & drop:** Outfit canvas items
+- **Pinch/rotate:** Outfit canvas gestures
+
+---
+
+### Deep Linking Support (Planned)
+
+**Outfit sharing:**
+
+```
+obrazz://outfit/[id]
+```
+
+**Item detail:**
+
+```
+obrazz://item/[id]
+```
+
+**Profile view:**
+
+```
+obrazz://user/[username]
+```
+
+---
+
+### Error States & Fallbacks
+
+**404 Not Found:**
+
+- Screen: `app/+not-found.tsx`
+- Displayed when invalid route accessed
+
+**Loading States:**
+
+- Full-screen loader during auth check
+- Skeleton placeholders for grids
+- Spinner for async operations
+
+**Empty States:**
+
+- Wardrobe: "Add your first item to get started!"
+- Outfits: OutfitEmptyState component with CTA
+- Search/Filter no results: "No items match your filters"
+
+---
+
+### Navigation State Management
+
+**Auth State (authStore):**
+
+- Controls access to `/(auth)/` vs `/(tabs)/`
+- Persisted in AsyncStorage
+- Auto-restore on app launch
+
+**Screen State:**
+
+- Wardrobe filter state in wardrobeStore
+- Current outfit in outfitStore with undo/redo
+- Selected items, backgrounds, transforms
+
+**Navigation History:**
+
+- Maintained by Expo Router
+- Back button respects navigation stack
+- Tab switches reset stack for that tab
 
 ---
 

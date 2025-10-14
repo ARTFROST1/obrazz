@@ -32,11 +32,22 @@ class BackgroundRemoverService {
       throw new Error('Remove.bg API key not configured');
     }
 
+    console.log('[BackgroundRemover] Starting background removal for:', imageUri);
+
     try {
+      // Verify source file exists
+      const sourceInfo = await FileSystem.getInfoAsync(imageUri);
+      if (!sourceInfo.exists) {
+        throw new Error(`Source image does not exist: ${imageUri}`);
+      }
+      console.log('[BackgroundRemover] Source file exists, size:', sourceInfo.size);
+
       // Read image as base64
+      console.log('[BackgroundRemover] Reading image as base64...');
       const base64Image = await FileSystem.readAsStringAsync(imageUri, {
         encoding: 'base64',
       });
+      console.log('[BackgroundRemover] Base64 length:', base64Image.length);
 
       // Prepare form data
       const formData = new FormData();
@@ -50,6 +61,7 @@ class BackgroundRemoverService {
       }
 
       // Make API request
+      console.log('[BackgroundRemover] Making API request to Remove.bg...');
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
@@ -58,39 +70,70 @@ class BackgroundRemoverService {
         body: formData,
       });
 
+      console.log('[BackgroundRemover] API response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('[BackgroundRemover] API error:', errorData);
         throw new Error(errorData.errors?.[0]?.title || 'Failed to remove background');
       }
 
       // Get the result as base64
+      console.log('[BackgroundRemover] Processing response blob...');
       const blob = await response.blob();
       const reader = new FileReader();
 
       return new Promise((resolve, reject) => {
         reader.onloadend = async () => {
           try {
+            console.log('[BackgroundRemover] Converting blob to base64...');
             const base64data = reader.result as string;
             const base64 = base64data.split(',')[1]; // Remove data:image/png;base64, prefix
 
             // Save to file system
             const processedPath = imageUri.replace('.jpg', '_nobg.png');
+            console.log('[BackgroundRemover] Saving processed image to:', processedPath);
+
             await FileSystem.writeAsStringAsync(processedPath, base64, {
               encoding: 'base64',
             });
 
+            // Verify the file was saved
+            const savedInfo = await FileSystem.getInfoAsync(processedPath);
+            if (!savedInfo.exists) {
+              throw new Error('Failed to save processed image - file does not exist');
+            }
+            console.log(
+              '[BackgroundRemover] Processed image saved successfully, size:',
+              savedInfo.size,
+            );
+
             resolve(processedPath);
           } catch (error) {
+            console.error('[BackgroundRemover] Error saving processed image:', error);
             reject(error);
           }
         };
 
-        reader.onerror = reject;
+        reader.onerror = (error) => {
+          console.error('[BackgroundRemover] FileReader error:', error);
+          reject(error);
+        };
+
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error removing background:', error);
-      throw new Error('Failed to remove background from image');
+      console.error('[BackgroundRemover] Error removing background:', error);
+      if (error instanceof Error) {
+        console.error('[BackgroundRemover] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        });
+      }
+      throw new Error(
+        `Failed to remove background from image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

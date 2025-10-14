@@ -41,12 +41,18 @@ class ItemService {
    * Create a new wardrobe item
    */
   async createItem(input: CreateItemInput): Promise<WardrobeItem> {
+    console.log('[ItemService] Starting createItem for user:', input.userId);
+
     try {
       // Process and save image locally
+      console.log('[ItemService] Saving image locally from URI:', input.imageUri);
       const localImagePath = await this.saveImageLocally(input.imageUri, input.userId);
+      console.log('[ItemService] Image saved to:', localImagePath);
 
       // Generate thumbnail
+      console.log('[ItemService] Generating thumbnail...');
       const thumbnailPath = await this.generateThumbnail(localImagePath);
+      console.log('[ItemService] Thumbnail created at:', thumbnailPath);
 
       // Prepare item data for Supabase
       const itemData = {
@@ -74,14 +80,27 @@ class ItemService {
         },
       };
 
+      console.log('[ItemService] Inserting item to Supabase...');
       const { data, error } = await supabase.from('items').insert(itemData).select().single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ItemService] Supabase insert error:', error);
+        throw error;
+      }
 
+      console.log('[ItemService] Item created successfully:', data.id);
       return this.mapSupabaseItemToWardrobeItem(data);
     } catch (error) {
-      console.error('Error creating item:', error);
-      throw new Error('Failed to create wardrobe item');
+      console.error('[ItemService] Error creating item:', error);
+      // Log more detailed error information
+      if (error instanceof Error) {
+        console.error('[ItemService] Error name:', error.name);
+        console.error('[ItemService] Error message:', error.message);
+        console.error('[ItemService] Error stack:', error.stack);
+      }
+      throw new Error(
+        `Failed to create wardrobe item: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -227,17 +246,34 @@ class ItemService {
    */
   private async saveImageLocally(imageUri: string, userId: string): Promise<string> {
     try {
+      console.log('[ItemService.saveImageLocally] Input URI:', imageUri);
+      console.log('[ItemService.saveImageLocally] User ID:', userId);
+
       const timestamp = Date.now();
       const fileName = `${userId}_${timestamp}.jpg`;
       const directory = `${FileSystem.documentDirectory}wardrobe/`;
 
+      console.log('[ItemService.saveImageLocally] Target directory:', directory);
+
+      // Check if source file exists
+      const sourceInfo = await FileSystem.getInfoAsync(imageUri);
+      if (!sourceInfo.exists) {
+        throw new Error(`Source image does not exist: ${imageUri}`);
+      }
+      console.log('[ItemService.saveImageLocally] Source file exists, size:', sourceInfo.size);
+
       // Create directory if it doesn't exist
       const dirInfo = await FileSystem.getInfoAsync(directory);
       if (!dirInfo.exists) {
+        console.log('[ItemService.saveImageLocally] Creating directory:', directory);
         await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+        console.log('[ItemService.saveImageLocally] Directory created successfully');
+      } else {
+        console.log('[ItemService.saveImageLocally] Directory already exists');
       }
 
       const localPath = `${directory}${fileName}`;
+      console.log('[ItemService.saveImageLocally] Copying to:', localPath);
 
       // Copy or move image to local storage
       await FileSystem.copyAsync({
@@ -245,10 +281,29 @@ class ItemService {
         to: localPath,
       });
 
+      // Verify the file was copied
+      const copiedInfo = await FileSystem.getInfoAsync(localPath);
+      if (!copiedInfo.exists) {
+        throw new Error('File copy verification failed - destination file does not exist');
+      }
+      console.log(
+        '[ItemService.saveImageLocally] File copied successfully, size:',
+        copiedInfo.size,
+      );
+
       return localPath;
     } catch (error) {
-      console.error('Error saving image locally:', error);
-      throw new Error('Failed to save image');
+      console.error('[ItemService.saveImageLocally] Error:', error);
+      if (error instanceof Error) {
+        console.error('[ItemService.saveImageLocally] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        });
+      }
+      throw new Error(
+        `Failed to save image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -257,23 +312,60 @@ class ItemService {
    */
   private async generateThumbnail(imagePath: string): Promise<string> {
     try {
+      console.log('[ItemService.generateThumbnail] Input path:', imagePath);
+
+      // Verify source exists
+      const sourceInfo = await FileSystem.getInfoAsync(imagePath);
+      if (!sourceInfo.exists) {
+        console.warn(
+          '[ItemService.generateThumbnail] Source image not found, returning original path',
+        );
+        return imagePath;
+      }
+
       const thumbnailSize = 300;
+      console.log('[ItemService.generateThumbnail] Resizing to width:', thumbnailSize);
+
       const manipResult = await ImageManipulator.manipulateAsync(
         imagePath,
         [{ resize: { width: thumbnailSize } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
       );
 
+      console.log('[ItemService.generateThumbnail] Manipulation result URI:', manipResult.uri);
+
       const thumbnailPath = imagePath.replace('.jpg', '_thumb.jpg');
+      console.log('[ItemService.generateThumbnail] Copying to:', thumbnailPath);
+
       await FileSystem.copyAsync({
         from: manipResult.uri,
         to: thumbnailPath,
       });
 
+      // Verify thumbnail was created
+      const thumbInfo = await FileSystem.getInfoAsync(thumbnailPath);
+      if (!thumbInfo.exists) {
+        console.warn(
+          '[ItemService.generateThumbnail] Thumbnail verification failed, using original',
+        );
+        return imagePath;
+      }
+
+      console.log(
+        '[ItemService.generateThumbnail] Thumbnail created successfully, size:',
+        thumbInfo.size,
+      );
       return thumbnailPath;
     } catch (error) {
-      console.error('Error generating thumbnail:', error);
+      console.error('[ItemService.generateThumbnail] Error:', error);
+      if (error instanceof Error) {
+        console.error('[ItemService.generateThumbnail] Error details:', {
+          name: error.name,
+          message: error.message,
+        });
+      }
       // Return original path if thumbnail generation fails
+      console.log('[ItemService.generateThumbnail] Falling back to original path');
       return imagePath;
     }
   }

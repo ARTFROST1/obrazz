@@ -55,8 +55,8 @@ export default function OutfitDetailScreen() {
 
   const handleEdit = useCallback(() => {
     if (!outfit) return;
-    // Navigate to edit mode - could be same create screen with edit mode
-    router.push(`/outfit/edit/${outfit.id}`);
+    // Navigate to create screen in edit mode with outfit ID as query param
+    router.push(`/outfit/create?id=${outfit.id}`);
   }, [outfit]);
 
   const handleToggleFavorite = useCallback(async () => {

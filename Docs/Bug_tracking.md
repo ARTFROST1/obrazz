@@ -1024,4 +1024,213 @@ const newOutfit = {
 
 ---
 
-_Last Updated: 2025-01-14_
+### BUG-S4-004: Incorrect Edit Outfit Navigation Route
+
+**Date:** 2025-01-14  
+**Severity:** High  
+**Status:** Resolved  
+**Component:** Navigation / Outfit Detail Screen  
+**Environment:** All
+
+**Description:**
+The "Edit" button in outfit detail screen was using an incorrect navigation route that doesn't exist in the app structure, causing navigation to fail.
+
+**Error Location:**
+`app/outfit/[id].tsx` line 59
+
+**Steps to Reproduce:**
+
+1. Navigate to any outfit detail screen (`/outfit/[id]`)
+2. Tap the "Edit" button
+3. Navigation fails - route `/outfit/edit/[id]` doesn't exist
+
+**Expected Behavior:**
+Should navigate to `/outfit/create?id=[outfit_id]` to open create screen in edit mode
+
+**Actual Behavior:**
+Attempts to navigate to non-existent route `/outfit/edit/${outfit.id}`
+
+**Root Cause:**
+Incorrect route path used in `handleEdit` callback. The app uses a query parameter pattern for edit mode (shared create/edit screen), but the code was trying to use a separate edit route pattern.
+
+**Solution:**
+Changed navigation route in `app/outfit/[id].tsx`:
+
+**Before:**
+
+```typescript
+const handleEdit = useCallback(() => {
+  if (!outfit) return;
+  // Navigate to edit mode - could be same create screen with edit mode
+  router.push(`/outfit/edit/${outfit.id}`);
+}, [outfit]);
+```
+
+**After:**
+
+```typescript
+const handleEdit = useCallback(() => {
+  if (!outfit) return;
+  // Navigate to create screen in edit mode with outfit ID as query param
+  router.push(`/outfit/create?id=${outfit.id}`);
+}, [outfit]);
+```
+
+**Verification:**
+The correct pattern is already used in `app/(tabs)/outfits.tsx` line 91:
+
+```typescript
+const handleEditOutfit = (outfit: Outfit) => {
+  router.push(`/outfit/create?id=${outfit.id}`);
+};
+```
+
+And properly handled in `app/outfit/create.tsx` line 39-40:
+
+```typescript
+const { id } = useLocalSearchParams<{ id?: string }>();
+const isEditMode = !!id;
+```
+
+**Prevention:**
+
+- Document navigation patterns in AppMapobrazz.md (already documented)
+- Create centralized navigation constants for route paths
+- Add TypeScript route type checking
+- Test all navigation flows in QA checklist
+
+**Related Files:**
+
+- app/outfit/[id].tsx (fixed)
+- app/(tabs)/outfits.tsx (reference for correct pattern)
+- app/outfit/create.tsx (edit mode handler)
+- Docs/AppMapobrazz.md (navigation documentation)
+
+**Additional Notes:**
+All other navigation transitions verified and working correctly:
+
+- ✅ Auth flow: welcome → sign-in → sign-up → forgot-password
+- ✅ Wardrobe: → /add-item, → /item/${id}
+- ✅ Outfits: → /outfit/create, → /outfit/${id}
+- ✅ Protected routes with auth guards
+- ✅ Tab navigation
+- ✅ Back/close buttons on all stack screens
+
+---
+
+### BUG-S4-005: Metro Bundler InternalBytecode Error on Image Save
+
+**Date:** 2025-10-14  
+**Severity:** High  
+**Status:** In Progress  
+**Component:** File System / Metro Bundler  
+**Environment:** Windows (Device-specific issue)
+
+**Description:**
+Metro bundler throws "ENOENT: no such file or directory, open 'InternalBytecode.js'" error when user attempts to save a wardrobe item after uploading photo, removing background, and filling all fields. This is a **secondary error** - Metro is failing to symbolicate the actual JavaScript runtime error.
+
+**Error Messages/Logs:**
+
+```
+Error: ENOENT: no such file or directory, open 'E:\it\garderob\obrazz\InternalBytecode.js'
+    at Object.readFileSync (node:fs:441:20)
+    at getCodeFrame (E:\it\garderob\obrazz\node_modules\metro\src\Server.js:997:18)
+    at Server._symbolicate (E:\it\garderob\obrazz\node_modules\metro\src\Server.js:1079:22)
+    at Server._processRequest (E:\it\garderob\obrazz\node_modules\metro\src\Server.js:460:7)
+```
+
+**Root Cause:**
+The actual error is hidden behind Metro's symbolication failure. Most likely causes:
+
+1. **File system permission issues** - App may not have write permissions to `FileSystem.documentDirectory`
+2. **Path inconsistencies** - Different drive letters between dev machines (E:\ vs C:\)
+3. **Metro cache corruption** - Stale cache with incorrect file paths
+4. **expo-file-system issues** - Problems with `copyAsync`, `writeAsStringAsync`, or directory creation
+
+**Steps to Reproduce:**
+
+1. Open Add Item screen
+2. Select image from gallery or camera
+3. Click "Remove BG" (optional)
+4. Fill all required fields (category, colors)
+5. Click "Save to Wardrobe"
+6. Error appears during save operation
+
+**Expected Behavior:**
+Item should be saved successfully to local file system and Supabase database with success message.
+
+**Actual Behavior:**
+Metro bundler crashes with InternalBytecode error, hiding the real JavaScript exception.
+
+**Solution:**
+**Phase 1: Enhanced Logging (COMPLETED)**
+Added comprehensive logging to identify the exact failure point:
+
+- `itemService.ts` - Added detailed logs in `createItem`, `saveImageLocally`, `generateThumbnail`
+- `backgroundRemover.ts` - Added detailed logs in `removeBackground`
+- All logs prefixed with service name for easy filtering
+
+**Phase 2: Debugging Steps for User**
+Ask the affected user to:
+
+1. **Clear Metro cache and restart:**
+
+   ```bash
+   # Stop the app
+   # Clear all caches
+   npx expo start --clear
+   ```
+
+2. **Check file system permissions:**
+   - Ensure app has permission to write to device storage
+   - On Android: Check Storage permission in app settings
+   - On iOS: Should work by default
+
+3. **Review console logs carefully:**
+   Look for logs starting with:
+   - `[ItemService]`
+   - `[ItemService.saveImageLocally]`
+   - `[ItemService.generateThumbnail]`
+   - `[BackgroundRemover]`
+
+   These will show the exact step where the failure occurs.
+
+4. **Test without background removal:**
+   - Skip the "Remove BG" step
+   - Try saving a simple image directly
+
+5. **Check available disk space:**
+   - Ensure device has sufficient storage
+
+**Prevention:**
+
+- Add proper error boundaries to catch and display real errors
+- Implement retry logic for file operations
+- Add file system health checks on app start
+- Validate write permissions before attempting saves
+- Improve error messages to show actual failure reason
+
+**Related Files:**
+
+- `services/wardrobe/itemService.ts` (enhanced logging added)
+- `services/wardrobe/backgroundRemover.ts` (enhanced logging added)
+- `app/add-item.tsx` (save handler)
+- `metro.config.js` (resolver configuration)
+
+**Additional Notes:**
+
+- This error only occurs on specific devices/environments
+- Works correctly on developer's machine
+- Likely related to Windows file system or permissions
+- The InternalBytecode error is a red herring - focus on the logs above it
+
+**Next Steps:**
+
+1. User runs app with `npx expo start --clear`
+2. User attempts to reproduce error
+3. User shares full console logs (look for [ItemService] logs)
+4. Based on logs, implement targeted fix
+
+---
+
+_Last Updated: 2025-10-14_
