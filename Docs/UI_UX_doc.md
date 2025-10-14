@@ -192,16 +192,26 @@ Icon Size: 24px
 
 ```
 Size: 56x56px
-Border Radius: 28px
-Background: Primary Color
-Icon: 24px, Inverse Text (add/plus icon)
-Shadow: 0px 8px 24px rgba(0,0,0,0.15)
-Position: Bottom-right, 16px margin
+Icon Size: 24px
+Elevation: 8dp (shadow)
+Border Radius: 28px (circular)
+Position: Fixed, bottom-right
+Margin: 16px from bottom and right
 Z-index: Above all content, below modals
 
-Usage:
-- Outfits screen: Create new outfit (navigates to /outfit/create)
-- Wardrobe screen: Add new item (navigates to add item screen)
+Screen-Specific Styling:
+- Outfits screen:
+  - Background: #000000 (Black in Light mode) / #FFFFFF (White in Dark mode)
+  - Icon Color: #FFFFFF (White in Light mode) / #000000 (Black in Dark mode)
+  - Action: Create new outfit (navigates to /outfit/create)
+
+- Wardrobe screen:
+  - Background: #000000 (Black)
+  - Icon Color: #FFFFFF (White)
+  - Action: Add new item (navigates to /add-item)
+
+Note: Both screens now have consistent layout with FAB at bottom.
+Header removed from Wardrobe screen to match Outfits screen design.
 
 States:
 - Default: 100% opacity, scale(1)

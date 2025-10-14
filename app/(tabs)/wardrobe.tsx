@@ -7,6 +7,7 @@ import { useAuthStore } from '@store/auth/authStore';
 import { itemService } from '@services/wardrobe/itemService';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { ItemFilter, FilterState } from '@components/wardrobe/ItemFilter';
+import { FAB } from '@components/ui';
 import { WardrobeItem } from '@types/models/item';
 
 export default function WardrobeScreen() {
@@ -104,14 +105,6 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>My Wardrobe</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-          <Ionicons name="add-circle" size={32} color="#000" />
-        </TouchableOpacity>
-      </View>
-
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
@@ -188,14 +181,20 @@ export default function WardrobeScreen() {
           isFavorite: filter.isFavorite,
         }}
       />
+
+      {/* FAB - Add New Item */}
+      <FAB
+        icon="add"
+        onPress={handleAddItem}
+        backgroundColor="#000000"
+        iconColor="#FFFFFF"
+        accessibilityLabel="Add new item"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  addButton: {
-    padding: 4,
-  },
   clearFilterButton: {
     marginLeft: 12,
   },
@@ -243,16 +242,6 @@ const styles = StyleSheet.create({
   filterButtonTextActive: {
     color: '#FFF',
   },
-  header: {
-    alignItems: 'center',
-    borderBottomColor: '#E5E5E5',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingVertical: 16,
-  },
   itemCount: {
     color: '#666',
     flex: 1,
@@ -265,7 +254,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginVertical: 12,
+    marginTop: 8,
+    marginBottom: 12,
     paddingHorizontal: 12,
   },
   searchIcon: {
@@ -276,10 +266,5 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
-  },
-  title: {
-    color: '#000',
-    fontSize: 28,
-    fontWeight: 'bold',
   },
 });
