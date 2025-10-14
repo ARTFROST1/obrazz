@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { useAuthStore } from '@store/auth/authStore';
 import { itemService } from '@services/wardrobe/itemService';
@@ -32,6 +42,16 @@ export default function WardrobeScreen() {
   useEffect(() => {
     loadItems();
   }, []);
+
+  // Update StatusBar when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('dark-content', true);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('#FFFFFF', true);
+      }
+    }, []),
+  );
 
   const loadItems = async () => {
     if (!user?.id) return;
@@ -105,6 +125,16 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
+      {/* Header */}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>My Wardrobe</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
@@ -206,6 +236,25 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     flex: 1,
+  },
+  safeArea: {
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    marginHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  headerTitle: {
+    color: '#000000',
+    fontSize: 20,
+    fontWeight: '600',
   },
   filterBadge: {
     marginLeft: 4,
