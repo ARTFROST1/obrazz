@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, runOnJS } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { OutfitItem, OutfitBackground } from '../../types/models/outfit';
 
 interface OutfitCanvasProps {
@@ -37,10 +38,6 @@ export function OutfitCanvas({
     switch (background.type) {
       case 'color':
         return { backgroundColor: background.value };
-      case 'gradient':
-        // For gradient, we'll need to use a library like react-native-linear-gradient
-        // For now, fallback to solid color
-        return { backgroundColor: background.value };
       case 'image':
         return { backgroundColor: '#F8F8F8' };
       case 'pattern':
@@ -48,6 +45,29 @@ export function OutfitCanvas({
       default:
         return { backgroundColor: '#FFFFFF' };
     }
+  };
+
+  const renderBackground = () => {
+    if (background.type === 'gradient') {
+      try {
+        const colors = JSON.parse(background.value) as [string, string, ...string[]];
+        if (colors.length < 2) {
+          return null; // Invalid gradient
+        }
+        return (
+          <LinearGradient
+            colors={colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { opacity: background.opacity || 1 }]}
+          />
+        );
+      } catch (e) {
+        // Fallback to solid color if JSON parse fails
+        return null;
+      }
+    }
+    return null;
   };
 
   return (
@@ -59,6 +79,7 @@ export function OutfitCanvas({
         { opacity: background.opacity || 1 },
       ]}
     >
+      {renderBackground()}
       {showGrid && (
         <View style={styles.gridContainer}>
           {/* Render grid lines */}
