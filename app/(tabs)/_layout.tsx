@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Feed',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerTitle: 'Community',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -41,7 +41,7 @@ export default function TabLayout() {
         options={{
           title: 'Wardrobe',
           tabBarIcon: ({ color }) => <TabBarIcon name="th" color={color} />,
-          headerTitle: 'My Wardrobe',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -49,7 +49,7 @@ export default function TabLayout() {
         options={{
           title: 'Outfits',
           tabBarIcon: ({ color }) => <TabBarIcon name="th-large" color={color} />,
-          headerTitle: 'My Outfits',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -57,7 +57,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-          headerTitle: 'My Profile',
+          headerShown: false,
         }}
       />
     </Tabs>

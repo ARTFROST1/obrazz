@@ -8,9 +8,11 @@ import {
   Alert,
   useColorScheme,
   Platform,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
 import { outfitService } from '@services/outfit/outfitService';
@@ -55,6 +57,16 @@ export default function OutfitsScreen() {
     loadOutfits();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Update StatusBar when screen is focused or theme changes
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(isDark ? '#000000' : '#FFFFFF', true);
+      }
+    }, [isDark]),
+  );
 
   const loadOutfits = async () => {
     if (!user?.id) return;
@@ -210,6 +222,25 @@ export default function OutfitsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={isDark ? '#000000' : '#FFFFFF'}
+        translucent={false}
+        animated={true}
+      />
+      {/* Header */}
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+        <View style={styles.header}>
+          <View
+            style={[styles.headerContent, { borderBottomColor: isDark ? '#38383A' : '#E5E5E5' }]}
+          >
+            <Text style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+              My Outfits
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
+
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1C1C1E' : '#F8F8F8' }]}>
         <Ionicons name="search" size={20} color={isDark ? '#8E8E93' : '#666666'} />
@@ -453,6 +484,24 @@ export default function OutfitsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  safeArea: {
+    // backgroundColor set dynamically
+  },
+  header: {
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    marginHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    // borderBottomColor set dynamically
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    // color set dynamically
   },
   searchContainer: {
     flexDirection: 'row',
