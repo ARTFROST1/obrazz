@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Outfit } from '../../types/models/outfit';
 import { OutfitPreview } from './OutfitPreview';
 
@@ -32,8 +31,8 @@ const CARD_WIDTH = (width - 48) / 2; // 2 columns with 16px margins
 /**
  * OutfitCard Component
  *
- * Displays a preview card for a saved outfit.
- * Shows outfit image, title, visibility badge, and likes count.
+ * Minimalist Pinterest-style card for saved outfits.
+ * Clean preview with title below the image.
  *
  * @example
  * ```tsx
@@ -73,17 +72,6 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
     onLongPress?.(outfit);
   };
 
-  const getVisibilityBadge = () => {
-    const badges = {
-      private: { icon: 'lock-closed', color: '#666666', text: 'Private' },
-      shared: { icon: 'people', color: '#007AFF', text: 'Shared' },
-      public: { icon: 'globe', color: '#34C759', text: 'Public' },
-    };
-    return badges[outfit.visibility];
-  };
-
-  const badge = getVisibilityBadge();
-
   // Check if outfit has items to display
   const hasItems = outfit.items && outfit.items.length > 0;
   const hasValidItems =
@@ -91,21 +79,22 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        {
-          backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
-          borderColor: isSelected ? '#000000' : 'transparent',
-          borderWidth: isSelected ? 2 : 0,
-        },
-      ]}
+      style={styles.container}
       onPress={handlePress}
       onLongPress={handleLongPress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
       delayLongPress={500}
     >
       {/* Preview Image */}
-      <View style={styles.imageContainer}>
+      <View
+        style={[
+          styles.imageContainer,
+          {
+            borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : 'transparent',
+            borderWidth: isSelected ? 2 : 0,
+          },
+        ]}
+      >
         {hasValidItems ? (
           <OutfitPreview
             items={outfit.items}
@@ -122,55 +111,27 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
           </View>
         )}
 
-        {/* Gradient Overlay */}
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={styles.gradient}>
-          {/* Title and Badges */}
-          <View style={styles.infoOverlay}>
-            <Text style={styles.title} numberOfLines={2}>
-              {outfit.title || 'Untitled Outfit'}
-            </Text>
-
-            <View style={styles.badgeContainer}>
-              {/* Visibility Badge */}
-              <View style={[styles.badge, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-                <Ionicons name={badge.icon as any} size={12} color="#FFFFFF" />
-                <Text style={styles.badgeText}>{badge.text}</Text>
-              </View>
-
-              {/* Likes Count (if shared/public) */}
-              {outfit.visibility !== 'private' && outfit.likesCount > 0 && (
-                <View style={[styles.badge, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-                  <Ionicons name="heart" size={12} color="#FF3B30" />
-                  <Text style={styles.badgeText}>{outfit.likesCount}</Text>
-                </View>
-              )}
-
-              {/* Favorite Star */}
-              {outfit.isFavorite && <Ionicons name="star" size={16} color="#FFD60A" />}
-            </View>
+        {/* Favorite Star - Top Right */}
+        {outfit.isFavorite && (
+          <View style={styles.favoriteIndicator}>
+            <Ionicons name="star" size={16} color="#FFD60A" />
           </View>
-        </LinearGradient>
+        )}
 
-        {/* Quick Actions Menu */}
-        {showActions && (
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => setShowMenu(!showMenu)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
+        {/* Selection Indicator */}
+        {isSelectable && isSelected && (
+          <View style={styles.selectionIndicator}>
+            <Ionicons name="checkmark-circle" size={24} color={isDark ? '#FFFFFF' : '#000000'} />
+          </View>
         )}
       </View>
 
-      {/* Selection Indicator */}
-      {isSelectable && isSelected && (
-        <View style={styles.selectionIndicator}>
-          <Ionicons name="checkmark-circle" size={24} color="#000000" />
-        </View>
-      )}
+      {/* Title Below Image */}
+      <View style={styles.infoContainer}>
+        <Text style={[styles.title, { color: isDark ? '#FFFFFF' : '#000000' }]} numberOfLines={1}>
+          {outfit.title || 'Untitled Outfit'}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -178,29 +139,26 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH,
-    aspectRatio: 3 / 4,
-    borderRadius: 16,
     marginBottom: 12,
+  },
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 3 / 4,
+    borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#F8F8F8',
+    position: 'relative',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
     }),
-  },
-  imageContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
   },
   placeholderImage: {
     width: '100%',
@@ -208,51 +166,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '50%',
-    justifyContent: 'flex-end',
-  },
-  infoOverlay: {
-    padding: 12,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  badgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-  menuButton: {
+  favoriteIndicator: {
     position: 'absolute',
     top: 8,
     right: 8,
-  },
-  menuIconContainer: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 15,
     width: 30,
     height: 30,
@@ -263,8 +181,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 12,
+  },
+  infoContainer: {
+    paddingTop: 8,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

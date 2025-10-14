@@ -1145,6 +1145,52 @@ The actual error is hidden behind Metro's symbolication failure. Most likely cau
 1. **File system permission issues** - App may not have write permissions to `FileSystem.documentDirectory`
 2. **Path inconsistencies** - Different drive letters between dev machines (E:\ vs C:\)
 3. **Metro cache corruption** - Stale cache with incorrect file paths
+
+---
+
+### UX-S4-006: OutfitCard Redesign - Minimalist Pinterest Style
+
+**Date:** 2025-10-14  
+**Severity:** Low (UX Enhancement)  
+**Status:** Resolved  
+**Component:** OutfitCard Component  
+**Environment:** All
+
+**Description:**
+Redesigned OutfitCard component to match minimalist Pinterest-style aesthetic. Removed gradient overlay, visibility badges, and moved title below the card for a cleaner look.
+
+**Changes Made:**
+
+1. **Removed gradient overlay** - Clean preview without dark shadow at bottom
+2. **Removed visibility badge** (Private/Shared/Public) - Simplified card appearance
+3. **Moved title below image** - Similar to wardrobe ItemCard layout
+4. **Kept favorite star** - Positioned top-right as subtle indicator
+5. **Updated styling** - Reduced shadow, cleaner borders, minimal padding
+
+**Before:**
+
+- Title and badges overlaid on gradient at bottom of image
+- Visibility badge showing Private/Shared/Public status
+- Gradient shadow covering bottom 50% of image
+- Complex overlay structure
+
+**After:**
+
+- Clean image preview without overlays
+- Title displayed below image in separate container
+- Only favorite star shown on image (if applicable)
+- Minimalist design matching wardrobe cards
+
+**Related Files:**
+
+- components/outfit/OutfitCard.tsx (redesigned)
+- Removed import: expo-linear-gradient (no longer needed)
+
+**Prevention:**
+Document UI/UX changes in UI_UX_doc.md when implementing design updates
+
+---
+
 4. **expo-file-system issues** - Problems with `copyAsync`, `writeAsStringAsync`, or directory creation
 
 **Steps to Reproduce:**
