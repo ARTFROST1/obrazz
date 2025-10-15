@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -58,8 +58,10 @@ interface CategoryCarouselCenteredProps {
   itemWidth: number;
   itemHeight: number;
   spacing: number;
+  initialScrollIndex?: number;
   onItemSelect: (item: WardrobeItem | null) => void;
   onLockToggle: () => void;
+  onScrollIndexChange?: (index: number) => void;
 }
 
 /**
@@ -74,16 +76,36 @@ export function CategoryCarouselCentered({
   itemWidth,
   itemHeight,
   spacing,
+  initialScrollIndex = 0,
   onItemSelect,
   onLockToggle,
+  onScrollIndexChange,
 }: CategoryCarouselCenteredProps) {
   const flatListRef = useRef<FlatList>(null);
-  const [centerIndex, setCenterIndex] = useState(0);
+  const [centerIndex, setCenterIndex] = useState(initialScrollIndex);
 
   const sidePadding = (SCREEN_WIDTH - itemWidth) / 2;
 
   // Add "None" item as first element
   const carouselItems = [{ id: 'none', isNone: true } as any, ...items];
+
+  // Update centerIndex when initialScrollIndex changes (mode switch)
+  useEffect(() => {
+    setCenterIndex(initialScrollIndex);
+  }, [initialScrollIndex]);
+
+  // Scroll to initial position on mount or when initialScrollIndex changes
+  useEffect(() => {
+    if (flatListRef.current && initialScrollIndex >= 0) {
+      // Small delay to ensure list is rendered
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: initialScrollIndex,
+          animated: false,
+        });
+      }, 50);
+    }
+  }, [initialScrollIndex, itemWidth]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -92,6 +114,7 @@ export function CategoryCarouselCentered({
 
       if (index !== centerIndex) {
         setCenterIndex(index);
+        onScrollIndexChange?.(index);
 
         // Auto-select center item
         if (index === 0) {
@@ -105,7 +128,7 @@ export function CategoryCarouselCentered({
         }
       }
     },
-    [centerIndex, items, onItemSelect, itemWidth, spacing],
+    [centerIndex, items, onItemSelect, onScrollIndexChange, itemWidth, spacing],
   );
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {

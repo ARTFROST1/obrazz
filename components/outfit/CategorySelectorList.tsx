@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
+import React, { useMemo, useState, useCallback } from 'react';
+import { View, StyleSheet, Dimensions, LayoutChangeEvent } from 'react-native';
 import {
   CategoryCarouselCentered,
   CategoryDisplayMode,
@@ -34,6 +34,10 @@ export function CategorySelectorList({
   onLockToggle,
 }: CategorySelectorListProps) {
   const [containerHeight, setContainerHeight] = useState(0);
+  // Store scroll index for each category to preserve position when switching modes
+  const [categoryScrollIndexes, setCategoryScrollIndexes] = useState<Record<ItemCategory, number>>(
+    {} as Record<ItemCategory, number>,
+  );
 
   // Filter categories based on display mode
   const visibleCategories = useMemo(() => {
@@ -45,6 +49,14 @@ export function CategorySelectorList({
     // 'all' mode - show all categories
     return categories;
   }, [categories, displayMode]);
+
+  // Handle scroll index change for a category
+  const handleScrollIndexChange = useCallback((category: ItemCategory, index: number) => {
+    setCategoryScrollIndexes((prev) => ({
+      ...prev,
+      [category]: index,
+    }));
+  }, []);
 
   // Calculate item dimensions based on number of visible categories and actual container height
   const { itemWidth, itemHeight, spacing, carouselHeight } = useMemo(() => {
@@ -87,8 +99,10 @@ export function CategorySelectorList({
                 itemWidth={itemWidth}
                 itemHeight={itemHeight}
                 spacing={spacing}
+                initialScrollIndex={categoryScrollIndexes[category] || 0}
                 onItemSelect={(item) => onItemSelect(category, item)}
                 onLockToggle={() => onLockToggle(category)}
+                onScrollIndexChange={(index) => handleScrollIndexChange(category, index)}
               />
             </View>
           );
