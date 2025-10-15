@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, Alert, TextInput, Dimensions, ScrollView } from 'react-native';
+import { View, StyleSheet, Alert, TextInput, Dimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
@@ -7,6 +7,7 @@ import { outfitService } from '@services/outfit/outfitService';
 import { ItemSelectionStep, CompositionStep } from '@components/outfit';
 import { Text, TouchableOpacity } from 'react-native';
 import { OccasionTag, Season, StyleTag } from '@types/models/outfit';
+import { Dropdown } from '@components/common/Dropdown';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -187,163 +188,87 @@ export default function CreateScreen() {
       {/* Save Modal */}
       {showSaveModal && (
         <View style={styles.modalOverlay}>
-          <ScrollView
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.saveModal}>
-              <Text style={styles.modalTitle}>{isEditMode ? 'Update Outfit' : 'Save Outfit'}</Text>
+          <View style={styles.saveModal}>
+            <Text style={styles.modalTitle}>{isEditMode ? 'Update Outfit' : 'Save Outfit'}</Text>
 
-              <TextInput
-                style={styles.titleInput}
-                placeholder="Outfit name (optional)"
-                value={outfitTitle}
-                onChangeText={setOutfitTitle}
-                placeholderTextColor="#999"
-              />
+            <TextInput
+              style={styles.titleInput}
+              placeholder="Outfit name (optional)"
+              value={outfitTitle}
+              onChangeText={setOutfitTitle}
+              placeholderTextColor="#999"
+            />
 
-              {/* Occasion Selector */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Occasion</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tagsContainer}
-                >
-                  {[
-                    'casual',
-                    'work',
-                    'party',
-                    'date',
-                    'sport',
-                    'beach',
-                    'wedding',
-                    'travel',
-                    'home',
-                    'special',
-                  ].map((occasion) => (
-                    <TouchableOpacity
-                      key={occasion}
-                      style={[styles.tag, selectedOccasion === occasion && styles.tagSelected]}
-                      onPress={() =>
-                        setSelectedOccasion(
-                          selectedOccasion === occasion ? null : (occasion as OccasionTag),
-                        )
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedOccasion === occasion && styles.tagTextSelected,
-                        ]}
-                      >
-                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+            {/* Occasion Dropdown */}
+            <Dropdown
+              label="Occasion"
+              value={selectedOccasion}
+              options={
+                [
+                  'casual',
+                  'work',
+                  'party',
+                  'date',
+                  'sport',
+                  'beach',
+                  'wedding',
+                  'travel',
+                  'home',
+                  'special',
+                ] as const
+              }
+              onSelect={(value) => setSelectedOccasion(value as OccasionTag | null)}
+              placeholder="Select occasion"
+            />
 
-              {/* Style Selector */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Style</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tagsContainer}
-                >
-                  {[
-                    'casual',
-                    'formal',
-                    'sporty',
-                    'elegant',
-                    'vintage',
-                    'minimalist',
-                    'bohemian',
-                    'streetwear',
-                    'preppy',
-                    'romantic',
-                  ].map((style) => (
-                    <TouchableOpacity
-                      key={style}
-                      style={[
-                        styles.tag,
-                        selectedStyles.includes(style as StyleTag) && styles.tagSelected,
-                      ]}
-                      onPress={() => {
-                        const styleTag = style as StyleTag;
-                        setSelectedStyles((prev) =>
-                          prev.includes(styleTag)
-                            ? prev.filter((s) => s !== styleTag)
-                            : [...prev, styleTag],
-                        );
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedStyles.includes(style as StyleTag) && styles.tagTextSelected,
-                        ]}
-                      >
-                        {style.charAt(0).toUpperCase() + style.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+            {/* Style Dropdown */}
+            <Dropdown
+              label="Style"
+              value={selectedStyles}
+              options={
+                [
+                  'casual',
+                  'formal',
+                  'sporty',
+                  'elegant',
+                  'vintage',
+                  'minimalist',
+                  'bohemian',
+                  'streetwear',
+                  'preppy',
+                  'romantic',
+                ] as const
+              }
+              onSelect={(value) => setSelectedStyles((value as StyleTag[]) || [])}
+              multiple
+              placeholder="Select styles"
+            />
 
-              {/* Season Selector */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Season</Text>
-                <View style={styles.seasonsRow}>
-                  {['spring', 'summer', 'fall', 'winter'].map((season) => (
-                    <TouchableOpacity
-                      key={season}
-                      style={[
-                        styles.seasonTag,
-                        selectedSeasons.includes(season as Season) && styles.tagSelected,
-                      ]}
-                      onPress={() => {
-                        const seasonTag = season as Season;
-                        setSelectedSeasons((prev) =>
-                          prev.includes(seasonTag)
-                            ? prev.filter((s) => s !== seasonTag)
-                            : [...prev, seasonTag],
-                        );
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedSeasons.includes(season as Season) && styles.tagTextSelected,
-                        ]}
-                      >
-                        {season.charAt(0).toUpperCase() + season.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+            {/* Season Dropdown */}
+            <Dropdown
+              label="Season"
+              value={selectedSeasons}
+              options={['spring', 'summer', 'fall', 'winter'] as const}
+              onSelect={(value) => setSelectedSeasons((value as Season[]) || [])}
+              multiple
+              placeholder="Select seasons"
+            />
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  onPress={() => setShowSaveModal(false)}
-                  style={styles.modalButton}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={confirmSave}
-                  style={[styles.modalButton, styles.modalButtonPrimary]}
-                  disabled={isSaving}
-                >
-                  <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
-                    {isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Save'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity onPress={() => setShowSaveModal(false)} style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmSave}
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                disabled={isSaving}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                  {isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Save'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
+          </View>
         </View>
       )}
     </View>
@@ -362,16 +287,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1000,
   },
-  modalScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 32,
-  },
   saveModal: {
     backgroundColor: '#FFF',
     borderRadius: 16,
     padding: 24,
-    maxWidth: SCREEN_WIDTH - 64,
+    width: SCREEN_WIDTH - 64,
   },
   modalTitle: {
     color: '#000',
@@ -387,55 +307,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 16,
-  },
-  selectorSection: {
-    marginBottom: 20,
-  },
-  selectorLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  tag: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  tagSelected: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  tagText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  tagTextSelected: {
-    color: '#FFF',
-  },
-  seasonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  seasonTag: {
-    flex: 1,
-    minWidth: '22%',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    alignItems: 'center',
   },
   modalButtons: {
     flexDirection: 'row',

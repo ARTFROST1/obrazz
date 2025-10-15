@@ -47,8 +47,12 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Compose Outfit</Text>
-        <TouchableOpacity onPress={onSave} style={styles.saveButton} disabled={!canSave}>
-          <Ionicons name="checkmark" size={24} color={canSave ? '#007AFF' : '#CCC'} />
+        <TouchableOpacity
+          onPress={onSave}
+          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
+          disabled={!canSave}
+        >
+          <Ionicons name="checkmark" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
 
@@ -151,7 +155,15 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   saveButton: {
-    padding: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#CCC',
   },
   canvasSection: {
     flex: 1,

@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   favoriteButton: {
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 15,
     height: 30,
