@@ -91,21 +91,36 @@ export function CategoryCarouselCentered({
 
   // Update centerIndex when initialScrollIndex changes (mode switch)
   useEffect(() => {
-    setCenterIndex(initialScrollIndex);
-  }, [initialScrollIndex]);
+    const maxIndex = carouselItems.length - 1;
+    const safeIndex = Math.min(initialScrollIndex, maxIndex);
+    setCenterIndex(safeIndex);
+  }, [initialScrollIndex, carouselItems.length]);
 
   // Scroll to initial position on mount or when initialScrollIndex changes
   useEffect(() => {
     if (flatListRef.current && initialScrollIndex >= 0) {
+      // Ensure index is within bounds (carouselItems includes "None" + actual items)
+      const maxIndex = carouselItems.length - 1;
+      const safeIndex = Math.min(initialScrollIndex, maxIndex);
+
       // Small delay to ensure list is rendered
       setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
-          index: initialScrollIndex,
-          animated: false,
-        });
+        try {
+          flatListRef.current?.scrollToIndex({
+            index: safeIndex,
+            animated: false,
+          });
+        } catch (error) {
+          // Fallback to scrollToOffset if scrollToIndex fails
+          console.warn('ScrollToIndex failed, using offset instead');
+          flatListRef.current?.scrollToOffset({
+            offset: safeIndex * (itemWidth + spacing),
+            animated: false,
+          });
+        }
       }, 50);
     }
-  }, [initialScrollIndex, itemWidth]);
+  }, [initialScrollIndex, itemWidth, carouselItems.length, spacing]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
