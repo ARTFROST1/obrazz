@@ -16,6 +16,7 @@ interface OutfitCanvasProps {
   showGrid?: boolean;
   snapToGrid?: boolean;
   gridSize?: number;
+  onCanvasTap?: () => void;
 }
 
 // const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -33,6 +34,7 @@ export function OutfitCanvas({
   showGrid = false,
   snapToGrid = false,
   gridSize = 20,
+  onCanvasTap,
 }: OutfitCanvasProps) {
   const getBackgroundStyle = () => {
     switch (background.type) {
@@ -70,66 +72,76 @@ export function OutfitCanvas({
     return null;
   };
 
-  return (
-    <View
-      style={[
-        styles.canvas,
-        { width, height },
-        getBackgroundStyle(),
-        { opacity: background.opacity || 1 },
-      ]}
-    >
-      {renderBackground()}
-      {showGrid && (
-        <View style={styles.gridContainer}>
-          {/* Render grid lines */}
-          {Array.from({ length: Math.floor(height / gridSize) }).map((_, i) => (
-            <View
-              key={`h-${i}`}
-              style={[
-                styles.gridLine,
-                {
-                  top: i * gridSize,
-                  width: width,
-                  height: 1,
-                },
-              ]}
-            />
-          ))}
-          {Array.from({ length: Math.floor(width / gridSize) }).map((_, i) => (
-            <View
-              key={`v-${i}`}
-              style={[
-                styles.gridLine,
-                {
-                  left: i * gridSize,
-                  height: height,
-                  width: 1,
-                },
-              ]}
-            />
-          ))}
-        </View>
-      )}
+  const handleCanvasTap = Gesture.Tap()
+    .numberOfTaps(1)
+    .onEnd(() => {
+      if (onCanvasTap) {
+        runOnJS(onCanvasTap)();
+      }
+    });
 
-      {/* Render items sorted by zIndex */}
-      {[...items]
-        .sort((a, b) => a.transform.zIndex - b.transform.zIndex)
-        .filter((item) => item.isVisible && item.item)
-        .map((outfitItem) => (
-          <CanvasItem
-            key={outfitItem.itemId}
-            outfitItem={outfitItem}
-            isSelected={selectedItemId === outfitItem.itemId}
-            onTransformUpdate={onItemTransformUpdate}
-            onSelect={onItemSelect}
-            snapToGrid={snapToGrid}
-            gridSize={gridSize}
-            canvasWidth={width}
-            canvasHeight={height}
-          />
-        ))}
-    </View>
+  return (
+    <GestureDetector gesture={handleCanvasTap}>
+      <View
+        style={[
+          styles.canvas,
+          { width, height },
+          getBackgroundStyle(),
+          { opacity: background.opacity || 1 },
+        ]}
+      >
+        {renderBackground()}
+        {showGrid && (
+          <View style={styles.gridContainer}>
+            {/* Render grid lines */}
+            {Array.from({ length: Math.floor(height / gridSize) }).map((_, i) => (
+              <View
+                key={`h-${i}`}
+                style={[
+                  styles.gridLine,
+                  {
+                    top: i * gridSize,
+                    width: width,
+                    height: 1,
+                  },
+                ]}
+              />
+            ))}
+            {Array.from({ length: Math.floor(width / gridSize) }).map((_, i) => (
+              <View
+                key={`v-${i}`}
+                style={[
+                  styles.gridLine,
+                  {
+                    left: i * gridSize,
+                    height: height,
+                    width: 1,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Render items sorted by zIndex */}
+        {[...items]
+          .sort((a, b) => a.transform.zIndex - b.transform.zIndex)
+          .filter((item) => item.isVisible && item.item)
+          .map((outfitItem) => (
+            <CanvasItem
+              key={outfitItem.itemId}
+              outfitItem={outfitItem}
+              isSelected={selectedItemId === outfitItem.itemId}
+              onTransformUpdate={onItemTransformUpdate}
+              onSelect={onItemSelect}
+              snapToGrid={snapToGrid}
+              gridSize={gridSize}
+              canvasWidth={width}
+              canvasHeight={height}
+            />
+          ))}
+      </View>
+    </GestureDetector>
   );
 }
 
@@ -285,7 +297,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   selectedItem: {
-    borderColor: '#007AFF',
-    borderWidth: 2,
+    borderColor: '#000000',
+    borderWidth: 1.5,
+    borderStyle: 'solid',
   },
 });

@@ -1681,4 +1681,142 @@ The Reanimated warnings about `.value` in inline styles are false positives. The
 
 ---
 
-_Last Updated: 2025-10-14_
+### UX-S4-009: Compose Outfit Page UX Improvements
+
+**Date:** 2025-10-15  
+**Date Resolved:** 2025-10-15  
+**Severity:** Low (UX Enhancement)  
+**Status:** Resolved ✅  
+**Component:** Compose Outfit Page / Save Modal  
+**Environment:** All
+
+**Description:**
+Three UX improvements requested for the Compose Outfit page:
+
+1. Change selected item border color from blue to black
+2. Add ability to deselect items by tapping canvas background
+3. Enhance Save Outfit modal with category, style, and season selectors
+
+**Changes Made:**
+
+**1. Selected Item Border Color** (`components/outfit/OutfitCanvas.tsx`):
+
+- Changed from `#007AFF` (iOS Blue) to `#000000` (Black)
+- Better matches the app's minimalist design system
+- Provides stronger visual contrast against various backgrounds
+
+```typescript
+// Before
+selectedItem: {
+  borderColor: '#007AFF',
+  borderWidth: 2,
+}
+
+// After
+selectedItem: {
+  borderColor: '#000000',
+  borderWidth: 2,
+}
+```
+
+**2. Canvas Tap to Deselect** (`components/outfit/OutfitCanvas.tsx`, `CompositionStep.tsx`):
+
+- Added `onCanvasTap` callback prop to OutfitCanvas
+- Wraps canvas in GestureDetector with Tap gesture
+- Deselects active item when tapping empty canvas area
+- Improves UX by allowing users to "click away" from selections
+
+```typescript
+// OutfitCanvas
+const handleCanvasTap = Gesture.Tap()
+  .numberOfTaps(1)
+  .onEnd(() => {
+    if (onCanvasTap) {
+      runOnJS(onCanvasTap)();
+    }
+  });
+
+// CompositionStep
+<OutfitCanvas
+  ...
+  onCanvasTap={() => setSelectedItemId(null)}
+/>
+```
+
+**3. Enhanced Save Modal** (`app/outfit/create.tsx`):
+
+- Added three new selectors below the outfit title input:
+  - **Occasion**: Single select (casual, work, party, date, sport, beach, wedding, travel, home, special)
+  - **Style**: Multi-select (casual, formal, sporty, elegant, vintage, minimalist, bohemian, streetwear, preppy, romantic)
+  - **Season**: Multi-select (spring, summer, fall, winter)
+- Horizontal scrollable tags for Occasion and Style
+- 4-column grid layout for Seasons
+- Black background with white text for selected tags
+- Stores selections in state and sends to database on save
+- Loads existing values when editing outfits
+
+**Modal Structure:**
+
+```
+Save Outfit Modal
+├── Title Input
+├── Occasion Selector (horizontal scroll)
+├── Style Selector (horizontal scroll)
+├── Season Selector (4-column grid)
+└── Buttons (Cancel / Save)
+```
+
+**UI Styling:**
+
+- Tags: 20px border radius, #F8F8F8 background when unselected
+- Selected tags: #000 background, #FFF text
+- Section labels: 14px, semi-bold, #000
+- Consistent 8px gap between tags
+- ScrollView wrapper for modal content to accommodate more fields
+
+**Database Integration:**
+
+- Updated `outfitService.createOutfit()` to accept optional occasions, styles, seasons
+- Updated `outfitService.updateOutfit()` to accept same optional fields
+- Loads existing values when editing outfits via `loadOutfitForEdit()`
+- TypeScript types imported: `OccasionTag`, `Season`, `StyleTag`
+
+**Prevention:**
+
+- Document UX patterns in UI_UX_doc.md
+- Maintain consistent color schemes across components
+- Always provide clear visual feedback for interactive elements
+
+**Related Files:**
+
+- `components/outfit/OutfitCanvas.tsx` (border color, canvas tap)
+- `components/outfit/CompositionStep.tsx` (canvas tap handler)
+- `app/outfit/create.tsx` (enhanced save modal)
+- `types/models/outfit.ts` (type definitions)
+- `services/outfit/outfitService.ts` (save operations)
+
+**Testing:**
+
+- ✅ Selected items show black border instead of blue
+- ✅ Tapping canvas background deselects active item
+- ✅ Tapping an item selects it (existing behavior preserved)
+- ✅ Occasion selector allows single selection
+- ✅ Style selector allows multiple selections
+- ✅ Season selector allows multiple selections
+- ✅ Selected tags have proper styling (black bg, white text)
+- ✅ Modal scrolls when content exceeds viewport
+- ✅ Outfit saves with selected metadata
+- ✅ Edit mode loads existing selections
+- ✅ All selectors are optional (can save without selecting)
+
+**User Experience Improvements:**
+
+- Clearer visual hierarchy with black selection borders
+- More intuitive deselection without needing to tap another item
+- Better outfit organization with metadata tags
+- Easier outfit discovery and filtering (future feature)
+- Consistent with wardrobe item metadata structure
+
+---
+
+_Last Updated: 2025-10-15_

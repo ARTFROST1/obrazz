@@ -66,6 +66,7 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
             showGrid={canvasSettings.showGrid}
             snapToGrid={canvasSettings.snapToGrid}
             gridSize={canvasSettings.gridSize}
+            onCanvasTap={() => setSelectedItemId(null)}
           />
         </View>
 
