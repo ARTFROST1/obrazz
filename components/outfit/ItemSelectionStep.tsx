@@ -5,7 +5,7 @@ import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { CategorySelectorList } from './CategorySelectorList';
 import { ProgressIndicator } from './ProgressIndicator';
-import { CarouselViewMode } from './CategoryCarouselCentered';
+import { CategoryDisplayMode, CATEGORY_GROUPS } from './CategoryCarouselCentered';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
 const CATEGORIES: ItemCategory[] = [
@@ -37,7 +37,7 @@ export function ItemSelectionStep({ onNext, onBack }: ItemSelectionStepProps) {
   } = useOutfitStore();
 
   const [lockedCategories, setLockedCategories] = useState<Set<ItemCategory>>(new Set());
-  const [viewMode, setViewMode] = useState<CarouselViewMode>('medium');
+  const [displayMode, setDisplayMode] = useState<CategoryDisplayMode>('all');
 
   const selectedCount = getSelectedItemsCount();
   const canProceed = selectedCount > 0;
@@ -104,35 +104,73 @@ export function ItemSelectionStep({ onNext, onBack }: ItemSelectionStepProps) {
         wardrobeItems={wardrobeItems}
         selectedItems={selectedItemsForCreation}
         lockedCategories={lockedCategories}
-        viewMode={viewMode}
+        displayMode={displayMode}
         onItemSelect={handleItemSelect}
         onLockToggle={handleLockToggle}
       />
 
-      {/* Footer with view mode switcher and action buttons */}
+      {/* Footer with display mode switcher and action buttons */}
       <View style={styles.footer}>
-        {/* View Mode Switcher */}
-        <View style={styles.viewModeSwitcher}>
+        {/* Display Mode Switcher */}
+        <View style={styles.displayModeSwitcher}>
+          {/* All Categories Button */}
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'large' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('large')}
+            style={[
+              styles.displayModeButton,
+              displayMode === 'all' && styles.displayModeButtonActive,
+            ]}
+            onPress={() => setDisplayMode('all')}
             activeOpacity={0.7}
           >
-            <Ionicons name="square" size={24} color={viewMode === 'large' ? '#000' : '#999'} />
+            <Ionicons name="apps" size={20} color={displayMode === 'all' ? '#FFF' : '#666'} />
+            <Text
+              style={[
+                styles.displayModeText,
+                displayMode === 'all' && styles.displayModeTextActive,
+              ]}
+            >
+              All
+            </Text>
           </TouchableOpacity>
+
+          {/* Main Categories Button */}
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'medium' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('medium')}
+            style={[
+              styles.displayModeButton,
+              displayMode === 'main' && styles.displayModeButtonActive,
+            ]}
+            onPress={() => setDisplayMode('main')}
             activeOpacity={0.7}
           >
-            <Ionicons name="square" size={20} color={viewMode === 'medium' ? '#000' : '#999'} />
+            <Ionicons name="shirt" size={20} color={displayMode === 'main' ? '#FFF' : '#666'} />
+            <Text
+              style={[
+                styles.displayModeText,
+                displayMode === 'main' && styles.displayModeTextActive,
+              ]}
+            >
+              Main
+            </Text>
           </TouchableOpacity>
+
+          {/* Extra Categories Button */}
           <TouchableOpacity
-            style={[styles.viewModeButton, viewMode === 'small' && styles.viewModeButtonActive]}
-            onPress={() => setViewMode('small')}
+            style={[
+              styles.displayModeButton,
+              displayMode === 'extra' && styles.displayModeButtonActive,
+            ]}
+            onPress={() => setDisplayMode('extra')}
             activeOpacity={0.7}
           >
-            <Ionicons name="square" size={16} color={viewMode === 'small' ? '#000' : '#999'} />
+            <Ionicons name="diamond" size={20} color={displayMode === 'extra' ? '#FFF' : '#666'} />
+            <Text
+              style={[
+                styles.displayModeText,
+                displayMode === 'extra' && styles.displayModeTextActive,
+              ]}
+            >
+              Extra
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -197,26 +235,37 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5E5',
     gap: 12,
   },
-  viewModeSwitcher: {
+  displayModeSwitcher: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 8,
     paddingBottom: 12,
   },
-  viewModeButton: {
-    width: 44,
-    height: 44,
+  displayModeButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     backgroundColor: '#F8F8F8',
-    borderRadius: 22,
+    borderRadius: 20,
+    gap: 6,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  viewModeButtonActive: {
-    backgroundColor: '#E3F2FD',
+  displayModeButtonActive: {
+    backgroundColor: '#000',
     borderColor: '#000',
+  },
+  displayModeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  displayModeTextActive: {
+    color: '#FFF',
   },
   actionButtons: {
     flexDirection: 'row',

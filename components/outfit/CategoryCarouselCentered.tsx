@@ -11,26 +11,53 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// View modes for different item sizes
-export type CarouselViewMode = 'large' | 'medium' | 'small';
+// Category display modes for filtering categories
+export type CategoryDisplayMode = 'all' | 'main' | 'extra';
 
-const VIEW_MODE_SIZES: Record<
-  CarouselViewMode,
-  { itemWidth: number; itemHeight: number; spacing: number }
-> = {
-  large: { itemWidth: 220, itemHeight: 290, spacing: 6 },
-  medium: { itemWidth: 170, itemHeight: 226, spacing: 5 },
-  small: { itemWidth: 130, itemHeight: 173, spacing: 4 },
+// Category groups
+export const CATEGORY_GROUPS = {
+  main: ['outerwear', 'tops', 'bottoms', 'footwear'] as const,
+  extra: ['headwear', 'accessories', 'bags'] as const,
 };
+
+/**
+ * Calculate item dimensions based on number of categories and available height
+ * Maintains 3:4 aspect ratio (width:height)
+ */
+export function calculateItemDimensions(
+  numberOfCategories: number,
+  availableHeight: number,
+): { itemWidth: number; itemHeight: number; spacing: number; carouselHeight: number } {
+  // Height per category (carousel height) - NO GAPS between carousels
+  const carouselHeight = Math.floor(availableHeight / numberOfCategories);
+
+  // Item spacing inside carousel
+  const spacing = 4;
+
+  // Item height (slightly less than carousel to prevent overflow)
+  const itemHeight = Math.floor(carouselHeight - spacing * 2);
+
+  // Calculate width maintaining 3:4 aspect ratio
+  const itemWidth = Math.floor(itemHeight * 0.75);
+
+  return {
+    itemWidth: Math.max(80, Math.min(250, itemWidth)),
+    itemHeight: Math.max(100, Math.min(330, itemHeight)),
+    spacing: Math.floor(spacing),
+    carouselHeight: carouselHeight,
+  };
+}
 
 interface CategoryCarouselCenteredProps {
   category: ItemCategory;
   items: WardrobeItem[];
   selectedItemId: string | null;
   isLocked: boolean;
-  viewMode?: CarouselViewMode;
+  itemWidth: number;
+  itemHeight: number;
+  spacing: number;
   onItemSelect: (item: WardrobeItem | null) => void;
   onLockToggle: () => void;
 }
@@ -44,14 +71,15 @@ export function CategoryCarouselCentered({
   items,
   selectedItemId,
   isLocked,
-  viewMode = 'medium',
+  itemWidth,
+  itemHeight,
+  spacing,
   onItemSelect,
   onLockToggle,
 }: CategoryCarouselCenteredProps) {
   const flatListRef = useRef<FlatList>(null);
   const [centerIndex, setCenterIndex] = useState(0);
 
-  const { itemWidth, itemHeight, spacing } = VIEW_MODE_SIZES[viewMode];
   const sidePadding = (SCREEN_WIDTH - itemWidth) / 2;
 
   // Add "None" item as first element
@@ -124,7 +152,7 @@ export function CategoryCarouselCentered({
   };
 
   const containerStyle = {
-    height: itemHeight, // Only item height, no extra space
+    height: itemHeight,
   };
 
   const itemContainerStyle = {
@@ -170,7 +198,9 @@ export function CategoryCarouselCentered({
 
 const styles = StyleSheet.create({
   container: {
-    // Pure minimalist - no padding at all
+    // Pure minimalist - no padding, no margin
+    margin: 0,
+    padding: 0,
   },
   itemContainer: {
     // No padding or margin
