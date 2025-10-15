@@ -2,9 +2,9 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** January 14, 2025  
-**Current Stage:** Stage 4.6 Complete ✅  
-**Project Status:** Wardrobe Management, Manual Outfit Creator (Ultra Minimalist), and Outfits Collection - FULLY IMPLEMENTED
+**Latest Update:** January 15, 2025  
+**Current Stage:** Stage 4.7 Complete ✅  
+**Project Status:** Wardrobe Management, Manual Outfit Creator (Ultra Minimalist with 3-Mode Display System), and Outfits Collection - FULLY IMPLEMENTED
 
 ---
 
@@ -109,12 +109,7 @@
   - NO pin buttons
   - NO selection indicators
   - Pure image strip with center-based selection
-  - Optimized sizes for multiple rows: Large 220x290, Medium 170x226, Small 130x173
-  - Minimal spacing: 6px, 5px, 4px
   - resizeMode="cover" for maximum fill
-- **Three view modes:** Large (1-2 rows), Medium (2-3 rows), Small (3-4 rows)
-- **View mode switcher** at bottom of selection screen
-- **Seamless vertical flow** - no separators between categories
 - **Progress indicator** showing X/7 categories selected
 - **Edit mode** loads directly to Step 2 (composition)
 - **Create mode** starts from Step 1 (selection)
@@ -124,6 +119,34 @@
 - Quick actions (edit, duplicate, delete, share)
 - Outfit detail/view screen
 - Navigation to /outfit/create stack screen
+
+#### ✅ Stage 4.7: 3-Mode Category Display System
+
+- **Three display modes for intelligent category filtering:**
+  - **All (7 categories):** Complete overview - headwear, outerwear, tops, bottoms, footwear, accessories, bags
+  - **Main (4 categories):** Core clothing focus - outerwear, tops, bottoms, footwear
+  - **Extra (3 categories):** Accessories focus - headwear, accessories, bags
+- **Dynamic auto-scaling system:**
+  - Item dimensions automatically calculated based on available screen space
+  - All visible categories fit perfectly without scrolling
+  - Maintains 3:4 aspect ratio (width:height) for natural clothing display
+  - Formula: `carouselHeight = availableHeight / numberOfCategories`
+- **Display mode switcher:**
+  - Bottom controls with intuitive icons (apps/shirt/diamond)
+  - Active state with inverted colors for clear feedback
+  - Labels: "All", "Main", "Extra"
+- **Seamless vertical flow:**
+  - Zero gaps between carousels
+  - Pure minimalist design - no separators or borders
+  - Each carousel perfectly aligned
+- **Selection synchronization:**
+  - Selected items preserved when switching between modes
+  - Unified state management across all display modes
+  - User can build outfit across different mode views
+- **Adaptive layout:**
+  - Measures actual container height dynamically
+  - Works correctly on different screen sizes
+  - Respects header, progress bar, and footer boundaries
 
 ### 🚧 In Progress / Planned
 
