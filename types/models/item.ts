@@ -38,16 +38,15 @@ export interface ItemMetadata {
   sourceUrl?: string;
 }
 
-export type ItemCategory = 
-  | 'headwear'      // Головные уборы
-  | 'outerwear'     // Верхняя одежда
-  | 'tops'          // Верх
-  | 'bottoms'       // Низ
-  | 'footwear'      // Обувь
-  | 'accessories'   // Аксессуары
-  | 'dresses'       // Платья
-  | 'suits'         // Костюмы
-  | 'bags';         // Сумки
+export type ItemCategory =
+  | 'headwear' // Головной убор
+  | 'outerwear' // Верхняя одежда
+  | 'tops' // Верх
+  | 'bottoms' // Низ
+  | 'footwear' // Обувь
+  | 'accessories' // Аксессуары
+  | 'fullbody' // Платья/костюмы (полноразмерная одежда)
+  | 'other'; // Другое
 
 export interface Color {
   hex: string;

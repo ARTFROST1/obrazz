@@ -1,15 +1,15 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
+  Dimensions,
   FlatList,
   Image,
-  Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  StyleSheet,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -19,7 +19,7 @@ export type CategoryDisplayMode = 'all' | 'main' | 'extra';
 // Category groups
 export const CATEGORY_GROUPS = {
   main: ['outerwear', 'tops', 'bottoms', 'footwear'] as const,
-  extra: ['headwear', 'accessories', 'bags'] as const,
+  extra: ['headwear', 'accessories', 'fullbody', 'other'] as const,
 };
 
 /**

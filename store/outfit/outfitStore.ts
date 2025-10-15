@@ -94,9 +94,8 @@ const emptySelectedItems: Record<ItemCategory, WardrobeItem | null> = {
   bottoms: null,
   footwear: null,
   accessories: null,
-  bags: null,
-  dresses: null,
-  suits: null,
+  fullbody: null,
+  other: null,
 };
 
 export const useOutfitStore = create<OutfitState>()(
@@ -213,7 +212,8 @@ export const useOutfitStore = create<OutfitState>()(
           'bottoms',
           'footwear',
           'accessories',
-          'bags',
+          'fullbody',
+          'other',
         ];
 
         const CANVAS_WIDTH = 300;
