@@ -34,9 +34,8 @@ const CATEGORY_LABELS: Record<ItemCategory, string> = {
   bottoms: 'Bottoms',
   footwear: 'Shoes',
   accessories: 'Accessories',
-  dresses: 'Dresses',
-  suits: 'Suits',
-  bags: 'Bags',
+  fullbody: 'Dresses & Suits',
+  other: 'Other',
 };
 
 export function CategoryCarousel({

@@ -15,7 +15,8 @@ const CATEGORIES: ItemCategory[] = [
   'bottoms',
   'footwear',
   'accessories',
-  'bags',
+  'fullbody',
+  'other',
 ];
 
 interface ItemSelectionStepProps {

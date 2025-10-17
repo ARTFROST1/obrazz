@@ -13,11 +13,10 @@ const CATEGORIES: Array<{ value: ItemCategory; label: string; icon: string }> = 
   { value: 'outerwear', label: 'Outerwear', icon: '🧥' },
   { value: 'tops', label: 'Tops', icon: '👕' },
   { value: 'bottoms', label: 'Bottoms', icon: '👖' },
-  { value: 'dresses', label: 'Dresses', icon: '👗' },
   { value: 'footwear', label: 'Footwear', icon: '👟' },
   { value: 'accessories', label: 'Accessories', icon: '⌚' },
-  { value: 'bags', label: 'Bags', icon: '👜' },
-  { value: 'suits', label: 'Suits', icon: '🤵' },
+  { value: 'fullbody', label: 'Dresses & Suits', icon: '👗' },
+  { value: 'other', label: 'Other', icon: '📦' },
 ];
 
 export const CategoryPicker: React.FC<CategoryPickerProps> = ({

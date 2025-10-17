@@ -1,15 +1,15 @@
-import React, { useRef, useState, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
+  Dimensions,
   FlatList,
   Image,
-  Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  StyleSheet,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -19,7 +19,7 @@ export type CategoryDisplayMode = 'all' | 'main' | 'extra';
 // Category groups
 export const CATEGORY_GROUPS = {
   main: ['outerwear', 'tops', 'bottoms', 'footwear'] as const,
-  extra: ['headwear', 'accessories', 'bags'] as const,
+  extra: ['headwear', 'accessories', 'fullbody', 'other'] as const,
 };
 
 /**
@@ -58,8 +58,10 @@ interface CategoryCarouselCenteredProps {
   itemWidth: number;
   itemHeight: number;
   spacing: number;
+  initialScrollIndex?: number;
   onItemSelect: (item: WardrobeItem | null) => void;
   onLockToggle: () => void;
+  onScrollIndexChange?: (index: number) => void;
 }
 
 /**
@@ -74,16 +76,51 @@ export function CategoryCarouselCentered({
   itemWidth,
   itemHeight,
   spacing,
+  initialScrollIndex = 0,
   onItemSelect,
   onLockToggle,
+  onScrollIndexChange,
 }: CategoryCarouselCenteredProps) {
   const flatListRef = useRef<FlatList>(null);
-  const [centerIndex, setCenterIndex] = useState(0);
+  const [centerIndex, setCenterIndex] = useState(initialScrollIndex);
 
   const sidePadding = (SCREEN_WIDTH - itemWidth) / 2;
 
   // Add "None" item as first element
   const carouselItems = [{ id: 'none', isNone: true } as any, ...items];
+
+  // Update centerIndex when initialScrollIndex changes (mode switch)
+  useEffect(() => {
+    const maxIndex = carouselItems.length - 1;
+    const safeIndex = Math.min(initialScrollIndex, maxIndex);
+    setCenterIndex(safeIndex);
+  }, [initialScrollIndex, carouselItems.length]);
+
+  // Scroll to initial position on mount or when initialScrollIndex changes
+  useEffect(() => {
+    if (flatListRef.current && initialScrollIndex >= 0) {
+      // Ensure index is within bounds (carouselItems includes "None" + actual items)
+      const maxIndex = carouselItems.length - 1;
+      const safeIndex = Math.min(initialScrollIndex, maxIndex);
+
+      // Small delay to ensure list is rendered
+      setTimeout(() => {
+        try {
+          flatListRef.current?.scrollToIndex({
+            index: safeIndex,
+            animated: false,
+          });
+        } catch (error) {
+          // Fallback to scrollToOffset if scrollToIndex fails
+          console.warn('ScrollToIndex failed, using offset instead');
+          flatListRef.current?.scrollToOffset({
+            offset: safeIndex * (itemWidth + spacing),
+            animated: false,
+          });
+        }
+      }, 50);
+    }
+  }, [initialScrollIndex, itemWidth, carouselItems.length, spacing]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -92,6 +129,7 @@ export function CategoryCarouselCentered({
 
       if (index !== centerIndex) {
         setCenterIndex(index);
+        onScrollIndexChange?.(index);
 
         // Auto-select center item
         if (index === 0) {
@@ -105,7 +143,7 @@ export function CategoryCarouselCentered({
         }
       }
     },
-    [centerIndex, items, onItemSelect, itemWidth, spacing],
+    [centerIndex, items, onItemSelect, onScrollIndexChange, itemWidth, spacing],
   );
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {

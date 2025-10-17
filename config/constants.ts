@@ -106,16 +106,16 @@ export const PAGINATION_CONFIG = {
   initialPage: 1,
 } as const;
 
-// Categories Configuration
+// Categories Configuration - 8 categories
 export const CATEGORIES = [
-  { id: 'headwear', name: 'Головные уборы', icon: 'hat', order: 1 },
+  { id: 'headwear', name: 'Головной убор', icon: 'hat', order: 1 },
   { id: 'outerwear', name: 'Верхняя одежда', icon: 'coat', order: 2 },
   { id: 'tops', name: 'Верх', icon: 'shirt', order: 3 },
   { id: 'bottoms', name: 'Низ', icon: 'pants', order: 4 },
-  { id: 'dresses', name: 'Платья', icon: 'dress', order: 5 },
-  { id: 'footwear', name: 'Обувь', icon: 'shoe', order: 6 },
-  { id: 'bags', name: 'Сумки', icon: 'bag', order: 7 },
-  { id: 'accessories', name: 'Аксессуары', icon: 'accessories', order: 8 },
+  { id: 'footwear', name: 'Обувь', icon: 'shoe', order: 5 },
+  { id: 'accessories', name: 'Аксессуары', icon: 'accessories', order: 6 },
+  { id: 'fullbody', name: 'Платья/костюмы', icon: 'dress', order: 7 },
+  { id: 'other', name: 'Другое', icon: 'box', order: 8 },
 ] as const;
 
 // Styles Configuration
@@ -177,16 +177,7 @@ export const COLOR_PALETTE = [
 
 // Background Options
 export const BACKGROUND_OPTIONS = {
-  colors: [
-    '#FFFFFF',
-    '#F8F8F8',
-    '#E5E5E5',
-    '#000000',
-    '#1C1C1E',
-    '#FFE4E1',
-    '#E6E6FA',
-    '#F0FFFF',
-  ],
+  colors: ['#FFFFFF', '#F8F8F8', '#E5E5E5', '#000000', '#1C1C1E', '#FFE4E1', '#E6E6FA', '#F0FFFF'],
   gradients: [
     'linear-gradient(180deg, #F8F8F8 0%, #FFFFFF 100%)',
     'linear-gradient(180deg, #FFE4E1 0%, #FFFFFF 100%)',
@@ -195,12 +186,7 @@ export const BACKGROUND_OPTIONS = {
     'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
   ],
-  patterns: [
-    'dots',
-    'stripes',
-    'grid',
-    'zigzag',
-  ],
+  patterns: ['dots', 'stripes', 'grid', 'zigzag'],
 } as const;
 
 // Feature Flags
