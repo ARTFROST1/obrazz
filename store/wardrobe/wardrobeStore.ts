@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { zustandStorage } from '../storage';
 import { WardrobeItem, ItemFilter, ItemSortOptions, ItemCategory } from '@types/models/item';
 
 interface WardrobeState {
@@ -164,12 +164,13 @@ export const useWardrobeStore = create<WardrobeState>()(
     }),
     {
       name: 'wardrobe-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         items: state.items,
         filter: state.filter,
         sortOptions: state.sortOptions,
       }),
+      skipHydration: true, // Skip hydration on server (SSR)
     },
   ),
 );

@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacityProps,
+  Platform,
 } from 'react-native';
 
 export interface ButtonProps extends TouchableOpacityProps {
@@ -67,15 +68,21 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     borderRadius: 26,
-    elevation: 4,
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.08)',
+      },
+    }),
   },
   disabled: {
     opacity: 0.4,

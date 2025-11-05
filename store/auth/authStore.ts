@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { zustandStorage } from '../storage';
 
 export interface AuthState {
   user: User | null;
@@ -17,6 +17,7 @@ export interface AuthState {
   setError: (error: string | null) => void;
   clearAuth: () => void;
   initialize: (user: User | null, session: Session | null) => void;
+  handleAuthError: (error: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -69,15 +70,41 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: null,
         })),
+
+      handleAuthError: (error) => {
+        console.error('[AuthStore] Handling auth error:', error);
+
+        // Clear auth state on critical errors
+        if (
+          error.includes('refresh') ||
+          error.includes('Refresh Token') ||
+          error.includes('Invalid')
+        ) {
+          set(() => ({
+            user: null,
+            session: null,
+            isAuthenticated: false,
+            error: 'Session expired. Please sign in again.',
+            isLoading: false,
+          }));
+        } else {
+          set((state) => ({
+            ...state,
+            error,
+            isLoading: false,
+          }));
+        }
+      },
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         user: state.user,
         session: state.session,
         isAuthenticated: state.isAuthenticated,
       }),
+      skipHydration: true, // Skip hydration on server (SSR)
     },
   ),
 );

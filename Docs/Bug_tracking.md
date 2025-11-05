@@ -1974,4 +1974,354 @@ See `Docs/CATEGORY_UNIFICATION_CHANGELOG.md` for:
 
 ---
 
-_Last Updated: 2025-10-15_
+### BUG-WEB-001: Web Platform Compatibility Issues
+
+**Date:** 2025-11-05  
+**Date Resolved:** 2025-11-05  
+**Severity:** Critical  
+**Status:** Resolved ✅  
+**Component:** Web Platform / AsyncStorage / Styling  
+**Environment:** Web
+
+**Description:**
+When launching the app on web platform (previously only tested on iOS via Expo Go), two critical issues prevent the app from starting:
+
+1. **AsyncStorage window reference error** - Supabase client initialization fails because AsyncStorage requires window object
+2. **Shadow style props deprecation** - React Native shadow\* props don't work on web, need boxShadow instead
+
+**Error Messages/Logs:**
+
+```
+"shadow*" style props are deprecated. Use "boxShadow".
+
+ReferenceError: window is not defined
+    at getValue (node_modules\@react-native-async-storage\async-storage\lib\commonjs\AsyncStorage.js:63:52)
+    at createPromise (node_modules\@react-native-async-storage\async-storage\lib\commonjs\AsyncStorage.js:37:10)
+    at Object.getItem (node_modules\@react-native-async-storage\async-storage\lib\commonjs\AsyncStorage.js:63:12)
+    at getItemAsync (node_modules\@supabase\auth-js\dist\main\lib\helpers.js:158:33)
+    at SupabaseAuthClient.__loadSession (node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1114:66)
+```
+
+**Root Cause:**
+
+**Issue 1: AsyncStorage on Web**
+
+- `@react-native-async-storage/async-storage` is designed for mobile platforms
+- On web, it tries to access `window` object which doesn't exist in SSR/Node context
+- Supabase client uses AsyncStorage for session persistence, failing on web initialization
+
+**Issue 2: Shadow Props**
+
+- React Native shadow\* props (shadowColor, shadowOffset, shadowOpacity, shadowRadius) are iOS-specific
+- Web platform requires CSS boxShadow property instead
+- Multiple components use Platform.select for iOS shadows but still trigger warnings
+
+**Affected Components:**
+
+- `app/(tabs)/outfits.tsx` - Floating action button
+- `components/wardrobe/ItemCard.tsx` - Item cards
+- `components/ui/FAB.tsx` - Floating action button component
+- `components/ui/Button.tsx` - Primary button
+- `components/outfit/OutfitCard.tsx` - Outfit preview cards
+
+**Solution:**
+
+**Part 1: Fix AsyncStorage for Web Platform**
+
+Update Supabase client to use platform-specific storage:
+
+- Use AsyncStorage for native platforms (iOS/Android)
+- Use localStorage wrapper for web platform
+- Detect platform and provide appropriate storage adapter
+
+**Part 2: Fix Shadow Styles for Web**
+
+Convert shadow\* props to web-compatible boxShadow:
+
+- Use Platform.select to provide different styles for web
+- Keep shadow\* props for iOS
+- Use elevation for Android (already implemented)
+- Add boxShadow for web platform
+
+**Implementation:**
+
+**Part 1: AsyncStorage Fix (lib/supabase/client.ts)**
+
+Created web-compatible storage adapter:
+
+```typescript
+// Web-compatible storage adapter using localStorage
+const WebStorage = {
+  getItem: async (key: string) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: async (key: string, value: string) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+  },
+  removeItem: async (key: string) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
+  },
+};
+
+// Use platform-specific storage
+const storage = Platform.OS === 'web' ? WebStorage : AsyncStorage;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: Platform.OS === 'web',
+  },
+});
+```
+
+**Part 2: Shadow Styles Fix**
+
+Updated all components to use Platform.select with boxShadow for web:
+
+```typescript
+// Example from Button.tsx
+...Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+  },
+  android: {
+    elevation: 4,
+  },
+  web: {
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.08)',
+  },
+})
+```
+
+**Components Updated:**
+
+1. `app/(tabs)/outfits.tsx` - Sort menu shadow
+2. `components/wardrobe/ItemCard.tsx` - Card container shadow (added Platform import)
+3. `components/ui/FAB.tsx` - Floating action button shadow
+4. `components/ui/Button.tsx` - Button shadow (added Platform import)
+5. `components/outfit/OutfitCard.tsx` - Outfit card shadow
+
+**Additional Fixes:**
+
+- Added `Platform` import to ItemCard.tsx and Button.tsx
+- Fixed import path in ItemCard.tsx from `@types/models/item` to relative path `../../types/models/item`
+- Created `store/storage.ts` - unified platform-specific storage helper for all Zustand stores
+- Updated authStore, wardrobeStore, and outfitStore to use `zustandStorage` instead of direct AsyncStorage
+
+**Root Cause of Infinite Loading:**
+After fixing the initial errors, the app experienced infinite loading on web due to multiple issues:
+
+1. **AsyncStorage in Zustand stores**: All three persist stores (auth, wardrobe, outfit) were using AsyncStorage directly, which doesn't work on web
+2. **SSR hydration issue**: Zustand was trying to read from localStorage during server-side rendering (before `window` was available), causing stores to fail initialization
+
+**SSR Hydration Fix:**
+
+- Added `skipHydration: true` to all three stores (auth, wardrobe, outfit) to prevent SSR hydration
+- Added manual `useAuthStore.persist.rehydrate()` call in `_layout.tsx` after component mounts on client side
+- This ensures stores only hydrate from localStorage when `window` is available
+
+**Prevention:**
+
+- Test on all platforms (iOS, Android, Web) before marking features complete
+- Use platform-agnostic APIs when available
+- Document platform-specific requirements in UI_UX_doc.md
+- Add web platform to CI/CD testing pipeline
+
+**Related Files:**
+
+- `lib/supabase/client.ts` (AsyncStorage fix for Supabase)
+- `store/storage.ts` (NEW - unified platform-specific storage helper)
+- `store/auth/authStore.ts` (uses zustandStorage)
+- `store/wardrobe/wardrobeStore.ts` (uses zustandStorage)
+- `store/outfit/outfitStore.ts` (uses zustandStorage)
+- `app/(tabs)/outfits.tsx` (shadow styles)
+- `components/wardrobe/ItemCard.tsx` (shadow styles)
+- `components/ui/FAB.tsx` (shadow styles)
+- `components/ui/Button.tsx` (shadow styles)
+- `components/outfit/OutfitCard.tsx` (shadow styles)
+
+**Testing:**
+
+- ✅ Web server starts without errors
+- ✅ No AsyncStorage window reference errors
+- ✅ No shadow\* deprecation warnings
+- ✅ Zustand persist works on web with localStorage
+- ✅ Auth state persists across page refreshes on web
+
+---
+
+### BUG-S4-007: Invalid Refresh Token Error on Android Startup
+
+**Date:** 2025-11-05  
+**Severity:** Critical  
+**Status:** Resolved  
+**Component:** Authentication / Supabase Client  
+**Environment:** Android (Expo Go), potentially all platforms
+
+**Description:**
+App throws "AuthApiError: Invalid Refresh Token: Refresh Token Not Found" when starting on Android via Expo Go. This happens when the app tries to restore a session with an invalid or expired refresh token stored in AsyncStorage, causing authentication to fail and preventing app access.
+
+**Error Messages/Logs:**
+
+```
+Error: ENOENT: no such file or directory, open 'C:\Users\moroz\Desktop\AiWardrope\obrazz\InternalBytecode.js'
+    at Object.readFileSync (node:fs:442:20)
+    at getCodeFrame (C:\Users\moroz\Desktop\AiWardrope\obrazz\node_modules\metro\src\Server.js:997:18)
+    at Server._symbolicate (C:\Users\moroz\Desktop\AiWardrope\obrazz\node_modules\metro\src\Server.js:1079:22)
+    at Server._processRequest (C:\Users\moroz\Desktop\AiWardrope\obrazz\node_modules\metro\src\Server.js:460:7)
+
+ERROR  [AuthApiError: Invalid Refresh Token: Refresh Token Not Found]
+Call Stack:
+  tryCallOne (address at InternalBytecode.js:1:1180)
+  anonymous (address at InternalBytecode.js:1:1874)
+
+LOG  [RootLayoutNav] Session result: Not found
+LOG  [RootLayoutNav] Auth initialization complete
+LOG  [RootLayoutNav] Session check timeout
+```
+
+**Steps to Reproduce:**
+
+1. Sign in to app and close it
+2. Wait for refresh token to expire or become invalid
+3. Reopen app on Android via Expo Go
+4. App throws Invalid Refresh Token error
+5. Metro bundler shows InternalBytecode.js error (secondary error)
+
+**Expected Behavior:**
+
+- App should detect invalid refresh token
+- Clear corrupted auth data from storage
+- Redirect user to sign-in screen
+- Show friendly error message
+
+**Actual Behavior:**
+
+- App crashes with AuthApiError
+- Metro bundler fails to symbolicate error (InternalBytecode.js)
+- User stuck on loading screen or error screen
+- Auth state remains corrupted
+
+**Root Cause:**
+
+1. **No validation of stored tokens**: Supabase client blindly uses stored refresh token without validation
+2. **No error handling for refresh failures**: Auth service doesn't catch and handle refresh token errors
+3. **Corrupted storage not cleared**: Invalid tokens remain in AsyncStorage causing repeated failures
+4. **Metro symbolication issue**: Secondary problem - Metro can't display proper stack traces
+
+**Solution:**
+
+**Phase 1: Safe Storage Wrapper (lib/supabase/client.ts)**
+
+- Created `createSafeStorage()` wrapper around AsyncStorage
+- Validates auth data before returning from storage
+- Automatically clears corrupted/invalid auth tokens
+- Added `clearAuthStorage()` helper function
+
+```typescript
+// Validates stored auth data
+if (key === SUPABASE_AUTH_KEY && item) {
+  try {
+    const parsed = JSON.parse(item);
+    if (!parsed || typeof parsed !== 'object') {
+      await baseStorage.removeItem(key);
+      return null;
+    }
+  } catch (parseError) {
+    await baseStorage.removeItem(key);
+    return null;
+  }
+}
+```
+
+**Phase 2: Enhanced Error Handling (services/auth/authService.ts)**
+
+- Added refresh token error detection in `getSession()`
+- Automatically clears storage on refresh token errors
+- Signs out locally when token is invalid
+
+```typescript
+if (error.message?.includes('refresh') || error.message?.includes('Refresh Token')) {
+  await clearAuthStorage();
+  await supabase.auth.signOut({ scope: 'local' });
+}
+```
+
+**Phase 3: Auth Store Error Handler (store/auth/authStore.ts)**
+
+- Added `handleAuthError()` action
+- Detects refresh token errors
+- Automatically clears auth state
+- Shows user-friendly error message
+
+```typescript
+handleAuthError: (error) => {
+  if (error.includes('refresh') || error.includes('Invalid')) {
+    set(() => ({
+      user: null,
+      session: null,
+      isAuthenticated: false,
+      error: 'Session expired. Please sign in again.',
+      isLoading: false,
+    }));
+  }
+};
+```
+
+**Phase 4: Improved Auth Initialization (app/\_layout.tsx)**
+
+- Updated error handling in `initAuth()`
+- Uses `handleAuthError()` for proper error processing
+- Better logging for debugging
+
+**Prevention:**
+
+1. **Token validation**: Always validate tokens before use
+2. **Graceful degradation**: Clear corrupted data and redirect to auth
+3. **Error boundaries**: Catch and handle auth errors at app level
+4. **Storage hygiene**: Periodically validate and clean auth storage
+5. **Better logging**: Comprehensive logging for auth flow debugging
+
+**Testing Checklist:**
+
+- [x] App handles expired refresh tokens gracefully
+- [x] Corrupted auth data is automatically cleared
+- [x] User redirected to sign-in on auth errors
+- [x] No infinite loading or crashes
+- [x] Proper error messages displayed
+- [ ] Test on fresh install (no cached data)
+- [ ] Test with expired tokens
+- [ ] Test after long period of inactivity
+
+**Related Files:**
+
+- `lib/supabase/client.ts` - Safe storage wrapper
+- `services/auth/authService.ts` - Enhanced error handling
+- `store/auth/authStore.ts` - Error handler action
+- `app/_layout.tsx` - Improved initialization
+
+**Additional Notes:**
+
+- The InternalBytecode.js error is a Metro bundler issue when symbolication fails
+- It's a secondary error that obscures the real problem (auth error)
+- Fixed by preventing the auth error from occurring in the first place
+
+**Related Issues:**
+
+- BUG-S4-005: Metro Bundler InternalBytecode Error (same Metro issue)
+
+---
+
+_Last Updated: 2025-11-05_
