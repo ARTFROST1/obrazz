@@ -132,7 +132,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 90, // Extra padding for floating tab bar + FAB
+    paddingBottom: Platform.OS === 'ios' ? 20 : 90, // iOS NativeTabs handles spacing, Android needs extra for FAB
   },
   emptyContainer: {
     flexGrow: 1,

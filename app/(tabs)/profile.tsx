@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 100 : 80,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 80, // iOS NativeTabs handles spacing automatically
   },
   email: {
     color: '#666666',

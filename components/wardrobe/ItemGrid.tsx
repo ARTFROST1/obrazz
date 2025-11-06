@@ -80,7 +80,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
 const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 80,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 80, // iOS NativeTabs handles spacing automatically
     paddingHorizontal: 16,
   },
   emptyContainer: {
