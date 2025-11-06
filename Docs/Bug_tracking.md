@@ -2324,4 +2324,99 @@ handleAuthError: (error) => {
 
 ---
 
+### BUG-BUILD-001: react-native-gesture-handler C++ Compilation Error on EAS Build
+
+**Date:** 2025-11-05  
+**Date Resolved:** 2025-11-05  
+**Severity:** Critical  
+**Status:** Resolved ✅  
+**Component:** Build System / Dependencies  
+**Environment:** Android (EAS Build)
+
+**Description:**
+EAS Build for Android development APK failed with C++ compilation errors in `react-native-gesture-handler`. The build system couldn't find the `shadowNodeFromValue` function and related shadow node methods when compiling the gesture handler's native code.
+
+**Error Messages/Logs:**
+
+```
+C/C++: /home/expo/workingdir/build/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:22:35: error: use of undeclared identifier 'shadowNodeFromValue'; did you mean 'shadowNodeListFromValue'?
+C/C++:    22 |                 auto shadowNode = shadowNodeFromValue(runtime, arguments[0]);
+
+C/C++: /home/expo/workingdir/build/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:23:61: error: no member named 'getTraits' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+
+C/C++: /home/expo/workingdir/build/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp:28:57: error: no member named 'getComponentName' in 'std::vector<std::shared_ptr<const facebook::react::ShadowNode>>'
+
+BUILD FAILED in 6m 51s
+Error: Gradle build failed with unknown error.
+```
+
+**Root Cause:**
+
+1. **Version incompatibility**: `react-native-gesture-handler@~2.24.0` is not compatible with React Native `0.81.4` (Expo SDK 54)
+2. **C++ API changes**: React Native's new architecture changed the shadow node APIs, breaking older versions of gesture-handler
+3. **Manual package installation**: Package was manually added to `package.json` instead of using `npx expo install`, resulting in wrong version
+
+**Solution:**
+
+**Step 1: Install expo-dev-client (required for development builds)**
+
+```bash
+npx expo install expo-dev-client
+```
+
+**Step 2: Update react-native-gesture-handler to compatible version**
+
+```bash
+npx expo install react-native-gesture-handler
+```
+
+This updated the package from `~2.24.0` to `~2.28.0`, which is compatible with Expo SDK 54 and React Native 0.81.4.
+
+**Step 3: Rebuild development APK**
+
+```bash
+eas build --profile development --platform android
+```
+
+**Package Changes:**
+
+- ✅ Added: `expo-dev-client@~6.0.17`
+- ✅ Updated: `react-native-gesture-handler` from `~2.24.0` to `~2.28.0`
+
+**Prevention:**
+
+1. **Always use `npx expo install`**: This ensures compatible versions for your Expo SDK
+2. **Check SDK compatibility**: Verify package versions against Expo SDK documentation before manual installation
+3. **Test builds early**: Run EAS builds early in development to catch compatibility issues
+4. **Read migration guides**: Check Expo SDK upgrade guides when moving to new SDK versions
+5. **Use version ranges carefully**: Avoid manually specifying versions that might not be compatible
+
+**Related Files:**
+
+- `package.json` - Updated dependencies
+- `eas.json` - Build configuration
+- `app.json` - Added Android package identifier
+
+**Documentation References:**
+
+- Expo SDK 54 Docs: https://docs.expo.dev/versions/v54.0.0/sdk/gesture-handler/
+- EAS Build Setup: https://docs.expo.dev/develop/development-builds/create-a-build/
+
+**Testing Checklist:**
+
+- [x] expo-dev-client installed
+- [x] react-native-gesture-handler updated to compatible version
+- [ ] EAS build completes successfully
+- [ ] APK installs on physical Android device
+- [ ] Gesture handlers work correctly in app
+
+**Additional Notes:**
+
+- This issue only occurs on EAS cloud builds, not local development
+- The error is specific to C++ compilation in the Android NDK
+- Similar issues may occur with other native modules if wrong versions are used
+- Always refer to the official Expo SDK documentation for package versions
+
+---
+
 _Last Updated: 2025-11-05_
