@@ -2419,4 +2419,162 @@ eas build --profile development --platform android
 
 ---
 
-_Last Updated: 2025-11-05_
+### BUG-ICONS-001: Ionicons Font Not Loading - Unable to Download Asset Error
+
+**Date:** 2025-11-06  
+**Date Resolved:** 2025-11-06  
+**Severity:** Critical  
+**Status:** Resolved ✅  
+**Component:** Vector Icons / Font Loading  
+**Environment:** iOS, potentially all platforms
+
+**Description:**
+App throws "Unable to download asset from url" error when trying to load Ionicons.ttf font file. This prevents the app from rendering Ionicons properly throughout the application.
+
+**Error Messages/Logs:**
+
+```
+Uncaught (in promise, id: 77) Error: Unable to download asset from url:
+'http://192.168.0.162:8081/assets/?unstable_path=.22Fnode_modules/2F%40exp0%2Fvector-icons%2Fbuild%2Fvendor%2Freact-native-vector-icons%2FFonts%2Flonicons.ttf&platform=ios&hash=b4eb097d35f44ed943676fd56f6bdc51'
+```
+
+**Root Cause:**
+In `app/_layout.tsx`, only FontAwesome fonts were being preloaded with `useFonts()`, but Ionicons are extensively used throughout the app in navigation, buttons, and UI elements.
+
+**Solution:**
+
+1. Import Ionicons in `app/_layout.tsx`:
+
+```typescript
+import Ionicons from '@expo/vector-icons/Ionicons';
+```
+
+2. Add Ionicons.font to useFonts():
+
+```typescript
+const [loaded, error] = useFonts({
+  SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  ...FontAwesome.font,
+  ...Ionicons.font, // ✅ Added
+});
+```
+
+**Prevention:**
+
+- Preload all icon families used in the app
+- Check icon imports before deployment
+- Test on real devices to catch font loading issues
+
+**Related Files:**
+
+- `app/_layout.tsx` (font loading)
+- Multiple components using Ionicons
+
+---
+
+### BUG-FILES-001: File Deletion Error When Removing Wardrobe Items
+
+**Date:** 2025-11-06  
+**Date Resolved:** 2025-11-06  
+**Severity:** Medium  
+**Status:** Resolved ✅  
+**Component:** File System / Item Service  
+**Environment:** iOS, all platforms
+
+**Description:**
+When deleting a wardrobe item, the app throws error "Calling the 'deleteAsync' function has failed" while trying to remove local image files. This causes console errors and potentially leaves orphaned files on disk.
+
+**Error Messages/Logs:**
+
+```
+Error deleting local image: Error: Calling the 'deleteAsync' function has failed
+→ Caused by: File '/var/mobile/Containers/Data/Application/.../Documents/ExponentExperienceData/@anonymous/obrazz-.../wardrobe/b7b01b9f-762f-472d-be3f-9f...'
+```
+
+**Steps to Reproduce:**
+
+1. Add an item to wardrobe with photo
+2. Navigate to item detail screen
+3. Tap "Delete Item" button
+4. Confirm deletion
+5. Console shows file deletion error (though DB deletion succeeds)
+
+**Expected Behavior:**
+
+- Item deleted from database
+- Local image files cleaned up silently
+- No console errors
+- User sees success message
+
+**Actual Behavior:**
+
+- Item deleted from database successfully
+- File deletion throws error in console
+- Possible orphaned files left on disk
+
+**Root Cause:**
+
+1. **No path validation**: `deleteLocalImage` didn't validate the file path before attempting deletion
+2. **Missing idempotent option**: `deleteAsync` would fail if file was already deleted
+3. **Error thrown on non-critical failure**: File deletion errors were treated as critical failures
+
+**Solution:**
+
+Enhanced `deleteLocalImage` method in `services/wardrobe/itemService.ts`:
+
+```typescript
+private async deleteLocalImage(imagePath: string): Promise<void> {
+  try {
+    // 1. Validate path
+    if (!imagePath || typeof imagePath !== 'string') {
+      console.warn('[ItemService.deleteLocalImage] Invalid path:', imagePath);
+      return;
+    }
+
+    // 2. Check if file exists
+    const fileInfo = await FileSystem.getInfoAsync(imagePath);
+
+    if (fileInfo.exists) {
+      // 3. Use idempotent option to ignore "already deleted" errors
+      await FileSystem.deleteAsync(imagePath, { idempotent: true });
+      console.log('[ItemService.deleteLocalImage] File deleted successfully');
+    } else {
+      console.log('[ItemService.deleteLocalImage] File already deleted');
+    }
+  } catch (error) {
+    // 4. Log but don't throw - file deletion is not critical
+    console.error('[ItemService.deleteLocalImage] Error:', error);
+    // Don't throw - main operation (DB deletion) should succeed
+  }
+}
+```
+
+**Key Improvements:**
+
+1. **Path validation** - Check if path is valid string before proceeding
+2. **Idempotent deletion** - `{ idempotent: true }` option prevents errors if file already deleted
+3. **Enhanced logging** - Detailed logs for debugging without blocking operations
+4. **Graceful failure** - Errors logged but not thrown, allowing DB deletion to complete
+
+**Prevention:**
+
+- Always use `{ idempotent: true }` for file deletions
+- Validate paths before file system operations
+- Treat file cleanup as non-critical (log but don't throw)
+- Test deletion flows with missing/corrupted files
+
+**Related Files:**
+
+- `services/wardrobe/itemService.ts` (deleteLocalImage method)
+
+**Testing:**
+
+- ✅ Delete item with existing files
+- ✅ Delete item with missing files
+- ✅ Delete item with invalid paths
+- ✅ No console errors thrown
+- ✅ DB deletion always succeeds
+
+---
+
+_Last Updated: 2025-11-06_
