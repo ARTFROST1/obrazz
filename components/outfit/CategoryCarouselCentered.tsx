@@ -178,7 +178,7 @@ export function CategoryCarouselCentered({
       >
         <View style={[styles.itemCard, itemCardStyle]}>
           {imagePath ? (
-            <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="cover" />
+            <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
           ) : (
             <View style={styles.emptyImage}>
               <Ionicons name="shirt-outline" size={60} color="#E5E5E5" />

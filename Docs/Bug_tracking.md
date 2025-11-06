@@ -44,6 +44,75 @@ This document tracks all bugs, errors, and their solutions encountered during th
 
 ---
 
+### BUG-002: Image Cropping in Wardrobe Grid
+
+**Date:** 2025-01-14  
+**Severity:** Medium (UX Issue)  
+**Status:** Resolved  
+**Component:** Wardrobe, Image Display  
+**Environment:** All
+
+**Description:**
+Изображения вещей в сетке гардероба и в каруселях создания образов обрезались по краям из-за использования `resizeMode="cover"`. Это приводило к тому, что пользователь не мог видеть полное изображение вещи.
+
+**Steps to Reproduce:**
+
+1. Добавить вещь в гардероб с соотношением сторон 3:4
+2. Открыть страницу Wardrobe
+3. Наблюдать обрезанные края изображения в сетке
+4. Открыть создание образа
+5. Наблюдать обрезанные изображения в каруселях
+
+**Expected Behavior:**
+
+- При добавлении вещи: обрезка изображения под 3:4
+- При отображении: полное изображение видно без обрезаний
+- В сетке гардероба: все изображения показывают полную область картинки
+- В каруселях: полное изображение вещи
+
+**Actual Behavior:**
+
+- При добавлении: обрезка была почти квадратная (не 3:4)
+- При отображении: края изображений обрезались
+- В сетке: изображения были еще более узкие
+- В каруселях: части изображений не были видны
+
+**Root Cause:**
+
+1. В `ImagePicker` для добавления вещей aspect ratio не был указан (использовался по умолчанию квадрат)
+2. В компонентах `ItemCard.tsx` и `CategoryCarouselCentered.tsx` использовался `resizeMode="cover"`, который обрезает изображение для заполнения контейнера
+
+**Solution:**
+
+1. ✅ В `app/add-item.tsx` уже был установлен `aspect: [3, 4]` для обоих методов (camera и gallery)
+2. ✅ Изменен `resizeMode` с `"cover"` на `"contain"` в:
+   - `components/wardrobe/ItemCard.tsx`
+   - `components/outfit/CategoryCarouselCentered.tsx`
+3. ✅ Проверены все aspect ratio в приложении - везде корректно установлено 3:4:
+   - `app/add-item.tsx`: `aspect: [3, 4]` и `aspectRatio: 3 / 4`
+   - `app/item/[id].tsx`: `aspectRatio: 3 / 4`
+   - `components/wardrobe/ItemCard.tsx`: `aspectRatio: 3 / 4`
+   - `components/outfit/OutfitCard.tsx`: `aspectRatio: 3 / 4`
+   - `config/constants.ts`: `CANVAS_CONFIG.aspectRatio: '3:4'`
+
+**Prevention:**
+
+- Всегда использовать `resizeMode="contain"` для изображений вещей, чтобы показывать полную картинку
+- Документировать требования к aspect ratio в UI_UX_doc.md
+- Использовать единый aspect ratio 3:4 для всех изображений вещей в приложении
+
+**Related Files:**
+
+- `app/add-item.tsx` (строки 63, 84)
+- `components/wardrobe/ItemCard.tsx` (строка 30)
+- `components/outfit/CategoryCarouselCentered.tsx` (строка 181)
+- `app/item/[id].tsx` (строка 127)
+- `Docs/UI_UX_doc.md` (Item Card specification)
+
+**Date Resolved:** 2025-01-14
+
+---
+
 ## Bug Entry Template
 
 ```markdown

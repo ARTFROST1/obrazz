@@ -27,7 +27,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onPress, onFavoritePre
         <Image
           source={{ uri: item.imageLocalPath || item.imageUrl }}
           style={styles.image}
-          resizeMode="cover"
+          resizeMode="contain"
         />
         {onFavoritePress && (
           <TouchableOpacity
