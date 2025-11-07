@@ -96,11 +96,10 @@ export const FAB: React.FC<FABProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 16,
+    bottom: Platform.OS === 'ios' ? 90 : 80, // Higher on iOS for NativeTabs
     right: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -110,6 +109,9 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 8,
+      },
+      web: {
+        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
       },
     }),
   },

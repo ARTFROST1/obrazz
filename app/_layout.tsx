@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
@@ -28,6 +29,7 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
+    ...Ionicons.font,
   });
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
@@ -54,23 +56,54 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
+  // Rehydrate stores on client side
+  useEffect(() => {
+    // Only on client side (not SSR)
+    if (typeof window !== 'undefined') {
+      console.log('[RootLayoutNav] Rehydrating stores...');
+      useAuthStore.persist.rehydrate();
+    }
+  }, []);
+
   // Initialize auth listener and session check
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[RootLayoutNav] Starting auth initialization...');
       setLoading(true);
 
-      // Initialize auth state listener
-      authService.initializeAuthListener();
+      try {
+        // Initialize auth state listener
+        console.log('[RootLayoutNav] Initializing auth listener...');
+        authService.initializeAuthListener();
 
-      // Check for existing session
-      const session = await authService.getSession();
-      if (session) {
-        useAuthStore.getState().initialize(session.user, session);
-      } else {
-        useAuthStore.getState().clearAuth();
+        // Check for existing session with timeout
+        console.log('[RootLayoutNav] Getting session...');
+        const sessionPromise = authService.getSession();
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => {
+            console.log('[RootLayoutNav] Session check timeout');
+            resolve(null);
+          }, 5000),
+        );
+
+        const session = await Promise.race([sessionPromise, timeoutPromise]);
+        console.log('[RootLayoutNav] Session result:', session ? 'Found' : 'Not found');
+
+        if (session) {
+          useAuthStore.getState().initialize(session.user, session);
+        } else {
+          useAuthStore.getState().clearAuth();
+        }
+      } catch (error: any) {
+        console.error('[RootLayoutNav] Auth initialization error:', error?.message || error);
+
+        // Handle auth errors properly
+        const errorMessage = error?.message || 'Unknown auth error';
+        useAuthStore.getState().handleAuthError(errorMessage);
+      } finally {
+        console.log('[RootLayoutNav] Auth initialization complete');
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     initAuth();

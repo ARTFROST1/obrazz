@@ -158,6 +158,9 @@ const styles = StyleSheet.create({
       android: {
         elevation: 2,
       },
+      web: {
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.06)',
+      },
     }),
   },
   placeholderImage: {

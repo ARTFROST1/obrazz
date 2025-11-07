@@ -375,12 +375,35 @@ class ItemService {
    */
   private async deleteLocalImage(imagePath: string): Promise<void> {
     try {
+      // Validate path
+      if (!imagePath || typeof imagePath !== 'string') {
+        console.warn('[ItemService.deleteLocalImage] Invalid path:', imagePath);
+        return;
+      }
+
+      console.log('[ItemService.deleteLocalImage] Attempting to delete:', imagePath);
+
+      // Check if file exists before trying to delete
       const fileInfo = await FileSystem.getInfoAsync(imagePath);
+      console.log('[ItemService.deleteLocalImage] File exists:', fileInfo.exists);
+
       if (fileInfo.exists) {
-        await FileSystem.deleteAsync(imagePath);
+        await FileSystem.deleteAsync(imagePath, { idempotent: true });
+        console.log('[ItemService.deleteLocalImage] File deleted successfully');
+      } else {
+        console.log('[ItemService.deleteLocalImage] File already deleted or does not exist');
       }
     } catch (error) {
-      console.error('Error deleting local image:', error);
+      // Log error but don't throw - deletion failures shouldn't block the main operation
+      console.error('[ItemService.deleteLocalImage] Error deleting local image:', error);
+      if (error instanceof Error) {
+        console.error('[ItemService.deleteLocalImage] Error details:', {
+          name: error.name,
+          message: error.message,
+          path: imagePath,
+        });
+      }
+      // Don't throw - file might already be deleted or path might be invalid
     }
   }
 

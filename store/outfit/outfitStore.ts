@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { zustandStorage } from '../storage';
 import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
@@ -400,11 +400,12 @@ export const useOutfitStore = create<OutfitState>()(
     }),
     {
       name: 'outfit-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         outfits: state.outfits,
         canvasSettings: state.canvasSettings,
       }),
+      skipHydration: true, // Skip hydration on server (SSR)
     },
   ),
 );

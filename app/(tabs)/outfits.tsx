@@ -568,6 +568,9 @@ const styles = StyleSheet.create({
       android: {
         elevation: 8,
       },
+      web: {
+        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+      },
     }),
     zIndex: 1000,
     minWidth: 160,

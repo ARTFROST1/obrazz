@@ -6,6 +6,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   useColorScheme,
+  Platform,
 } from 'react-native';
 import { Outfit } from '@types/models/outfit';
 import { OutfitCard } from './OutfitCard';
@@ -124,9 +125,6 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
       onEndReachedThreshold={0.5}
       ListEmptyComponent={renderEmpty}
       ListFooterComponent={renderFooter}
-      // Add padding at bottom for FAB
-      contentInset={{ bottom: 80 }}
-      contentOffset={{ x: 0, y: 0 }}
     />
   );
 };
@@ -134,7 +132,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingBottom: 96, // Extra padding for FAB
+    paddingBottom: Platform.OS === 'ios' ? 20 : 90, // iOS NativeTabs handles spacing, Android needs extra for FAB
   },
   emptyContainer: {
     flexGrow: 1,

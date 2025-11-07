@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, FlatList, StyleSheet, RefreshControl, Text, ActivityIndicator } from 'react-native';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Text,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { ItemCard } from './ItemCard';
 import { WardrobeItem } from '@types/models/item';
 
@@ -72,7 +80,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
 const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 80, // iOS NativeTabs handles spacing automatically
     paddingHorizontal: 16,
   },
   emptyContainer: {
