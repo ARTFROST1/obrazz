@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface DropdownProps<T extends string> {
@@ -51,10 +51,15 @@ export function Dropdown<T extends string>({
     return (value as T).charAt(0).toUpperCase() + (value as T).slice(1);
   };
 
+  const handleOpen = () => {
+    Keyboard.dismiss();
+    setIsOpen(true);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <TouchableOpacity style={styles.selector} onPress={() => setIsOpen(true)}>
+      <TouchableOpacity style={styles.selector} onPress={handleOpen}>
         <Text style={[styles.selectorText, !value && styles.placeholderText]}>
           {getDisplayValue()}
         </Text>

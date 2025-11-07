@@ -207,14 +207,27 @@ function CanvasItem({
     });
   };
 
+  const clampValue = (value: number, min: number, max: number) => {
+    'worklet';
+    return Math.max(min, Math.min(max, value));
+  };
+
   const panGesture = Gesture.Pan()
     .onStart(() => {
       startX.value = translateX.value;
       startY.value = translateY.value;
     })
     .onUpdate((event) => {
-      translateX.value = startX.value + event.translationX;
-      translateY.value = startY.value + event.translationY;
+      // Calculate new position
+      const newX = startX.value + event.translationX;
+      const newY = startY.value + event.translationY;
+
+      // Item size is 100x100 (from styles.canvasItem)
+      const itemSize = 100 * scale.value;
+
+      // Clamp position to keep item within canvas bounds
+      translateX.value = clampValue(newX, 0, canvasWidth - itemSize);
+      translateY.value = clampValue(newY, 0, canvasHeight - itemSize);
     })
     .onEnd(() => {
       runOnJS(updateTransform)(translateX.value, translateY.value, scale.value, rotation.value);
@@ -229,6 +242,10 @@ function CanvasItem({
       scale.value = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
     })
     .onEnd(() => {
+      // After scaling, ensure item is still within bounds
+      const itemSize = 100 * scale.value;
+      translateX.value = clampValue(translateX.value, 0, canvasWidth - itemSize);
+      translateY.value = clampValue(translateY.value, 0, canvasHeight - itemSize);
       runOnJS(updateTransform)(translateX.value, translateY.value, scale.value, rotation.value);
     });
 

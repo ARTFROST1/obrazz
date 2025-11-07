@@ -35,7 +35,7 @@ export default function CreateScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedOccasion, setSelectedOccasion] = useState<OccasionTag | null>(null);
   const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]);
-  const [selectedSeasons, setSelectedSeasons] = useState<Season[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
 
   // Load outfit if in edit mode
   useEffect(() => {
@@ -59,9 +59,18 @@ export default function CreateScreen() {
       setOutfitTitle(outfit.title || '');
       setSelectedOccasion(outfit.occasions?.[0] || null);
       setSelectedStyles(outfit.styles || []);
-      setSelectedSeasons(outfit.seasons || []);
-      // Skip Step 1 when editing - go straight to composition
-      setCreationStep(2);
+      setSelectedSeason(outfit.seasons?.[0] || null);
+
+      // Populate selectedItemsForCreation from outfit items
+      const { selectItemForCategory } = useOutfitStore.getState();
+      if (outfit.items && outfit.items.length > 0) {
+        outfit.items.forEach((outfitItem) => {
+          if (outfitItem.item) {
+            selectItemForCategory(outfitItem.category, outfitItem.item);
+          }
+        });
+      }
+      // User stays on Step 1 to review/modify items before proceeding to composition
     } catch (error) {
       console.error('Error loading outfit:', error);
       Alert.alert('Error', 'Failed to load outfit for editing');
@@ -131,7 +140,7 @@ export default function CreateScreen() {
           background: currentBackground,
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-          seasons: selectedSeasons.length > 0 ? selectedSeasons : undefined,
+          seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
         Alert.alert('Success', 'Outfit updated successfully!', [
@@ -153,7 +162,7 @@ export default function CreateScreen() {
           visibility: 'private',
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-          seasons: selectedSeasons.length > 0 ? selectedSeasons : undefined,
+          seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
         Alert.alert('Success', 'Outfit saved successfully!', [
@@ -247,11 +256,10 @@ export default function CreateScreen() {
             {/* Season Dropdown */}
             <Dropdown
               label="Season"
-              value={selectedSeasons}
+              value={selectedSeason}
               options={['spring', 'summer', 'fall', 'winter'] as const}
-              onSelect={(value) => setSelectedSeasons((value as Season[]) || [])}
-              multiple
-              placeholder="Select seasons"
+              onSelect={(value) => setSelectedSeason(value as Season | null)}
+              placeholder="Select season"
             />
 
             <View style={styles.modalButtons}>
