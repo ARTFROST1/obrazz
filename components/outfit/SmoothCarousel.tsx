@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useMemo, useState, memo } from 'react';
 import {
   View,
   FlatList,
@@ -21,6 +21,64 @@ const PHYSICS_CONFIG = {
   snapDuration: 250, // Smooth snap animation duration
   friction: 0.02, // Friction coefficient
 };
+
+interface CarouselItemProps {
+  item: WardrobeItem;
+  index: number;
+  itemWidth: number;
+  itemHeight: number;
+  isCenterItem: boolean;
+  isCategoryActive: boolean;
+  onCategoryToggle: () => void;
+}
+
+// Memoized carousel item component for performance
+const CarouselItem = memo(function CarouselItem({
+  item,
+  index,
+  itemWidth,
+  itemHeight,
+  isCenterItem,
+  isCategoryActive,
+  onCategoryToggle,
+}: CarouselItemProps) {
+  const imagePath = item.imageLocalPath || item.imageUrl;
+
+  return (
+    <View style={[styles.itemContainer, { width: itemWidth }]}>
+      <View
+        style={[
+          styles.itemCard,
+          { width: itemWidth, height: itemHeight },
+          !isCategoryActive && styles.itemCardInactive,
+        ]}
+      >
+        {imagePath ? (
+          <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
+        ) : (
+          <View style={styles.emptyImage}>
+            <Ionicons name="shirt-outline" size={50} color="#E5E5E5" />
+          </View>
+        )}
+
+        {/* Flag button overlay - only on center item */}
+        {isCenterItem && (
+          <TouchableOpacity
+            style={styles.flagButton}
+            onPress={onCategoryToggle}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isCategoryActive ? 'flag' : 'flag-outline'}
+              size={20}
+              color={isCategoryActive ? '#000' : '#999'}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+});
 
 interface SmoothCarouselProps {
   category: ItemCategory;
@@ -235,45 +293,21 @@ export function SmoothCarousel({
     [getCenterIndex, itemWidth, spacing, notifyItemSelection],
   );
 
-  // Render item with flag button overlay for center item
+  // Render item with memoization for performance
   const renderItem = useCallback(
     ({ item, index }: { item: WardrobeItem; index: number }) => {
       const isCenterItem = index === centerIndex;
-      const imagePath = item.imageLocalPath || item.imageUrl;
 
       return (
-        <View style={[styles.itemContainer, { width: itemWidth }]}>
-          <View
-            style={[
-              styles.itemCard,
-              { width: itemWidth, height: itemHeight },
-              !isCategoryActive && styles.itemCardInactive,
-            ]}
-          >
-            {imagePath ? (
-              <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
-            ) : (
-              <View style={styles.emptyImage}>
-                <Ionicons name="shirt-outline" size={50} color="#E5E5E5" />
-              </View>
-            )}
-
-            {/* Flag button overlay - only on center item */}
-            {isCenterItem && (
-              <TouchableOpacity
-                style={styles.flagButton}
-                onPress={onCategoryToggle}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={isCategoryActive ? 'flag' : 'flag-outline'}
-                  size={20}
-                  color={isCategoryActive ? '#000' : '#999'}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <CarouselItem
+          item={item}
+          index={index}
+          itemWidth={itemWidth}
+          itemHeight={itemHeight}
+          isCenterItem={isCenterItem}
+          isCategoryActive={isCategoryActive}
+          onCategoryToggle={onCategoryToggle}
+        />
       );
     },
     [itemWidth, itemHeight, isCategoryActive, onCategoryToggle, centerIndex],
@@ -326,17 +360,18 @@ export function SmoothCarousel({
         onScroll={handleScroll}
         onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollEnd={handleMomentumScrollEnd}
-        scrollEventThrottle={32}
+        scrollEventThrottle={16}
         // Performance optimizations
         getItemLayout={(data, index) => ({
           length: itemWidth + spacing,
           offset: (itemWidth + spacing) * index,
           index,
         })}
-        removeClippedSubviews={false}
-        initialNumToRender={15}
-        maxToRenderPerBatch={10}
-        windowSize={21}
+        removeClippedSubviews={true}
+        initialNumToRender={7}
+        maxToRenderPerBatch={5}
+        windowSize={11}
+        updateCellsBatchingPeriod={50}
       />
     </View>
   );
