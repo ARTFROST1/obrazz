@@ -13,6 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 
+import { CATEGORY_LABELS } from '@constants/categories';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_SIZE = 180; // Larger items for better visibility
 const ITEM_SPACING = 16;
@@ -27,16 +29,7 @@ interface CategoryCarouselProps {
   onLockToggle: () => void;
 }
 
-const CATEGORY_LABELS: Record<ItemCategory, string> = {
-  headwear: 'Headwear',
-  outerwear: 'Outerwear',
-  tops: 'Tops',
-  bottoms: 'Bottoms',
-  footwear: 'Shoes',
-  accessories: 'Accessories',
-  fullbody: 'Dresses & Suits',
-  other: 'Other',
-};
+// Category labels are now imported from unified constants
 
 export function CategoryCarousel({
   category,

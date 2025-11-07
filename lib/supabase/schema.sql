@@ -28,15 +28,14 @@ CREATE TABLE public.items (
   thumbnail_url TEXT,
   original_image_url TEXT,
   category TEXT NOT NULL CHECK (category IN (
-    'headwear',      -- Головные уборы
-    'outerwear',     -- Верхняя одежда
-    'tops',          -- Верх
-    'bottoms',       -- Низ
-    'footwear',      -- Обувь
-    'accessories',   -- Аксессуары
-    'dresses',       -- Платья
-    'suits',         -- Костюмы
-    'bags'           -- Сумки
+    'headwear',      -- головной убор
+    'outerwear',     -- верхняя одежда
+    'tops',          -- верх
+    'bottoms',       -- низ
+    'footwear',      -- обувь
+    'accessories',   -- аксессуары
+    'fullbody',      -- FullBody (платья, костюмы)
+    'other'          -- Другое
   )),
   color TEXT,
   style TEXT[] DEFAULT '{}',

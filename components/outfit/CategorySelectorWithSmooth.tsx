@@ -2,17 +2,15 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { View, StyleSheet, Dimensions, LayoutChangeEvent } from 'react-native';
 import { SmoothCarousel } from './SmoothCarousel';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { CATEGORY_GROUPS as IMPORTED_CATEGORY_GROUPS } from '@constants/categories';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Category display modes
 export type CategoryDisplayMode = 'all' | 'main' | 'extra';
 
-// Category groups
-export const CATEGORY_GROUPS = {
-  main: ['outerwear', 'tops', 'bottoms', 'footwear'] as const,
-  extra: ['headwear', 'accessories', 'fullbody', 'other'] as const,
-};
+// Category groups (re-export from constants)
+export const CATEGORY_GROUPS = IMPORTED_CATEGORY_GROUPS;
 
 /**
  * Calculate item dimensions maintaining 3:4 aspect ratio

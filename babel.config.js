@@ -33,6 +33,7 @@ module.exports = function (api) {
             '@contexts': './contexts',
             '@styles': './styles',
             '@locales': './locales',
+            '@constants': './constants',
           },
         },
       ],

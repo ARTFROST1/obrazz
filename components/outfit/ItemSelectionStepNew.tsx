@@ -9,17 +9,7 @@ import {
   CATEGORY_GROUPS,
 } from './CategorySelectorWithSmooth';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
-
-const CATEGORIES: ItemCategory[] = [
-  'headwear',
-  'outerwear',
-  'tops',
-  'bottoms',
-  'footwear',
-  'accessories',
-  'fullbody',
-  'other',
-];
+import { CATEGORIES } from '@constants/categories';
 
 interface ItemSelectionStepNewProps {
   onNext: () => void;

@@ -10,17 +10,15 @@ import {
   View,
 } from 'react-native';
 import { ItemCategory, WardrobeItem } from '../../types/models/item';
+import { CATEGORY_GROUPS as IMPORTED_CATEGORY_GROUPS } from '@constants/categories';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Category display modes for filtering categories
 export type CategoryDisplayMode = 'all' | 'main' | 'extra';
 
-// Category groups
-export const CATEGORY_GROUPS = {
-  main: ['outerwear', 'tops', 'bottoms', 'footwear'] as const,
-  extra: ['headwear', 'accessories', 'fullbody', 'other'] as const,
-};
+// Category groups (re-export from constants)
+export const CATEGORY_GROUPS = IMPORTED_CATEGORY_GROUPS;
 
 /**
  * Calculate item dimensions based on number of categories and available height

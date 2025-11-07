@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { ItemCategory } from '@types/models/item';
+import { ItemCategory } from '../../types/models/item';
+import { getAllCategoriesInfo } from '@constants/categories';
 
 interface CategoryPickerProps {
   selectedCategories: ItemCategory[];
@@ -8,16 +9,7 @@ interface CategoryPickerProps {
   multiSelect?: boolean;
 }
 
-const CATEGORIES: Array<{ value: ItemCategory; label: string; icon: string }> = [
-  { value: 'headwear', label: 'Headwear', icon: '🎩' },
-  { value: 'outerwear', label: 'Outerwear', icon: '🧥' },
-  { value: 'tops', label: 'Tops', icon: '👕' },
-  { value: 'bottoms', label: 'Bottoms', icon: '👖' },
-  { value: 'footwear', label: 'Footwear', icon: '👟' },
-  { value: 'accessories', label: 'Accessories', icon: '⌚' },
-  { value: 'fullbody', label: 'Dresses & Suits', icon: '👗' },
-  { value: 'other', label: 'Other', icon: '📦' },
-];
+const CATEGORIES = getAllCategoriesInfo('ru');
 
 export const CategoryPicker: React.FC<CategoryPickerProps> = ({
   selectedCategories,
@@ -36,17 +28,19 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
-      {CATEGORIES.map((category) => {
-        const selected = isSelected(category.value);
+      {CATEGORIES.map((categoryInfo) => {
+        const selected = isSelected(categoryInfo.value);
         return (
           <TouchableOpacity
-            key={category.value}
+            key={categoryInfo.value}
             style={[styles.chip, selected && styles.chipSelected]}
-            onPress={() => handlePress(category.value)}
+            onPress={() => handlePress(categoryInfo.value)}
             activeOpacity={0.7}
           >
-            <Text style={styles.icon}>{category.icon}</Text>
-            <Text style={[styles.label, selected && styles.labelSelected]}>{category.label}</Text>
+            <Text style={styles.icon}>{categoryInfo.icon}</Text>
+            <Text style={[styles.label, selected && styles.labelSelected]}>
+              {categoryInfo.label}
+            </Text>
           </TouchableOpacity>
         );
       })}

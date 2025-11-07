@@ -17,7 +17,8 @@
       "@config/*": ["config/*"],
       "@contexts/*": ["contexts/*"],
       "@styles/*": ["styles/*"],
-      "@locales/*": ["locales/*"]
+      "@locales/*": ["locales/*"],
+      "@constants/*": ["constants/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,

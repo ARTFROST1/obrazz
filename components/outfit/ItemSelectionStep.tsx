@@ -7,17 +7,7 @@ import { CategorySelectorList } from './CategorySelectorList';
 import { ProgressIndicator } from './ProgressIndicator';
 import { CategoryDisplayMode, CATEGORY_GROUPS } from './CategoryCarouselCentered';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
-
-const CATEGORIES: ItemCategory[] = [
-  'headwear',
-  'outerwear',
-  'tops',
-  'bottoms',
-  'footwear',
-  'accessories',
-  'fullbody',
-  'other',
-];
+import { CATEGORIES } from '@constants/categories';
 
 interface ItemSelectionStepProps {
   onNext: () => void;

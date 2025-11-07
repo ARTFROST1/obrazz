@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '../storage';
 import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { CATEGORIES } from '@constants/categories';
 
 interface HistoryState {
   items: OutfitItem[];
@@ -205,16 +206,6 @@ export const useOutfitStore = create<OutfitState>()(
       confirmItemSelection: () => {
         // Convert selected items to OutfitItems with initial transforms
         const selected = get().selectedItemsForCreation;
-        const categories: ItemCategory[] = [
-          'headwear',
-          'outerwear',
-          'tops',
-          'bottoms',
-          'footwear',
-          'accessories',
-          'fullbody',
-          'other',
-        ];
 
         const CANVAS_WIDTH = 300;
         const CANVAS_HEIGHT = 400;
@@ -222,12 +213,12 @@ export const useOutfitStore = create<OutfitState>()(
         const outfitItems: OutfitItem[] = [];
         let slotIndex = 0;
 
-        categories.forEach((category) => {
+        CATEGORIES.forEach((category) => {
           const item = selected[category];
           if (item) {
-            const categoryIndex = categories.indexOf(category);
+            const categoryIndex = CATEGORIES.indexOf(category);
             const centerX = CANVAS_WIDTH / 2 - 50;
-            const spacing = CANVAS_HEIGHT / (categories.length + 1);
+            const spacing = CANVAS_HEIGHT / (CATEGORIES.length + 1);
             const centerY = spacing * (categoryIndex + 1) - 50;
 
             outfitItems.push({
