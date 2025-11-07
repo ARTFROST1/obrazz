@@ -18,8 +18,11 @@ import { useAuthStore } from '@store/auth/authStore';
 import { outfitService } from '@services/outfit/outfitService';
 import { OutfitGrid } from '@components/outfit/OutfitGrid';
 import { OutfitEmptyState } from '@components/outfit/OutfitEmptyState';
+import { OutfitFilter, OutfitFilterState } from '@components/outfit';
 import { FAB } from '@components/ui';
 import { Outfit } from '../../types/models/outfit';
+import { OccasionTag } from '../../types/models/outfit';
+import { Season, StyleTag } from '../../types/models/user';
 
 /**
  * Outfits Screen
@@ -49,9 +52,15 @@ export default function OutfitsScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'private' | 'shared' | 'public'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'favorite' | 'most_used'>('newest');
   const [refreshing, setRefreshing] = useState(false);
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [outfitFilters, setOutfitFilters] = useState<OutfitFilterState>({
+    occasions: [],
+    styles: [],
+    seasons: [],
+    sortBy: 'newest',
+    isFavorite: undefined,
+  });
 
   useEffect(() => {
     loadOutfits();
@@ -186,9 +195,8 @@ export default function OutfitsScreen() {
     setFilterBy(filter);
   };
 
-  const handleSortChange = (sort: typeof sortBy) => {
-    setSortBy(sort);
-    setShowSortMenu(false);
+  const handleApplyFilters = (filters: OutfitFilterState) => {
+    setOutfitFilters(filters);
   };
 
   // Filter and sort outfits
@@ -209,21 +217,46 @@ export default function OutfitsScreen() {
       filtered = filtered.filter((outfit) => outfit.visibility === filterBy);
     }
 
+    // Apply occasion filter
+    if (outfitFilters.occasions.length > 0) {
+      filtered = filtered.filter((outfit) =>
+        outfit.occasions?.some((o) => outfitFilters.occasions.includes(o)),
+      );
+    }
+
+    // Apply style filter
+    if (outfitFilters.styles.length > 0) {
+      filtered = filtered.filter((outfit) =>
+        outfit.styles?.some((s) => outfitFilters.styles.includes(s)),
+      );
+    }
+
+    // Apply season filter
+    if (outfitFilters.seasons.length > 0) {
+      filtered = filtered.filter((outfit) =>
+        outfit.seasons?.some((s) => outfitFilters.seasons.includes(s)),
+      );
+    }
+
+    // Apply favorites filter
+    if (outfitFilters.isFavorite) {
+      filtered = filtered.filter((outfit) => outfit.isFavorite);
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
-      switch (sortBy) {
+      switch (outfitFilters.sortBy) {
         case 'newest':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'favorite':
+        case 'favorites':
           if (a.isFavorite === b.isFavorite) {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }
           return a.isFavorite ? -1 : 1;
-        case 'most_used':
-          if (a.wearCount === b.wearCount) {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          }
-          return b.wearCount - a.wearCount;
+        case 'alphabetical':
+          const titleA = (a.title || 'Untitled').toLowerCase();
+          const titleB = (b.title || 'Untitled').toLowerCase();
+          return titleA.localeCompare(titleB);
         default:
           return 0;
       }
@@ -233,7 +266,13 @@ export default function OutfitsScreen() {
   };
 
   const filteredOutfits = getFilteredAndSortedOutfits();
-  const hasActiveFilters = filterBy !== 'all' || searchQuery.length > 0;
+  const hasActiveFilters =
+    filterBy !== 'all' ||
+    searchQuery.length > 0 ||
+    outfitFilters.occasions.length > 0 ||
+    outfitFilters.styles.length > 0 ||
+    outfitFilters.seasons.length > 0 ||
+    outfitFilters.isFavorite;
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
@@ -409,49 +448,30 @@ export default function OutfitsScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Sort Button */}
+        {/* Filter Button */}
         <TouchableOpacity
-          style={[styles.sortButton, { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' }]}
-          onPress={() => setShowSortMenu(!showSortMenu)}
+          style={[
+            styles.filterButtonRight,
+            { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
+            hasActiveFilters && styles.filterButtonActive,
+          ]}
+          onPress={() => setShowFilterMenu(true)}
         >
-          <Text style={[styles.sortButtonText, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-            Sort
+          <Ionicons
+            name="filter"
+            size={16}
+            color={hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000'}
+          />
+          <Text
+            style={[
+              styles.filterButtonRightText,
+              { color: hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000' },
+            ]}
+          >
+            Filter
           </Text>
-          <Ionicons name="chevron-down" size={16} color={isDark ? '#FFFFFF' : '#000000'} />
         </TouchableOpacity>
       </View>
-
-      {/* Sort Menu */}
-      {showSortMenu && (
-        <View style={[styles.sortMenu, { backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF' }]}>
-          <TouchableOpacity style={styles.sortMenuItem} onPress={() => handleSortChange('newest')}>
-            <Text style={[styles.sortMenuText, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-              Newest First
-            </Text>
-            {sortBy === 'newest' && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.sortMenuItem}
-            onPress={() => handleSortChange('favorite')}
-          >
-            <Text style={[styles.sortMenuText, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-              Favorites
-            </Text>
-            {sortBy === 'favorite' && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.sortMenuItem}
-            onPress={() => handleSortChange('most_used')}
-          >
-            <Text style={[styles.sortMenuText, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-              Most Worn
-            </Text>
-            {sortBy === 'most_used' && <Ionicons name="checkmark" size={20} color="#007AFF" />}
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Results Count */}
       {hasActiveFilters && (
@@ -463,6 +483,13 @@ export default function OutfitsScreen() {
             onPress={() => {
               setSearchQuery('');
               setFilterBy('all');
+              setOutfitFilters({
+                occasions: [],
+                styles: [],
+                seasons: [],
+                sortBy: 'newest',
+                isFavorite: undefined,
+              });
             }}
           >
             <Text style={styles.clearFiltersText}>Clear filters</Text>
@@ -492,6 +519,14 @@ export default function OutfitsScreen() {
         backgroundColor={isDark ? '#FFFFFF' : '#000000'}
         iconColor={isDark ? '#000000' : '#FFFFFF'}
         accessibilityLabel="Create new outfit"
+      />
+
+      {/* Outfit Filter Modal */}
+      <OutfitFilter
+        visible={showFilterMenu}
+        onClose={() => setShowFilterMenu(false)}
+        onApply={handleApplyFilters}
+        initialFilters={outfitFilters}
       />
     </View>
   );
@@ -556,50 +591,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-  sortButton: {
+  filterButtonRight: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     gap: 4,
     marginLeft: 'auto',
   },
-  sortButtonText: {
+  filterButtonRightText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  sortMenu: {
-    position: 'absolute',
-    top: 185,
-    right: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
-      web: {
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-      },
-    }),
-    zIndex: 1000,
-    minWidth: 160,
-  },
-  sortMenuItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  sortMenuText: {
-    fontSize: 15,
   },
   resultsContainer: {
     flexDirection: 'row',

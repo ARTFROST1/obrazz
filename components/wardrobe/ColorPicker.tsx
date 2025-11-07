@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ColorPickerProps {
@@ -26,6 +26,40 @@ const COLORS = [
   { hex: '#00CED1', name: 'Turquoise' },
 ];
 
+const ColorButton: React.FC<{
+  color: { hex: string; name: string };
+  selected: boolean;
+  onPress: () => void;
+}> = ({ color, selected, onPress }) => {
+  const scaleAnim = React.useRef(new Animated.Value(selected ? 1.15 : 1)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: selected ? 1.15 : 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 100,
+    }).start();
+  }, [selected]);
+
+  return (
+    <TouchableOpacity style={styles.colorButton} onPress={onPress} activeOpacity={0.7}>
+      <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+        <View style={[styles.colorCircle, { backgroundColor: color.hex }]}>
+          {selected && (
+            <Ionicons
+              name="checkmark"
+              size={20}
+              color={color.hex === '#FFFFFF' ? '#000' : '#FFF'}
+            />
+          )}
+        </View>
+      </Animated.View>
+      <Text style={styles.colorName}>{color.name}</Text>
+    </TouchableOpacity>
+  );
+};
+
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   selectedColors,
   onColorSelect,
@@ -39,28 +73,14 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
-      {COLORS.map((color) => {
-        const selected = isSelected(color.hex);
-        return (
-          <TouchableOpacity
-            key={color.hex}
-            style={[styles.colorButton, selected && styles.colorButtonSelected]}
-            onPress={() => onColorSelect(color.hex)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.colorCircle, { backgroundColor: color.hex }]}>
-              {selected && (
-                <Ionicons
-                  name="checkmark"
-                  size={20}
-                  color={color.hex === '#FFFFFF' ? '#000' : '#FFF'}
-                />
-              )}
-            </View>
-            <Text style={styles.colorName}>{color.name}</Text>
-          </TouchableOpacity>
-        );
-      })}
+      {COLORS.map((color) => (
+        <ColorButton
+          key={color.hex}
+          color={color}
+          selected={isSelected(color.hex)}
+          onPress={() => onColorSelect(color.hex)}
+        />
+      ))}
     </ScrollView>
   );
 };
@@ -69,9 +89,6 @@ const styles = StyleSheet.create({
   colorButton: {
     alignItems: 'center',
     marginRight: 16,
-  },
-  colorButtonSelected: {
-    transform: [{ scale: 1.1 }],
   },
   colorCircle: {
     alignItems: 'center',

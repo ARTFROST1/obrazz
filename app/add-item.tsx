@@ -187,7 +187,7 @@ export default function AddItemScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Image Section */}
-        <View style={styles.section}>
+        <View style={[styles.section, styles.firstSection]}>
           {imageUri ? (
             <View style={styles.imageContainer}>
               <Image source={{ uri: imageUri }} style={styles.image} />
@@ -259,7 +259,11 @@ export default function AddItemScreen() {
         {/* Styles */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Style (optional)</Text>
-          <View style={styles.chipContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipScrollContainer}
+          >
             {STYLES.map((style) => {
               const selected = selectedStyles.includes(style);
               return (
@@ -278,7 +282,7 @@ export default function AddItemScreen() {
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Seasons */}
@@ -325,10 +329,12 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     borderRadius: 18,
     borderWidth: 1,
-    marginBottom: 8,
     marginRight: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  chipScrollContainer: {
+    paddingRight: 16,
   },
   chipContainer: {
     flexDirection: 'row',
@@ -353,6 +359,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  firstSection: {
+    marginTop: 16,
   },
   footer: {
     borderTopColor: '#E5E5E5',

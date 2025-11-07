@@ -196,9 +196,9 @@ export default function OutfitDetailScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleToggleFavorite} style={styles.iconButton}>
             <Ionicons
-              name={isFavorite ? 'heart' : 'heart-outline'}
+              name={isFavorite ? 'star' : 'star-outline'}
               size={24}
-              color={isFavorite ? '#FF3B30' : '#000'}
+              color={isFavorite ? '#FFD700' : '#000'}
             />
           </TouchableOpacity>
         </View>

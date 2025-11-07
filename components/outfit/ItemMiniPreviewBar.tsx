@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   miniItemSelected: {
     borderColor: '#000',
-    borderWidth: 3,
+    borderWidth: 2,
   },
   miniImage: {
     width: '100%',
@@ -157,6 +157,8 @@ const styles = StyleSheet.create({
     right: -6,
     backgroundColor: '#FFF',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#000',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000',
   },
   emptyState: {
     paddingVertical: 32,

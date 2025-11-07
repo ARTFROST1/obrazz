@@ -19,3 +19,5 @@ export { OutfitPreview } from './OutfitPreview';
 export { OutfitCard } from './OutfitCard';
 export { OutfitGrid } from './OutfitGrid';
 export { OutfitEmptyState } from './OutfitEmptyState';
+export { OutfitFilter } from './OutfitFilter';
+export type { OutfitFilterState } from './OutfitFilter';

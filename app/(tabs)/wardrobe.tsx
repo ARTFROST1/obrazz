@@ -275,6 +275,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8F8F8',
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 8,
