@@ -1,11 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, Alert, TextInput, Dimensions, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  TextInput,
+  Dimensions,
+  ScrollView,
+  Keyboard,
+  Modal,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
 import { outfitService } from '@services/outfit/outfitService';
 import { ItemSelectionStepNew, CompositionStep } from '@components/outfit';
 import { Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { OccasionTag } from '../../types/models/outfit';
 import { Season, StyleTag } from '../../types/models/user';
 
@@ -33,9 +43,12 @@ export default function CreateScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [outfitTitle, setOutfitTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedOccasion, setSelectedOccasion] = useState<OccasionTag | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<OccasionTag | ''>('');
   const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>([]);
-  const [selectedSeasons, setSelectedSeasons] = useState<Season[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<Season | ''>('');
+  const [showOccasionPicker, setShowOccasionPicker] = useState(false);
+  const [showStylePicker, setShowStylePicker] = useState(false);
+  const [showSeasonPicker, setShowSeasonPicker] = useState(false);
 
   // Load outfit if in edit mode
   useEffect(() => {
@@ -57,11 +70,11 @@ export default function CreateScreen() {
       const outfit = await outfitService.getOutfitById(outfitId);
       setCurrentOutfit(outfit);
       setOutfitTitle(outfit.title || '');
-      setSelectedOccasion(outfit.occasions?.[0] || null);
-      setSelectedStyles(outfit.styles || []);
-      setSelectedSeasons(outfit.seasons || []);
-      // Skip Step 1 when editing - go straight to composition
-      setCreationStep(2);
+      setSelectedOccasion(outfit.occasions?.[0] || '');
+      setSelectedStyles(outfit.styles && outfit.styles.length > 0 ? outfit.styles : []);
+      setSelectedSeason(outfit.seasons?.[0] || '');
+      // Start at Step 1 for editing to allow item changes
+      setCreationStep(1);
     } catch (error) {
       console.error('Error loading outfit:', error);
       Alert.alert('Error', 'Failed to load outfit for editing');
@@ -131,7 +144,7 @@ export default function CreateScreen() {
           background: currentBackground,
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-          seasons: selectedSeasons.length > 0 ? selectedSeasons : undefined,
+          seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
         Alert.alert('Success', 'Outfit updated successfully!', [
@@ -153,7 +166,7 @@ export default function CreateScreen() {
           visibility: 'private',
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-          seasons: selectedSeasons.length > 0 ? selectedSeasons : undefined,
+          seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
         Alert.alert('Success', 'Outfit saved successfully!', [
@@ -174,7 +187,32 @@ export default function CreateScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, currentItems, outfitTitle, isEditMode, id, resetCurrentOutfit]);
+  }, [
+    user,
+    currentItems,
+    outfitTitle,
+    selectedOccasion,
+    selectedStyles,
+    selectedSeason,
+    isEditMode,
+    id,
+    resetCurrentOutfit,
+  ]);
+
+  const openPicker = (pickerType: 'occasion' | 'style' | 'season') => {
+    Keyboard.dismiss();
+    switch (pickerType) {
+      case 'occasion':
+        setShowOccasionPicker(true);
+        break;
+      case 'style':
+        setShowStylePicker(true);
+        break;
+      case 'season':
+        setShowSeasonPicker(true);
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -203,127 +241,43 @@ export default function CreateScreen() {
                 placeholderTextColor="#999"
               />
 
-              {/* Occasion Selector */}
+              {/* Occasion Dropdown */}
               <View style={styles.selectorSection}>
                 <Text style={styles.selectorLabel}>Occasion</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tagsContainer}
-                >
-                  {[
-                    'casual',
-                    'work',
-                    'party',
-                    'date',
-                    'sport',
-                    'beach',
-                    'wedding',
-                    'travel',
-                    'home',
-                    'special',
-                  ].map((occasion) => (
-                    <TouchableOpacity
-                      key={occasion}
-                      style={[styles.tag, selectedOccasion === occasion && styles.tagSelected]}
-                      onPress={() =>
-                        setSelectedOccasion(
-                          selectedOccasion === occasion ? null : (occasion as OccasionTag),
-                        )
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedOccasion === occasion && styles.tagTextSelected,
-                        ]}
-                      >
-                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('occasion')}>
+                  <Text style={styles.dropdownText}>
+                    {selectedOccasion
+                      ? selectedOccasion.charAt(0).toUpperCase() + selectedOccasion.slice(1)
+                      : 'Not selected'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
 
-              {/* Style Selector */}
+              {/* Style Dropdown */}
               <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Style</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tagsContainer}
-                >
-                  {[
-                    'casual',
-                    'formal',
-                    'sporty',
-                    'elegant',
-                    'vintage',
-                    'minimalist',
-                    'bohemian',
-                    'streetwear',
-                    'preppy',
-                    'romantic',
-                  ].map((style) => (
-                    <TouchableOpacity
-                      key={style}
-                      style={[
-                        styles.tag,
-                        selectedStyles.includes(style as StyleTag) && styles.tagSelected,
-                      ]}
-                      onPress={() => {
-                        const styleTag = style as StyleTag;
-                        setSelectedStyles((prev) =>
-                          prev.includes(styleTag)
-                            ? prev.filter((s) => s !== styleTag)
-                            : [...prev, styleTag],
-                        );
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedStyles.includes(style as StyleTag) && styles.tagTextSelected,
-                        ]}
-                      >
-                        {style.charAt(0).toUpperCase() + style.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <Text style={styles.selectorLabel}>Style (multiple)</Text>
+                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('style')}>
+                  <Text style={styles.dropdownText} numberOfLines={1}>
+                    {selectedStyles.length > 0
+                      ? selectedStyles.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')
+                      : 'Not selected'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
 
-              {/* Season Selector */}
+              {/* Season Dropdown */}
               <View style={styles.selectorSection}>
                 <Text style={styles.selectorLabel}>Season</Text>
-                <View style={styles.seasonsRow}>
-                  {['spring', 'summer', 'fall', 'winter'].map((season) => (
-                    <TouchableOpacity
-                      key={season}
-                      style={[
-                        styles.seasonTag,
-                        selectedSeasons.includes(season as Season) && styles.tagSelected,
-                      ]}
-                      onPress={() => {
-                        const seasonTag = season as Season;
-                        setSelectedSeasons((prev) =>
-                          prev.includes(seasonTag)
-                            ? prev.filter((s) => s !== seasonTag)
-                            : [...prev, seasonTag],
-                        );
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.tagText,
-                          selectedSeasons.includes(season as Season) && styles.tagTextSelected,
-                        ]}
-                      >
-                        {season.charAt(0).toUpperCase() + season.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('season')}>
+                  <Text style={styles.dropdownText}>
+                    {selectedSeason
+                      ? selectedSeason.charAt(0).toUpperCase() + selectedSeason.slice(1)
+                      : 'Not selected'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.modalButtons}>
@@ -347,6 +301,142 @@ export default function CreateScreen() {
           </ScrollView>
         </View>
       )}
+
+      {/* Occasion Picker Modal */}
+      <Modal visible={showOccasionPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowOccasionPicker(false)}
+        >
+          <View style={styles.pickerModal}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Occasion</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {[
+                'casual',
+                'work',
+                'party',
+                'date',
+                'sport',
+                'beach',
+                'wedding',
+                'travel',
+                'home',
+                'special',
+              ].map((occasion) => (
+                <TouchableOpacity
+                  key={occasion}
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    setSelectedOccasion(occasion as OccasionTag);
+                    setShowOccasionPicker(false);
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>
+                    {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                  </Text>
+                  {selectedOccasion === occasion && (
+                    <Ionicons name="checkmark" size={24} color="#000" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Style Picker Modal */}
+      <Modal visible={showStylePicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStylePicker(false)}
+        >
+          <View style={styles.pickerModal}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Styles (Multiple)</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {[
+                'casual',
+                'formal',
+                'sporty',
+                'elegant',
+                'vintage',
+                'minimalist',
+                'bohemian',
+                'streetwear',
+                'preppy',
+                'romantic',
+              ].map((style) => (
+                <TouchableOpacity
+                  key={style}
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    const styleTag = style as StyleTag;
+                    setSelectedStyles((prev) =>
+                      prev.includes(styleTag)
+                        ? prev.filter((s) => s !== styleTag)
+                        : [...prev, styleTag],
+                    );
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>
+                    {style.charAt(0).toUpperCase() + style.slice(1)}
+                  </Text>
+                  {selectedStyles.includes(style as StyleTag) && (
+                    <Ionicons name="checkmark" size={24} color="#000" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={styles.pickerFooter}>
+              <TouchableOpacity
+                style={styles.pickerDoneButton}
+                onPress={() => setShowStylePicker(false)}
+              >
+                <Text style={styles.pickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Season Picker Modal */}
+      <Modal visible={showSeasonPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSeasonPicker(false)}
+        >
+          <View style={styles.pickerModal}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Season</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {['spring', 'summer', 'fall', 'winter'].map((season) => (
+                <TouchableOpacity
+                  key={season}
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    setSelectedSeason(season as Season);
+                    setShowSeasonPicker(false);
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>
+                    {season.charAt(0).toUpperCase() + season.slice(1)}
+                  </Text>
+                  {selectedSeason === season && (
+                    <Ionicons name="checkmark" size={24} color="#000" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -372,7 +462,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 16,
     padding: 24,
-    maxWidth: SCREEN_WIDTH - 64,
+    width: SCREEN_WIDTH * 0.8,
+    maxWidth: 500,
   },
   modalTitle: {
     color: '#000',
@@ -390,7 +481,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   selectorSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   selectorLabel: {
     fontSize: 14,
@@ -398,45 +489,77 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 8,
   },
-  tagsContainer: {
+  dropdown: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  tag: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  tagSelected: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  tagText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  tagTextSelected: {
-    color: '#FFF',
-  },
-  seasonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  seasonTag: {
-    flex: 1,
-    minWidth: '22%',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerModal: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    width: SCREEN_WIDTH * 0.8,
+    maxWidth: 500,
+    maxHeight: 500,
+    overflow: 'hidden',
+  },
+  pickerHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  pickerScroll: {
+    maxHeight: 320,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  pickerItemText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  pickerFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+  },
+  pickerDoneButton: {
+    backgroundColor: '#000',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  pickerDoneText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalButtons: {
     flexDirection: 'row',

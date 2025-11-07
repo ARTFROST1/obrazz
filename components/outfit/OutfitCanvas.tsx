@@ -17,6 +17,7 @@ interface OutfitCanvasProps {
   snapToGrid?: boolean;
   gridSize?: number;
   onCanvasTap?: () => void;
+  readOnly?: boolean;
 }
 
 // const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -35,6 +36,7 @@ export function OutfitCanvas({
   snapToGrid = false,
   gridSize = 20,
   onCanvasTap,
+  readOnly = false,
 }: OutfitCanvasProps) {
   const getBackgroundStyle = () => {
     switch (background.type) {
@@ -138,6 +140,7 @@ export function OutfitCanvas({
               gridSize={gridSize}
               canvasWidth={width}
               canvasHeight={height}
+              readOnly={readOnly}
             />
           ))}
       </View>
@@ -154,6 +157,7 @@ interface CanvasItemProps {
   gridSize: number;
   canvasWidth: number;
   canvasHeight: number;
+  readOnly: boolean;
 }
 
 function CanvasItem({
@@ -165,12 +169,23 @@ function CanvasItem({
   gridSize,
   canvasWidth,
   canvasHeight,
+  readOnly,
 }: CanvasItemProps) {
   const { item, transform, itemId } = outfitItem;
 
   // Initialize ALL hooks BEFORE any conditional returns
-  const translateX = useSharedValue(transform.x);
-  const translateY = useSharedValue(transform.y);
+  // Clamp initial position to keep item within canvas bounds
+  const currentScale = transform.scale;
+  const halfBase = 50;
+  const minX = halfBase * (currentScale - 1);
+  const maxX = canvasWidth - halfBase * (1 + currentScale);
+  const minY = halfBase * (currentScale - 1);
+  const maxY = canvasHeight - halfBase * (1 + currentScale);
+  const clampedX = Math.max(minX, Math.min(maxX, transform.x));
+  const clampedY = Math.max(minY, Math.min(maxY, transform.y));
+
+  const translateX = useSharedValue(clampedX);
+  const translateY = useSharedValue(clampedY);
   const scale = useSharedValue(transform.scale);
   const rotation = useSharedValue(transform.rotation);
 
@@ -207,14 +222,34 @@ function CanvasItem({
     });
   };
 
+  const clampValue = (value: number, min: number, max: number) => {
+    'worklet';
+    return Math.max(min, Math.min(max, value));
+  };
+
   const panGesture = Gesture.Pan()
     .onStart(() => {
       startX.value = translateX.value;
       startY.value = translateY.value;
     })
     .onUpdate((event) => {
-      translateX.value = startX.value + event.translationX;
-      translateY.value = startY.value + event.translationY;
+      const currentScale = scale.value;
+      const baseSize = 100;
+      const halfBase = 50;
+
+      // Element is 100x100, positioned by top-left corner, scaled from center
+      // After scale, actual bounds are:
+      // left: translateX + halfBase - halfBase*scale
+      // right: translateX + halfBase + halfBase*scale
+      // To keep within canvas [0, canvasWidth]:
+      const minX = halfBase * (currentScale - 1);
+      const maxX = canvasWidth - halfBase * (1 + currentScale);
+      const minY = halfBase * (currentScale - 1);
+      const maxY = canvasHeight - halfBase * (1 + currentScale);
+
+      // Clamp position to bounds
+      translateX.value = clampValue(startX.value + event.translationX, minX, maxX);
+      translateY.value = clampValue(startY.value + event.translationY, minY, maxY);
     })
     .onEnd(() => {
       runOnJS(updateTransform)(translateX.value, translateY.value, scale.value, rotation.value);
@@ -259,15 +294,20 @@ function CanvasItem({
 
   const imagePath = item.imageLocalPath || item.imageUrl;
 
-  return (
-    <GestureDetector gesture={composed}>
-      <Animated.View style={[styles.canvasItem, animatedStyle, isSelected && styles.selectedItem]}>
-        {imagePath && (
-          <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
-        )}
-      </Animated.View>
-    </GestureDetector>
+  // Wrap in GestureDetector only if not readOnly
+  const content = (
+    <Animated.View style={[styles.canvasItem, animatedStyle, isSelected && styles.selectedItem]}>
+      {imagePath && (
+        <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
+      )}
+    </Animated.View>
   );
+
+  if (readOnly) {
+    return content;
+  }
+
+  return <GestureDetector gesture={composed}>{content}</GestureDetector>;
 }
 
 const styles = StyleSheet.create({

@@ -23,6 +23,7 @@ export interface OutfitGridProps {
   onOutfitDelete?: (outfit: Outfit) => void;
   onOutfitDuplicate?: (outfit: Outfit) => void;
   onOutfitShare?: (outfit: Outfit) => void;
+  onFavoritePress?: (outfit: Outfit) => void;
   EmptyComponent?: React.ComponentType<any>;
   numColumns?: number;
 }
@@ -54,6 +55,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
   onOutfitDelete,
   onOutfitDuplicate,
   onOutfitShare,
+  onFavoritePress,
   EmptyComponent,
   numColumns = 2,
 }) => {
@@ -73,6 +75,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
         onDuplicate={onOutfitDuplicate}
         onDelete={onOutfitDelete}
         onShare={onOutfitShare}
+        onFavoritePress={onFavoritePress}
       />
     </View>
   );

@@ -10,7 +10,7 @@ interface ItemMiniPreviewBarProps {
   onItemRemove?: (itemId: string) => void;
 }
 
-const MINI_ITEM_SIZE = 56;
+const MINI_ITEM_SIZE = 100;
 
 /**
  * ItemMiniPreviewBar - Bottom bar showing mini previews of selected items
@@ -25,8 +25,13 @@ export function ItemMiniPreviewBar({
   if (items.length === 0) {
     return (
       <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.label}>Selected Items</Text>
+          <Text style={styles.count}>0</Text>
+        </View>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No items selected</Text>
+          <Ionicons name="albums-outline" size={32} color="#CCC" />
+          <Text style={styles.emptyText}>No items on canvas</Text>
         </View>
       </View>
     );
@@ -50,14 +55,14 @@ export function ItemMiniPreviewBar({
           </View>
         )}
 
-        {/* Remove button */}
-        {onItemRemove && (
+        {/* Remove button - only show when selected */}
+        {onItemRemove && isSelected && (
           <TouchableOpacity
             style={styles.removeButton}
             onPress={() => onItemRemove(outfitItem.itemId)}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
           >
-            <Ionicons name="close-circle" size={16} color="#FF3B30" />
+            <Ionicons name="close-circle" size={24} color="#FF3B30" />
           </TouchableOpacity>
         )}
 
@@ -73,8 +78,10 @@ export function ItemMiniPreviewBar({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>Selected items</Text>
-        <Text style={styles.count}>{items.length}</Text>
+        <Text style={styles.label}>Selected Items</Text>
+        <Text style={styles.count}>
+          {items.length} item{items.length !== 1 ? 's' : ''}
+        </Text>
       </View>
       <FlatList
         data={items}
@@ -91,50 +98,51 @@ export function ItemMiniPreviewBar({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#000',
   },
   count: {
-    fontSize: 12,
+    fontSize: 15,
+    fontWeight: '600',
     color: '#666',
   },
   listContent: {
     paddingHorizontal: 16,
   },
   separator: {
-    width: 12,
+    width: 16,
   },
   miniItem: {
     width: MINI_ITEM_SIZE,
     height: MINI_ITEM_SIZE,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#E5E5E5',
-    backgroundColor: '#FFF',
-    overflow: 'hidden',
+    backgroundColor: '#F8F8F8',
     position: 'relative',
   },
   miniItemSelected: {
-    borderColor: '#007AFF',
+    borderColor: '#000',
     borderWidth: 3,
   },
   miniImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 14,
   },
   miniImagePlaceholder: {
     width: '100%',
@@ -145,10 +153,15 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -6,
+    right: -6,
     backgroundColor: '#FFF',
-    borderRadius: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
   selectedIndicator: {
     position: 'absolute',
@@ -164,11 +177,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   emptyState: {
-    paddingVertical: 16,
+    paddingVertical: 32,
     alignItems: 'center',
+    gap: 8,
   },
   emptyText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#999',
   },
 });

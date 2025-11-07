@@ -163,6 +163,21 @@ export default function OutfitsScreen() {
     Alert.alert('Share', 'Share functionality coming soon!');
   };
 
+  const handleFavoritePress = async (outfit: Outfit) => {
+    try {
+      const newFavoriteStatus = !outfit.isFavorite;
+      await outfitService.toggleFavorite(outfit.id, newFavoriteStatus);
+      // Update local state
+      const updatedOutfits = outfits.map((o) =>
+        o.id === outfit.id ? { ...o, isFavorite: newFavoriteStatus } : o,
+      );
+      setOutfits(updatedOutfits);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      Alert.alert('Error', 'Failed to update favorite status');
+    }
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -466,6 +481,7 @@ export default function OutfitsScreen() {
         onOutfitDelete={handleDeleteOutfit}
         onOutfitDuplicate={handleDuplicateOutfit}
         onOutfitShare={handleShareOutfit}
+        onFavoritePress={handleFavoritePress}
         EmptyComponent={() => <OutfitEmptyState onCreatePress={handleCreateOutfit} />}
       />
 
@@ -528,9 +544,9 @@ const styles = StyleSheet.create({
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     gap: 4,
   },
   filterChipActive: {
@@ -543,19 +559,19 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     gap: 4,
     marginLeft: 'auto',
   },
   sortButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
   },
   sortMenu: {
     position: 'absolute',
-    top: 100,
+    top: 185,
     right: 16,
     borderRadius: 12,
     ...Platform.select({

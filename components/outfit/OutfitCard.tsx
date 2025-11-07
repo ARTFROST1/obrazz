@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   useColorScheme,
   Dimensions,
   Platform,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Outfit } from '../../types/models/outfit';
@@ -20,6 +21,7 @@ export interface OutfitCardProps {
   onDuplicate?: (outfit: Outfit) => void;
   onDelete?: (outfit: Outfit) => void;
   onShare?: (outfit: Outfit) => void;
+  onFavoritePress?: (outfit: Outfit) => void;
   isSelectable?: boolean;
   isSelected?: boolean;
   showActions?: boolean;
@@ -51,6 +53,7 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
   onDuplicate,
   onDelete,
   onShare,
+  onFavoritePress,
   isSelectable = false,
   isSelected = false,
   showActions = false,
@@ -58,6 +61,7 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [showMenu, setShowMenu] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
     if (isSelectable) {
@@ -70,6 +74,26 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
 
   const handleLongPress = () => {
     onLongPress?.(outfit);
+  };
+
+  const handleFavoritePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (onFavoritePress) {
+      onFavoritePress(outfit);
+    }
   };
 
   // Check if outfit has items to display
@@ -111,11 +135,22 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
           </View>
         )}
 
-        {/* Favorite Star - Top Right */}
-        {outfit.isFavorite && (
-          <View style={styles.favoriteIndicator}>
-            <Ionicons name="star" size={16} color="#FFD60A" />
-          </View>
+        {/* Favorite Star Button - Top Right */}
+        {onFavoritePress && (
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={handleFavoritePress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.8}
+          >
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <Ionicons
+                name={outfit.isFavorite ? 'star' : 'star-outline'}
+                size={18}
+                color={outfit.isFavorite ? '#FFD60A' : '#FFFFFF'}
+              />
+            </Animated.View>
+          </TouchableOpacity>
         )}
 
         {/* Selection Indicator */}
@@ -169,16 +204,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  favoriteIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  favoriteButton: {
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 15,
-    width: 30,
     height: 30,
     justifyContent: 'center',
-    alignItems: 'center',
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    width: 30,
   },
   selectionIndicator: {
     position: 'absolute',

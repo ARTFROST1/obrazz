@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem } from '../../types/models/item';
@@ -21,6 +22,28 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with margins
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onPress, onFavoritePress }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handleFavoritePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.3,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (onFavoritePress) {
+      onFavoritePress(item);
+    }
+  };
+
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(item)} activeOpacity={0.7}>
       <View style={styles.imageContainer}>
@@ -32,14 +55,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onPress, onFavoritePre
         {onFavoritePress && (
           <TouchableOpacity
             style={styles.favoriteButton}
-            onPress={() => onFavoritePress(item)}
+            onPress={handleFavoritePress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.8}
           >
-            <Ionicons
-              name={item.isFavorite ? 'heart' : 'heart-outline'}
-              size={20}
-              color={item.isFavorite ? '#FF3B30' : '#FFFFFF'}
-            />
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <Ionicons
+                name={item.isFavorite ? 'heart' : 'heart-outline'}
+                size={20}
+                color={item.isFavorite ? '#FF3B30' : '#FFFFFF'}
+              />
+            </Animated.View>
           </TouchableOpacity>
         )}
       </View>
@@ -92,6 +118,7 @@ const styles = StyleSheet.create({
     }),
   },
   favoriteButton: {
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 15,
     height: 30,
