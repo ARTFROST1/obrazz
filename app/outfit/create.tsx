@@ -4,9 +4,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
 import { outfitService } from '@services/outfit/outfitService';
-import { ItemSelectionStep, CompositionStep } from '@components/outfit';
+import { ItemSelectionStepNew, CompositionStep } from '@components/outfit';
 import { Text, TouchableOpacity } from 'react-native';
-import { OccasionTag, Season, StyleTag } from '@types/models/outfit';
+import { OccasionTag } from '../../types/models/outfit';
+import { Season, StyleTag } from '../../types/models/user';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -179,7 +180,7 @@ export default function CreateScreen() {
     <View style={styles.container}>
       {/* Render appropriate step */}
       {creationStep === 1 ? (
-        <ItemSelectionStep onNext={handleNextToComposition} onBack={handleBackFromStep1} />
+        <ItemSelectionStepNew onNext={handleNextToComposition} onBack={handleBackFromStep1} />
       ) : (
         <CompositionStep onSave={handleSave} onBack={handleBackToSelection} />
       )}

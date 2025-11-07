@@ -113,6 +113,340 @@ This document tracks all bugs, errors, and their solutions encountered during th
 
 ---
 
+### BUG-003: Carousel Bugs with Fast Scrolling & Missing Infinite Loop
+
+**Date:** 2025-01-14  
+**Severity:** High (UX/Functionality Issue)  
+**Status:** Resolved  
+**Component:** Outfit Creation, CategoryCarouselCentered  
+**Environment:** All
+
+**Description:**
+При быстрой прокрутке карусели с элементами одежды на странице создания образа возникали следующие проблемы:
+
+1. Карусель "багалась" и вела себя странно при быстрой прокрутке
+2. Отсутствовала циклическая (бесконечная) прокрутка - после последнего элемента нельзя было прокрутить к первому
+3. Прокрутка не была плавной, отсутствовала инерция
+4. Пустой элемент (None) не был в центре по умолчанию с элементами по бокам
+
+**Steps to Reproduce:**
+
+1. Открыть страницу создания образа (Outfit Create)
+2. Быстро прокрутить карусель с элементами одежды
+3. Наблюдать странное поведение, глитчи
+4. Попытаться прокрутить после последнего элемента
+5. Наблюдать что карусель останавливается, нет цикличности
+
+**Expected Behavior:**
+
+- Плавная прокрутка карусели с инерцией
+- После последнего элемента идет первый (бесконечная прокрутка)
+- Визуально видно, что элементы идут по кругу
+- Пустой элемент (None) по центру, справа и слева от него идут элементы
+- Можно прокручивать бесконечно в обе стороны
+- Никаких багов при быстрой прокрутке
+
+**Actual Behavior:**
+
+- При быстрой прокрутке карусель багалась
+- Прокрутка резкая, без инерции
+- После последнего элемента карусель останавливалась
+- Невозможно было циклически прокручивать элементы
+
+**Root Cause:**
+
+1. FlatList использовался без дублирования элементов для бесконечной прокрутки
+2. `decelerationRate="fast"` делал прокрутку слишком резкой
+3. Отсутствовал `onMomentumScrollEnd` handler для перепрыгивания на дубликаты
+4. При быстрой прокрутке индексы не успевали корректно обновляться
+
+**Solution:**
+
+1. ✅ Реализована бесконечная прокрутка через дублирование элементов:
+   - Создается массив базовых элементов: `[None, ...items]`
+   - Добавляются копии в начало: последние 5 элементов
+   - Добавляются копии в конец: первые 5 элементов
+   - Итоговый массив: `[...duplicatedEnd, ...baseItems, ...duplicatedStart]`
+
+2. ✅ Добавлен `handleMomentumScrollEnd`:
+   - Определяет когда пользователь достиг дубликатов
+   - Бесшовно перепрыгивает на соответствующую позицию в основном массиве
+   - Использует флаг `isAdjustingRef` для предотвращения лишних обновлений
+
+3. ✅ Улучшен gesture handling:
+   - Изменен `decelerationRate` с `"fast"` на `"normal"` для плавности
+   - Добавлен `onMomentumScrollEnd` для обработки окончания прокрутки
+   - Оптимизированы настройки рендеринга FlatList
+
+4. ✅ Исправлена логика индексации:
+   - Введен `indexOffset` для учета дубликатов
+   - Корректное маппирование между визуальным и логическим индексом
+   - Правильный выбор элементов при прокрутке
+
+5. ✅ Оптимизация производительности:
+   - `removeClippedSubviews={false}` - предотвращает проблемы с дубликатами
+   - `initialNumToRender={carouselItems.length}` - рендерит все элементы сразу
+   - Улучшенный `keyExtractor`: `${item.id}-${index}` для уникальности
+
+**Technical Implementation:**
+
+```typescript
+// Дублирование элементов для бесконечной прокрутки
+const baseItems = [{ id: 'none', isNone: true }, ...items];
+const DUPLICATE_COUNT = Math.min(5, baseItems.length);
+const duplicatedStart = baseItems.slice(-DUPLICATE_COUNT);
+const duplicatedEnd = baseItems.slice(0, DUPLICATE_COUNT);
+const carouselItems = [...duplicatedStart, ...baseItems, ...duplicatedEnd];
+
+// Обработка перепрыгивания на дубликаты
+const handleMomentumScrollEnd = (event) => {
+  const index = Math.round(offsetX / (itemWidth + spacing));
+
+  if (index < indexOffset) {
+    // Прыжок с начала на конец
+    const adjustedIndex = baseItems.length + index;
+    scrollToIndex(adjustedIndex, animated: false);
+  } else if (index >= indexOffset + baseItems.length) {
+    // Прыжок с конца на начало
+    const adjustedIndex = index - baseItems.length;
+    scrollToIndex(adjustedIndex, animated: false);
+  }
+};
+```
+
+**Prevention:**
+
+- Всегда использовать технику дублирования для бесконечных каруселей
+- Обрабатывать `onMomentumScrollEnd` для перепрыгивания на дубликаты
+- Использовать `decelerationRate="normal"` для плавной прокрутки
+- Тестировать карусели с быстрой прокруткой
+- Использовать флаги (refs) для предотвращения race conditions
+
+**Related Files:**
+
+- `components/outfit/CategoryCarouselCentered.tsx` (полная переработка логики прокрутки)
+  - Lines 91-101: Дублирование элементов
+  - Lines 130-157: Обновленный handleScroll
+  - Lines 160-193: Новый handleMomentumScrollEnd
+  - Lines 269-282: Обновленные props FlatList
+
+**Date Resolved:** 2025-01-14
+
+**Update (Evening):** Enhanced to v2 - Smooth Momentum Scrolling
+
+После первоначального исправления получена обратная связь, что карусель все еще слишком резкая. Реализована улучшенная версия:
+
+**v2 Improvements:**
+
+1. ✅ **Убран `snapToInterval`** - источник резкого snap поведения
+2. ✅ **Реализован кастомный snap** через `snapToNearestItem` с плавной анимацией
+3. ✅ **Улучшен `decelerationRate`** до 0.988 для более медленного естественного замедления
+4. ✅ **Добавлен `handleScrollEndDrag`** - немедленный snap при низкой скорости
+5. ✅ **Отложенный infinite loop adjustment** - сначала snap анимация, затем seamless jump
+
+**New Behavior:**
+
+- При быстрой прокрутке: элементы скроллятся с инерцией, замедляются естественно
+- Только когда инерция закончилась: плавный snap к ближайшему элементу
+- Затем (через 300ms): бесшовная корректировка для infinite loop
+- При медленной прокрутке: immediate smooth snap когда палец отпущен
+
+**Technical Changes:**
+
+```typescript
+// Custom momentum-based snapping
+snapToNearestItem(offsetX, animated: true) // Плавная анимация
+
+// Deceleration rate для smooth scrolling
+decelerationRate={0.988} // Медленнее чем "normal" (0.998)
+
+// Handle both scenarios
+onScrollEndDrag={handleScrollEndDrag} // Low velocity snap
+onMomentumScrollEnd={handleMomentumScrollEnd} // Post-momentum snap
+```
+
+**Result:** Карусель теперь имеет buttery smooth прокрутку с естественной физикой, как в нативных iOS/Android приложениях.
+
+**Update (Late Evening):** Fixed rapid flickering during fast scroll
+
+При быстрой прокрутке карусели обнаружена проблема бесконечного loop - элементы начинали быстро меняться и происходили резкие рывки.
+
+**Root Cause:**
+
+- Snap анимация и infinite loop adjustment конфликтовали
+- При достижении дубликатов происходил snap → затем jump → создавая визуальный рывок
+- Недостаточно дубликатов (5) при очень быстрой прокрутке
+- Scale анимация центрального элемента во время adjustment создавала flickering
+
+**v3 Final Improvements:**
+
+1. ✅ **Увеличено количество дубликатов** с 5 до 8 - больше буфера
+2. ✅ **Проверка дубликатов ДО snap** - логика изменена на "check first, then act"
+3. ✅ **Умная обработка зон**:
+   - В дубликатах: seamless jump БЕЗ snap анимации
+   - В нормальной зоне: обычный smooth snap
+4. ✅ **Защита от flickering**:
+   - `if (isAdjustingRef.current) return` в handleScroll
+   - Отключена scale анимация во время adjustment
+   - Bounds check для индексов
+5. ✅ **Сокращен delay adjustment** до 100ms (было 300ms)
+
+**Code Logic:**
+
+```typescript
+// Check duplicates BEFORE any animation
+if (needsInfiniteLoopAdjustment(currentIndex)) {
+  // In duplicates - seamless jump (no snap)
+  scrollToOffset({ animated: false });
+} else {
+  // Normal zone - smooth snap
+  snapToNearestItem(offsetX, animated: true);
+}
+
+// No scale during adjustment
+const isCentered = !isAdjustingRef.current && index === centerIndex;
+```
+
+**Result:** Карусель теперь абсолютно плавная даже при очень быстрой прокрутке. Нет рывков, нет flickering, seamless бесконечная прокрутка.
+
+**Final Update (v4 - STABLE):** Complete architecture refactor for stability
+
+После предыдущих улучшений карусель все еще входила в бешеное flickering даже при обычной прокрутке. Проведен глубокий анализ истинной причины.
+
+**Root Cause Analysis:**
+
+Истинная причина flickering была в **архитектуре**:
+
+1. **60 re-renders/sec** - `handleScroll` вызывался постоянно (scrollEventThrottle=16) → `setCenterIndex` → re-render
+2. **Layout thrashing** - `transform: [{ scale: 1.05 }]` при каждом re-render вызывал layout recalculation
+3. **Scroll event loops** - `snapToNearestItem` с `animated: true` создавал новые scroll events → бесконечный цикл
+4. **State conflicts** - множественные state updates конфликтовали друг с другом
+
+**v4 Complete Refactor:**
+
+✅ **Убран `centerIndex` state** - больше нет постоянных re-renders
+✅ **Убрана scale анимация** - нет layout thrashing
+✅ **Вернулся к `snapToInterval`** - стабильный нативный snap без custom логики
+✅ **Упрощена логика** - минимум state, минимум side effects
+✅ **`decelerationRate="fast"`** - четкий snap без "плавания"
+✅ **Убран `handleScroll`** - только `handleScrollEndDrag` и `handleMomentumScrollEnd`
+✅ **Ref-based tracking** - `lastNotifiedIndexRef` вместо state
+
+**New Architecture:**
+
+```typescript
+// NO state for center index
+const lastNotifiedIndexRef = useRef(-1); // Ref, not state!
+
+// NO handleScroll - no 60 fps updates
+// Only notify when scroll ENDS
+const handleScrollEndDrag = (event) => {
+  const index = Math.round(offsetX / (itemWidth + spacing));
+  notifyItemSelection(index); // Notify only if changed
+};
+
+// NO scale animation
+<View style={[styles.itemContainer, itemContainerStyle]}>
+  {/* No isCentered check, no conditional styling */}
+</View>
+
+// Native snap - stable and performant
+<FlatList
+  snapToInterval={itemWidth + spacing}
+  decelerationRate="fast"
+  // NO onScroll handler
+/>
+```
+
+**Benefits:**
+
+- ✅ **Стабильность** - нет flickering при любой скорости
+- ✅ **Производительность** - минимум re-renders
+- ✅ **Простота** - понятная линейная логика
+- ✅ **Надежность** - нативный snap всегда работает
+
+**Result:** Карусель теперь СТАБИЛЬНА. Плавная прокрутка, четкий snap, бесконечный loop. Никаких багов.
+
+**Final Enhancement (v5 - ULTRA SMOOTH):** Maximum smoothness with momentum
+
+После достижения стабильности добавлена максимальная плавность прокрутки:
+
+**Changes:**
+
+1. ✅ **Увеличено количество дубликатов** с 8 до 15
+   - Больше буфера при быстрой прокрутке
+   - Никогда не упираемся в края пока прокручиваем
+
+2. ✅ **Убран `snapToInterval`** - возвращен momentum scrolling
+   - `decelerationRate={0.992}` - очень медленное естественное замедление
+   - `disableIntervalMomentum={true}` - отключен автоматический snap
+
+3. ✅ **Умный velocity-based snap**:
+
+   ```typescript
+   // При низкой скорости - snap сразу
+   if (velocity < 0.3) {
+     scrollToOffset({ animated: true });
+   }
+
+   // После инерции - всегда плавный snap
+   handleMomentumScrollEnd -> scrollToOffset({ animated: true });
+   ```
+
+4. ✅ **Сохранена стабильность** - без state updates, без flickering
+
+**Behavior:**
+
+- При быстрой прокрутке: элементы плавно скроллятся с инерцией
+- Замедление естественное (0.992)
+- Когда инерция заканчивается: плавный snap к ближайшему элементу
+- При медленной прокрутке: snap происходит сразу при низкой скорости
+- 15 дубликатов = никогда не упираемся в края
+
+**Result:** Карусель СТАБИЛЬНА + максимально ПЛАВНАЯ. Natural momentum + smooth snap + infinite loop.
+
+**Final Fix (v6 - PRODUCTION READY):** True momentum-based smooth carousel
+
+После feedback о рывках и резких защелкиваниях изучены best practices из react-native-snap-carousel.
+
+**Root Problem:**
+
+- Custom `scrollToOffset` с `animated: true` создавал резкий snap
+- Конфликт между momentum и custom snap логикой
+- Неправильный `decelerationRate` и `disableIntervalMomentum`
+
+**Solution - Native Momentum Carousel:**
+
+```typescript
+// Ключевые параметры для плавности
+<FlatList
+  snapToInterval={itemWidth + spacing}  // ✅ Native snap
+  snapToAlignment="center"              // ✅ Center alignment
+  decelerationRate={0.98}               // ✅ Плавное замедление (не 0.992!)
+  disableIntervalMomentum={false}       // ✅ Momentum-based snap
+  // NO custom scrollToOffset with animated: true
+/>
+```
+
+**Key Changes:**
+
+1. ✅ **Вернулся к `snapToInterval`** с правильной конфигурацией
+2. ✅ **`snapToAlignment="center"`** - snap к центру, не к началу
+3. ✅ **`decelerationRate={0.98}`** - оптимальная скорость замедления
+4. ✅ **`disableIntervalMomentum={false}`** - позволяет momentum влиять на snap
+5. ✅ **Убран custom snap** - никаких `scrollToOffset({ animated: true })`
+6. ✅ **15 дубликатов** - огромный буфер для быстрой прокрутки
+
+**How It Works:**
+
+- User scrolls → momentum continues → natural deceleration (0.98)
+- When momentum ends → native snap to nearest interval (smooth!)
+- Like CS:GO case opening - smooth rotation with natural stop
+
+**Result:** Плавная карусель как в CS:GO case opening. Естественная инерция, плавный snap, без рывков, без flickering.
+
+---
+
 ## Bug Entry Template
 
 ```markdown

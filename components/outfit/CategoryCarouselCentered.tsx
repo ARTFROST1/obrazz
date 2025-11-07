@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -82,83 +82,154 @@ export function CategoryCarouselCentered({
   onScrollIndexChange,
 }: CategoryCarouselCenteredProps) {
   const flatListRef = useRef<FlatList>(null);
-  const [centerIndex, setCenterIndex] = useState(initialScrollIndex);
+  const isAdjustingRef = useRef(false);
+  const lastNotifiedIndexRef = useRef(-1);
 
   const sidePadding = (SCREEN_WIDTH - itemWidth) / 2;
 
   // Add "None" item as first element
-  const carouselItems = [{ id: 'none', isNone: true } as any, ...items];
+  const baseItems = [{ id: 'none', isNone: true } as any, ...items];
 
-  // Update centerIndex when initialScrollIndex changes (mode switch)
+  // Create infinite loop by duplicating items
+  // Add copies at start and end for seamless infinite scrolling
+  // Use many duplicates for ultra-smooth fast scrolling without hitting edges
+  const DUPLICATE_COUNT = Math.min(64, baseItems.length);
+  const duplicatedStart = baseItems.slice(-DUPLICATE_COUNT);
+  const duplicatedEnd = baseItems.slice(0, DUPLICATE_COUNT);
+  const carouselItems = [...duplicatedStart, ...baseItems, ...duplicatedEnd];
+
+  // Offset index to account for duplicated items at start
+  const indexOffset = DUPLICATE_COUNT;
+
+  // Cleanup on unmount
   useEffect(() => {
-    const maxIndex = carouselItems.length - 1;
-    const safeIndex = Math.min(initialScrollIndex, maxIndex);
-    setCenterIndex(safeIndex);
-  }, [initialScrollIndex, carouselItems.length]);
+    return () => {
+      lastNotifiedIndexRef.current = -1;
+    };
+  }, []);
 
   // Scroll to initial position on mount or when initialScrollIndex changes
   useEffect(() => {
     if (flatListRef.current && initialScrollIndex >= 0) {
-      // Ensure index is within bounds (carouselItems includes "None" + actual items)
-      const maxIndex = carouselItems.length - 1;
-      const safeIndex = Math.min(initialScrollIndex, maxIndex);
+      // Map initialScrollIndex to the actual position in duplicated array
+      const targetIndex = indexOffset + initialScrollIndex;
 
       // Small delay to ensure list is rendered
       setTimeout(() => {
         try {
           flatListRef.current?.scrollToIndex({
-            index: safeIndex,
+            index: targetIndex,
             animated: false,
           });
         } catch (error) {
           // Fallback to scrollToOffset if scrollToIndex fails
           console.warn('ScrollToIndex failed, using offset instead');
           flatListRef.current?.scrollToOffset({
-            offset: safeIndex * (itemWidth + spacing),
+            offset: targetIndex * (itemWidth + spacing),
             animated: false,
           });
         }
       }, 50);
     }
-  }, [initialScrollIndex, itemWidth, carouselItems.length, spacing]);
+  }, [initialScrollIndex, itemWidth, spacing, indexOffset]);
 
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / (itemWidth + spacing));
+  // Notify about item selection - called ONLY when needed
+  const notifyItemSelection = useCallback(
+    (index: number) => {
+      // Map back to original index (without duplicates)
+      const originalIndex =
+        (((index - indexOffset) % baseItems.length) + baseItems.length) % baseItems.length;
 
-      if (index !== centerIndex) {
-        setCenterIndex(index);
-        onScrollIndexChange?.(index);
+      // Only notify if index actually changed
+      if (lastNotifiedIndexRef.current !== originalIndex) {
+        lastNotifiedIndexRef.current = originalIndex;
+        onScrollIndexChange?.(originalIndex);
 
-        // Auto-select center item
-        if (index === 0) {
-          // "None" selected
+        // Auto-select center item based on original index
+        if (originalIndex === 0) {
           onItemSelect(null);
-        } else if (index > 0 && index <= items.length) {
-          const item = items[index - 1];
+        } else if (originalIndex > 0 && originalIndex <= items.length) {
+          const item = items[originalIndex - 1];
           if (item) {
             onItemSelect(item);
           }
         }
       }
     },
-    [centerIndex, items, onItemSelect, onScrollIndexChange, itemWidth, spacing],
+    [items, onItemSelect, onScrollIndexChange, indexOffset, baseItems.length],
+  );
+
+  // Check if index is in duplicate zone and needs adjustment
+  const needsInfiniteLoopAdjustment = useCallback(
+    (index: number) => {
+      return index < indexOffset || index >= indexOffset + baseItems.length;
+    },
+    [indexOffset, baseItems.length],
+  );
+
+  // Get adjusted index for infinite loop
+  const getAdjustedIndex = useCallback(
+    (index: number) => {
+      if (index < indexOffset) {
+        return baseItems.length + index;
+      } else if (index >= indexOffset + baseItems.length) {
+        return index - baseItems.length;
+      }
+      return index;
+    },
+    [indexOffset, baseItems.length],
+  );
+
+  // Handle scroll end - notify selection only
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isAdjustingRef.current) return;
+
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / (itemWidth + spacing));
+      notifyItemSelection(index);
+    },
+    [itemWidth, spacing, notifyItemSelection],
+  );
+
+  // Handle momentum scroll end - notify and check infinite loop
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isAdjustingRef.current) return;
+
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const currentIndex = Math.round(offsetX / (itemWidth + spacing));
+
+      // Notify about selection
+      notifyItemSelection(currentIndex);
+
+      // Check if we're in duplicate zone for seamless loop
+      if (needsInfiniteLoopAdjustment(currentIndex)) {
+        isAdjustingRef.current = true;
+        const adjustedIndex = getAdjustedIndex(currentIndex);
+
+        // Small delay to ensure snap has completed
+        setTimeout(() => {
+          flatListRef.current?.scrollToOffset({
+            offset: adjustedIndex * (itemWidth + spacing),
+            animated: false,
+          });
+
+          setTimeout(() => {
+            isAdjustingRef.current = false;
+          }, 50);
+        }, 100);
+      }
+    },
+    [itemWidth, spacing, needsInfiniteLoopAdjustment, getAdjustedIndex, notifyItemSelection],
   );
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const isCentered = index === centerIndex;
     const isNone = item.isNone;
 
     if (isNone) {
       return (
-        <View
-          style={[
-            styles.itemContainer,
-            itemContainerStyle,
-            isCentered && styles.itemContainerCentered,
-          ]}
-        >
+        <View style={[styles.itemContainer, itemContainerStyle]}>
           <View style={[styles.itemCard, itemCardStyle, styles.noneCard]}>
             <Ionicons name="close" size={60} color="#C4C4C4" />
           </View>
@@ -169,13 +240,7 @@ export function CategoryCarouselCentered({
     const imagePath = item.imageLocalPath || item.imageUrl;
 
     return (
-      <View
-        style={[
-          styles.itemContainer,
-          itemContainerStyle,
-          isCentered && styles.itemContainerCentered,
-        ]}
-      >
+      <View style={[styles.itemContainer, itemContainerStyle]}>
         <View style={[styles.itemCard, itemCardStyle]}>
           {imagePath ? (
             <Image source={{ uri: imagePath }} style={styles.itemImage} resizeMode="contain" />
@@ -215,13 +280,16 @@ export function CategoryCarouselCentered({
         ref={flatListRef}
         data={carouselItems}
         renderItem={renderItem}
-        keyExtractor={(item, index) => item.id || `item-${index}`}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={listContentStyle}
         snapToInterval={itemWidth + spacing}
-        decelerationRate="fast"
-        onScroll={handleScroll}
+        snapToAlignment="center"
+        decelerationRate={0.98}
+        disableIntervalMomentum={false}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
         pagingEnabled={false}
         getItemLayout={(data, index) => ({
@@ -229,6 +297,10 @@ export function CategoryCarouselCentered({
           offset: (itemWidth + spacing) * index,
           index,
         })}
+        removeClippedSubviews={false}
+        initialNumToRender={carouselItems.length}
+        maxToRenderPerBatch={carouselItems.length}
+        windowSize={carouselItems.length}
       />
     </View>
   );
@@ -242,9 +314,6 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     // No padding or margin
-  },
-  itemContainerCentered: {
-    transform: [{ scale: 1.05 }],
   },
   itemCard: {
     backgroundColor: '#FFF',

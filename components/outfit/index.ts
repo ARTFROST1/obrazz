@@ -6,8 +6,11 @@ export { BackgroundPicker } from './BackgroundPicker';
 
 // Two-step creation process
 export { ItemSelectionStep } from './ItemSelectionStep';
+export { ItemSelectionStepNew } from './ItemSelectionStepNew';
 export { CompositionStep } from './CompositionStep';
 export { CategorySelectorList } from './CategorySelectorList';
+export { CategorySelectorWithSmooth } from './CategorySelectorWithSmooth';
+export { SmoothCarousel } from './SmoothCarousel';
 export { ItemMiniPreviewBar } from './ItemMiniPreviewBar';
 export { ProgressIndicator } from './ProgressIndicator';
 
