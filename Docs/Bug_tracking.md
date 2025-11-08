@@ -4,6 +4,68 @@
 
 This document tracks all bugs, errors, and their solutions encountered during the development of the Obrazz application. Each entry includes error details, root cause analysis, and resolution steps.
 
+## Recent Updates
+
+### CLEANUP-001: Obsolete Component Files Removal
+
+**Date:** 2025-11-08  
+**Type:** Code Cleanup  
+**Status:** Completed  
+**Component:** Outfit Components  
+**Impact:** Code Quality Improvement
+
+**Description:**
+Removed obsolete carousel components that were replaced by the new SmoothCarousel system implemented in Stage 4.7+.
+
+**Files Removed:**
+
+1. `components/outfit/CategoryCarousel.tsx` (6,454 bytes) - Old carousel with headers and lock buttons
+2. `components/outfit/CategoryCarouselCentered.tsx` (10,679 bytes) - Replaced by SmoothCarousel
+3. `components/outfit/CategorySelectorList.tsx` (4,859 bytes) - Replaced by CategorySelectorWithSmooth
+4. `components/outfit/ItemSelectionStep.tsx` (8,931 bytes) - Replaced by ItemSelectionStepNew
+5. `components/outfit/ProgressIndicator.tsx` (1,252 bytes) - No longer used in new system
+
+**Total Removed:** 31,175 bytes of obsolete code
+
+**Current Active System:**
+
+- `ItemSelectionStepNew.tsx` - Main selection step with smooth carousels
+- `CategorySelectorWithSmooth.tsx` - Container managing multiple carousels
+- `SmoothCarousel.tsx` - Modern carousel with realistic physics (deceleration: 0.985)
+  - Full-width edge-to-edge design
+  - Flag button for category toggle (no "None" element)
+  - Infinite loop with 30+ duplicates buffer
+  - Smooth momentum-based scrolling
+  - Items maintain 3:4 aspect ratio
+
+**Files Updated:**
+
+- `components/outfit/index.ts` - Removed obsolete exports
+
+**Documentation Archived:**
+Moved 30+ obsolete documentation files to `Docs/Extra/Archive/`:
+
+- CAROUSEL\_\* files (implementation history)
+- STAGE\_\* files (stage summaries)
+- \*\_FIX.md files (bug fix documentation)
+- Historical analysis files
+
+**Verification:**
+
+- ✅ App runs without errors
+- ✅ No TypeScript compilation errors
+- ✅ Outfit creation flow works correctly
+- ✅ All imports resolved successfully
+
+**Benefits:**
+
+- Cleaner codebase with single source of truth
+- Reduced confusion about which components to use
+- Easier maintenance and onboarding
+- Reduced bundle size
+
+---
+
 ## Known Issues & Warnings
 
 ### ISSUE-001: Missing Outfits Collection Screen

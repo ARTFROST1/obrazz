@@ -233,82 +233,109 @@
   - [x] Randomize на обоих шагах
   - [x] Навигация между шагами
 
-### Stage 4.7: 3-Mode Category Display System ✅
+### Stage 4.7: SmoothCarousel System ✅
 
 **Dependencies:** Stage 4.6 completion
-**Timeline:** 2-3 дня
-**Status:** COMPLETED
+**Timeline:** 1 неделя
+**Status:** COMPLETED (November 2025)
 
-**Purpose:** Переработка системы отображения категорий с 3 режимами фильтрации и автоматическим масштабированием
+**Purpose:** Полная замена системы каруселей на современную реализацию с реалистичной физикой и плавной прокруткой
 
-**Documentation:** `Docs/Extra/THREE_MODE_DISPLAY_SYSTEM.md`
+**Documentation:**
 
-#### Проблемы предыдущей версии:
+- Memory system entry about SmoothCarousel implementation
+- `Docs/CURRENT_STATUS.md` - Current implementation details
+- Archived: `Docs/Extra/Archive/` - Historical carousel evolution
 
-- ViewMode менял только размер элементов
-- Все 7 категорий всегда отображались
-- Требовалась прокрутка для просмотра всех категорий
-- Фиксированные размеры не оптимально использовали пространство
+#### Предыдущая Проблема:
 
-#### Новое решение:
+- Старые карусели (CategoryCarousel, CategoryCarouselCentered) работали нестабильно
+- Flickering при прокрутке
+- Недостаточно плавная физика
+- Сложная архитектура с множественными state updates
 
-**3 режима отображения категорий:**
+#### Новая Реализация:
 
-1. **All (Все)** - 7 категорий (все)
-2. **Main (Основные)** - 4 категории: outerwear, tops, bottoms, footwear
-3. **Extra (Дополнительные)** - 3 категории: headwear, accessories, bags
+**SmoothCarousel System - Ключевые Компоненты:**
 
-**Ключевые особенности:**
+1. **SmoothCarousel.tsx** - Современная карусель с реалистичной физикой
+   - Deceleration: 0.985 (natural momentum)
+   - Infinite loop с 30+ duplicates buffer
+   - Flag button для активации/деактивации категорий
+   - Full-width edge-to-edge design
+   - Seamless прокрутка как в CS:GO case opening
 
-- Динамическое вычисление размеров элементов
-- Все категории режима помещаются без прокрутки
-- Синхронизация выбора между режимами
-- Автоматическое масштабирование под доступное пространство
+2. **CategorySelectorWithSmooth.tsx** - Container для управления каруселями
+   - Dynamic sizing на основе доступного пространства
+   - 3 display modes: All (8 категорий), Main (4), Extra (4)
+   - Синхронизация выбора между режимами
+
+3. **ItemSelectionStepNew.tsx** - Новый selection step
+   - Убран ProgressIndicator (показ count в header)
+   - Display mode switcher в footer
+   - Randomize функция для unlocked категорий
+
+**Технические Улучшения:**
+
+- Минимум state updates (ref-based tracking)
+- Native snap с momentum
+- Smooth velocity-based snapping
+- Anti-flickering protection
+- Items поддерживают 3:4 aspect ratio
 
 #### Sub-steps:
 
-- [x] Создание новых типов для DisplayMode
-  - [x] CategoryDisplayMode = 'all' | 'main' | 'extra'
-  - [x] CATEGORY_GROUPS константы для группировки
+- [x] Анализ проблем предыдущей системы
+  - [x] Идентифицированы причины flickering
+  - [x] Определены узкие места производительности
+  - [x] Проанализирована архитектура state management
 
-- [x] Реализация динамического расчёта размеров
-  - [x] calculateItemDimensions функция
-  - [x] Учет доступной высоты экрана
-  - [x] Соотношение сторон 3:4 (width:height)
-  - [x] Min/max ограничения размеров
+- [x] Создание SmoothCarousel.tsx
+  - [x] Реализация realistic physics (deceleration: 0.985)
+  - [x] Infinite loop с buffer из 30+ duplicates
+  - [x] Ref-based tracking вместо state для центрального индекса
+  - [x] Flag button overlay на центральном элементе
+  - [x] Velocity-based smart snapping
+  - [x] Anti-flickering с isAdjustingRef guard
 
-- [x] Обновление CategoryCarouselCentered
-  - [x] Замена viewMode на itemWidth/height/spacing props
-  - [x] Удаление VIEW_MODE_SIZES константы
-  - [x] Поддержка динамических размеров
+- [x] Создание CategorySelectorWithSmooth.tsx
+  - [x] Container для управления множественными каруселями
+  - [x] Dynamic dimension calculation
+  - [x] Display mode filtering (all/main/extra)
+  - [x] State synchronization между режимами
+  - [x] Category scroll index tracking
 
-- [x] Обновление CategorySelectorList
-  - [x] Фильтрация категорий по displayMode
-  - [x] useMemo для оптимизации
-  - [x] Передача вычисленных размеров в карусели
-  - [x] Фиксированная высота контейнера без scroll
+- [x] Обновление ItemSelectionStepNew.tsx
+  - [x] Интеграция SmoothCarousel вместо старой системы
+  - [x] Убран ProgressIndicator (count в header badge)
+  - [x] Display mode switcher (All/Main/Extra)
+  - [x] Active categories вместо locked (flag system)
+  - [x] Randomize для active categories
 
-- [x] Обновление ItemSelectionStep
-  - [x] Новый UI для переключения режимов
-  - [x] 3 кнопки с иконками и подписями
-  - [x] All (apps), Main (shirt), Extra (diamond)
-  - [x] Активное состояние с инверсией цвета
+- [x] Удаление устаревших компонентов
+  - [x] CategoryCarousel.tsx (removed)
+  - [x] CategoryCarouselCentered.tsx (removed)
+  - [x] CategorySelectorList.tsx (removed)
+  - [x] ItemSelectionStep.tsx (removed)
+  - [x] ProgressIndicator.tsx (removed)
 
-- [x] Синхронизация состояния
-  - [x] Единый selectedItemsForCreation Record
-  - [x] Выбор сохраняется при переключении режимов
-  - [x] Независимая работа всех режимов
+- [x] Обновление exports
+  - [x] components/outfit/index.ts - cleaned up
+  - [x] Barrel exports только для активных компонентов
 
-- [x] Обновление документации
-  - [x] CENTERED_CAROUSEL_DESIGN.md - описание 3-mode системы
-  - [x] THREE_MODE_DISPLAY_SYSTEM.md - полная техническая документация
-  - [x] Implementation.md - добавление Stage 4.7
+- [x] Документация и архивация
+  - [x] CURRENT_STATUS.md - полный статус проекта
+  - [x] CLEANUP_SUMMARY.md - детали cleanup
+  - [x] Docs/Extra/Archive/ - 33 файла архивировано
+  - [x] Bug_tracking.md - CLEANUP-001 entry
 
-- [x] Тестирование
-  - [x] Переключение между режимами
-  - [x] Проверка автомасштабирования
-  - [x] Синхронизация выбора
-  - [x] Отсутствие прокрутки в каждом режиме
+- [x] Тестирование и верификация
+  - [x] Smooth scrolling при всех скоростях
+  - [x] Infinite loop работает seamlessly
+  - [x] No flickering или glitches
+  - [x] Category toggle работает корректно
+  - [x] Display mode switching без проблем
+  - [x] Item selection синхронизируется правильно
 
 ### Stage 5: AI Outfit Generation
 
@@ -428,10 +455,35 @@
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Pixian.ai API Documentation](https://ru.pixian.ai/api)
 
+## Current Project Statistics (November 2025)
+
+**Code Metrics:**
+
+- Total Screens: 18
+- Total Components: 25 (active)
+- Total Services: 4
+- Total Stores: 4
+- Total Type Definitions: 11 files
+- Categories: 8 (unified system)
+
+**Implementation Status:**
+
+- Stages 1-4.7: ✅ Completed
+- Stages 5-10: 🚧 Planned
+
+**Recent Improvements:**
+
+- SmoothCarousel system implementation
+- 5 obsolete components removed (31KB)
+- 33 documentation files archived
+- Unified category system (8 categories)
+
 ## Important Notes
 
-- Все версии библиотек уже проверены на совместимость в TechStack.md
+- Все версии библиотек проверены на совместимость (см. package.json)
 - Приоритет на оффлайн-first архитектуру с локальным хранением
 - Фокус на производительности при работе с большими коллекциями
 - Обязательная типизация всего кода с TypeScript
 - Следование принципам React Native best practices
+- SmoothCarousel - единственная активная система каруселей
+- Документация обновлена и актуальна (November 2025)

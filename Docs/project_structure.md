@@ -1,14 +1,11 @@
 # Project Structure - Obrazz
 
-**Последнее обновление:** 13 января 2025  
-**Статус:** Stage 2 завершён ✅
+**Last Updated:** November 8, 2025  
+**Current Stage:** Stage 4.7 Complete ✅ (Smooth Carousel System)
 
 ## Overview
 
 This document defines the folder structure and organization guidelines for the Obrazz React Native application.
-
-**Last Updated:** January 14, 2025  
-**Current Stage:** Stage 4 Complete ✅
 
 **Легенда:**
 
@@ -41,9 +38,9 @@ obrazz/
 ├── components/ ✅             # Reusable components
 │   ├── common/ 🚧           # Generic components
 │   ├── wardrobe/ ✅         # Wardrobe-specific components (Stage 3)
-│   ├── outfit/ ✅           # Outfit creator components (Stage 4)
+│   ├── outfit/ ✅           # Outfit creator components (Stage 4.7 - Smooth Carousel)
 │   ├── community/ 🚧        # Community feed components
-│   └── ui/ ✅              # Base UI components (Button, Input, Loader)
+│   └── ui/ ✅              # Base UI components (Button, Input, FAB)
 ├── config/ ✅                 # Configuration files
 │   └── env.ts ✅            # Environment config
 ├── constants/ ✅              # Constants
@@ -151,35 +148,36 @@ components/
 │   ├── Button.tsx ✅          # Primary/secondary button with loading
 │   ├── Input.tsx ✅           # Form input with validation
 │   ├── Loader.tsx ✅          # Loading spinner
+│   ├── FAB.tsx ✅            # Floating Action Button
 │   └── index.ts ✅           # Barrel export
 ├── common/
 │   ├── Card.tsx
 │   ├── Modal.tsx
 │   └── ErrorBoundary.tsx
-├── wardrobe/
-│   ├── ItemCard.tsx
-│   ├── ItemGrid.tsx
-│   ├── ItemFilter.tsx
-│   ├── CategoryPicker.tsx
-│   └── ColorPicker.tsx
-├── outfit/ ✅
-│   ├── Canvas.tsx ✅          # Drag & drop canvas (Stage 4)
-│   ├── CategoryCarousel.tsx ✅ # Horizontal item carousel (Stage 4)
-│   ├── OutfitCard.tsx 🚧      # Outfit preview card (Stage 4.5)
-│   ├── OutfitGrid.tsx 🚧      # Grid of outfit cards (Stage 4.5)
-│   ├── BackgroundPicker.tsx ✅ # Background selector (Stage 4)
-│   └── TransformControls.tsx ✅ # Scale/rotate controls (Stage 4)
-├── community/
-│   ├── PostCard.tsx
-│   ├── FeedList.tsx
-│   ├── ReactionButton.tsx
-│   └── ShareButton.tsx
-└── ui/
-    ├── TabBar.tsx
-    ├── Header.tsx
-    ├── Avatar.tsx
-    ├── Badge.tsx
-    └── Skeleton.tsx
+├── wardrobe/ ✅
+│   ├── ItemCard.tsx ✅        # Item preview card
+│   ├── ItemGrid.tsx ✅        # Grid display for items
+│   ├── ItemFilter.tsx ✅      # Filtering component
+│   └── ItemEmptyState.tsx ✅  # Empty wardrobe state
+├── outfit/ ✅ (Stage 4.7 - Smooth Carousel System)
+│   ├── OutfitCanvas.tsx ✅    # Drag & drop canvas
+│   ├── BackgroundPicker.tsx ✅ # Background selector
+│   ├── ItemSelectionStepNew.tsx ✅ # Step 1: Item selection (NEW SYSTEM)
+│   ├── CompositionStep.tsx ✅ # Step 2: Canvas composition
+│   ├── CategorySelectorWithSmooth.tsx ✅ # Container for smooth carousels
+│   ├── SmoothCarousel.tsx ✅  # Modern carousel with physics (NEW)
+│   ├── ItemMiniPreviewBar.tsx ✅ # Bottom preview bar
+│   ├── OutfitCard.tsx ✅      # Outfit preview card (Stage 4.5)
+│   ├── OutfitGrid.tsx ✅      # Grid of outfit cards (Stage 4.5)
+│   ├── OutfitEmptyState.tsx ✅ # Empty outfit state
+│   ├── OutfitFilter.tsx ✅    # Filter component
+│   ├── OutfitPreview.tsx ✅   # Outfit detail preview
+│   └── index.ts ✅           # Barrel export
+└── community/ 🚧
+    ├── PostCard.tsx
+    ├── FeedList.tsx
+    ├── ReactionButton.tsx
+    └── ShareButton.tsx
 ```
 
 ### `/services` - Business Logic

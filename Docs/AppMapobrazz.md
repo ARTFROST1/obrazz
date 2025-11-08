@@ -2,9 +2,10 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** January 15, 2025  
-**Current Stage:** Stage 4.7 Complete ✅  
-**Project Status:** Wardrobe Management, Manual Outfit Creator (Ultra Minimalist with 3-Mode Display System), and Outfits Collection - FULLY IMPLEMENTED
+**Latest Update:** November 8, 2025  
+**Current Stage:** Stage 4.7 Complete ✅ (SmoothCarousel System)  
+**Project Status:** Auth, Wardrobe Management, SmoothCarousel Outfit Creator, and Outfits Collection - FULLY IMPLEMENTED  
+**Last Scan:** Full codebase verification completed
 
 ---
 
@@ -47,7 +48,7 @@
 
 ## 2. Implementation Status & Current Features
 
-### Completed Stages (As of January 14, 2025)
+### Completed Stages (As of November 8, 2025)
 
 #### ✅ Stage 1: Foundation & Setup
 
@@ -99,18 +100,11 @@
 - Outfits tab in main navigation (replaced Create tab)
 - Outfit grid display with OutfitCard components
 
-#### ✅ Stage 4.6: Outfit Creator UX Refactoring - Ultra Minimalist
+#### ✅ Stage 4.6: Outfit Creator UX Refactoring
 
 - **Two-step creation process:**
   - Step 1: Item Selection - vertical scroll of seamless carousels
   - Step 2: Composition - canvas with drag & drop and tools
-- **Ultra-minimalist carousel design:**
-  - NO category labels
-  - NO pin buttons
-  - NO selection indicators
-  - Pure image strip with center-based selection
-  - resizeMode="cover" for maximum fill
-- **Progress indicator** showing X/7 categories selected
 - **Edit mode** loads directly to Step 2 (composition)
 - **Create mode** starts from Step 1 (selection)
 - FAB (Floating Action Button) for creating outfits
@@ -120,33 +114,52 @@
 - Outfit detail/view screen
 - Navigation to /outfit/create stack screen
 
-#### ✅ Stage 4.7: 3-Mode Category Display System
+#### ✅ Stage 4.7: SmoothCarousel System (Current Implementation)
 
-- **Three display modes for intelligent category filtering:**
-  - **All (7 categories):** Complete overview - headwear, outerwear, tops, bottoms, footwear, accessories, bags
-  - **Main (4 categories):** Core clothing focus - outerwear, tops, bottoms, footwear
-  - **Extra (3 categories):** Accessories focus - headwear, accessories, bags
-- **Dynamic auto-scaling system:**
-  - Item dimensions automatically calculated based on available screen space
-  - All visible categories fit perfectly without scrolling
-  - Maintains 3:4 aspect ratio (width:height) for natural clothing display
-  - Formula: `carouselHeight = availableHeight / numberOfCategories`
-- **Display mode switcher:**
-  - Bottom controls with intuitive icons (apps/shirt/diamond)
-  - Active state with inverted colors for clear feedback
-  - Labels: "All", "Main", "Extra"
-- **Seamless vertical flow:**
-  - Zero gaps between carousels
-  - Pure minimalist design - no separators or borders
-  - Each carousel perfectly aligned
-- **Selection synchronization:**
-  - Selected items preserved when switching between modes
-  - Unified state management across all display modes
-  - User can build outfit across different mode views
-- **Adaptive layout:**
-  - Measures actual container height dynamically
-  - Works correctly on different screen sizes
-  - Respects header, progress bar, and footer boundaries
+**Complete carousel system replacement with modern physics-based implementation**
+
+**Key Components:**
+
+- **SmoothCarousel.tsx** - Modern carousel with realistic physics
+  - Deceleration: 0.985 (natural momentum like CS:GO case opening)
+  - Infinite loop with 30+ duplicates buffer for seamless scrolling
+  - Flag button overlay on center item for category activation/deactivation
+  - Full-width edge-to-edge design across entire screen
+  - Velocity-based smart snapping (low velocity = snap, high velocity = momentum)
+  - Ref-based tracking to prevent flickering
+  - Items maintain 3:4 aspect ratio
+- **CategorySelectorWithSmooth.tsx** - Container managing multiple carousels
+  - Dynamic sizing based on available screen space
+  - 3 display modes: All (8 categories), Main (4), Extra (4)
+  - State synchronization between display modes
+  - Category scroll index tracking
+- **ItemSelectionStepNew.tsx** - Modern selection step
+  - Count badge in header (no progress bar)
+  - Display mode switcher in footer (All/Main/Extra buttons)
+  - Randomize function for active categories
+  - Category activation system with flag buttons
+
+**Technical Improvements:**
+
+- Minimal state updates (ref-based tracking)
+- Native snap with momentum physics
+- Anti-flickering protection
+- Smooth transitions between duplicates
+- Performance optimized for fast scrolling
+
+**Display Modes:**
+
+- **All (8 categories):** headwear, outerwear, tops, bottoms, footwear, accessories, fullbody, other
+- **Main (4 categories):** outerwear, tops, bottoms, footwear
+- **Extra (4 categories):** headwear, accessories, fullbody, other
+
+**Removed Legacy Components:**
+
+- CategoryCarousel.tsx (obsolete)
+- CategoryCarouselCentered.tsx (replaced by SmoothCarousel)
+- CategorySelectorList.tsx (replaced by CategorySelectorWithSmooth)
+- ItemSelectionStep.tsx (replaced by ItemSelectionStepNew)
+- ProgressIndicator.tsx (replaced by header badge)
 
 ### 🚧 In Progress / Planned
 
@@ -189,32 +202,56 @@
 
 ### 3.1 Architecture overview
 
-**Current Implementation:**
+**Current Implementation (Verified November 2025):**
 
-- **Frontend**: React Native 0.81.4 with Expo SDK 54, TypeScript
-- **State Management**: Zustand with AsyncStorage persistence
-- **Navigation**: Expo Router (file-based routing)
-- **Gestures & Animations**: React Native Gesture Handler 2.x + Reanimated 4.x
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Image Processing**: Expo Image Picker, Expo Camera, Remove.bg API
-- **File Storage**: Local device storage using expo-file-system (legacy API)
+- **Frontend**: React Native 0.81.4 with Expo SDK 54, TypeScript 5.9.2
+- **State Management**: Zustand 5.0.3 with AsyncStorage 2.1.0 persistence
+- **Navigation**: Expo Router 6.0.11 (file-based routing)
+- **Gestures & Animations**:
+  - React Native Gesture Handler 2.28.0
+  - React Native Reanimated 4.1.1
+  - React Native Worklets 0.5.1
+- **Backend**: Supabase 2.51.0 (PostgreSQL, Auth, Storage)
+- **Image Processing**:
+  - Expo Camera 17.0.8
+  - Expo Image Picker 17.0.8
+  - Expo Image Manipulator 14.0.7
+  - Remove.bg API for background removal
+- **File Storage**: Local device storage using expo-file-system 19.0.17
+- **Data Fetching**: TanStack Query 5.71.0 ✅ (implemented)
 
 **Planned:**
 
-- TanStack Query for server state (Stage 5+)
 - Node.js microservice for AI (Stage 5)
 - RevenueCat for subscriptions (Stage 7)
 
 ### 3.2 Key database entities (Postgres via Supabase)
 
-- **users**: id, email, name, avatar_url (nullable), created_at, subscription_plan, locale, created_default_items (bool)
-- **items**: id, user_id, title (nullable), category, color(s) (hex or label), material, style_tags (simple enumerated string), season_tags, image_local_path (client-only), image_hash, builtin_flag (boolean), created_at
-- **outfits**: id, user_id (nullable for shared/public ones), title, description (nullable), items: array of item references with slot mapping and transform metadata (x,y,scale,rotation,z-index), background_id (or custom), visibility (private/shared/public), created_at
-- **community_posts**: id, author_user_id, outfit_id (nullable), caption, reactions_count, created_at
-- **subscriptions**: id, user_id, plan_type, started_at, expires_at, provider_reference
-- **ai_requests**: id, user_id, params (style, season, constraints), result (serialized outfit candidates), created_at
+**Implemented Tables:**
 
-> Note: Images remain local on device. `items` table stores a stable identifier linked to local files. For syncing in the future, a migration path to cloud storage will be needed.
+- **users**: id, email, name, avatar_url, created_at, updated_at, subscription_plan, locale
+- **items**: id, user_id, title, category (8 unified categories), colors (array), styles (array), seasons (array), brand, size, material, image_local_path, image_url, created_at, updated_at, is_favorite
+- **outfits**: id, user_id, title, description, items (jsonb with transforms), background, visibility, occasions (array), styles (array), seasons (array), created_at, updated_at, times_worn, is_favorite
+
+**Prepared Tables (Stage 6+):**
+
+- **community_posts**: id, author_user_id, outfit_id, caption, reactions_count, created_at
+- **subscriptions**: id, user_id, plan_type, started_at, expires_at, provider_reference
+- **ai_requests**: id, user_id, params, result, created_at
+
+**Categories (Unified System):**
+8 categories defined in `constants/categories.ts`:
+
+1. headwear (головной убор)
+2. outerwear (верхняя одежда)
+3. tops (верх)
+4. bottoms (низ)
+5. footwear (обувь)
+6. accessories (аксессуары)
+7. fullbody (FullBody)
+8. other (Другое)
+
+> Note: Images remain local on device. `items` table stores both image_local_path (primary) and image_url (optional backup). For syncing in the future, a migration path to cloud storage will be needed.
 
 ---
 
@@ -468,34 +505,100 @@ Edge cases:
 
 ---
 
-### E. Outfit Creator (Manual)
+### E. Outfit Creator (Manual) - CURRENT IMPLEMENTATION
 
 #### Purpose
 
-Intuitive, fast UI to compose outfits from existing items using horizontal carousels and a WYSIWYG canvas for final adjustments.
+Modern two-step process for creating outfits with smooth carousel selection and drag-and-drop composition.
 
 #### Entry modes
 
-- Empty creator (user chooses items from scratch)
-- Pre-fill mode (user tapped an item and opened creator — that item should be pre-selected in its category)
-- From saved outfit (edit mode) — loads saved item placements and metadata.
+- **Create New** - Starts at Step 1 (Item Selection)
+- **Edit Existing** - Loads directly to Step 2 (Composition) with saved items
 
-#### Layout
+#### Two-Step Process
 
-- Top: canvas preview (shows assembled items layered). Supports gestures: pinch-to-zoom (canvas), tap to select an element, double-tap to center, two-finger pan for canvas move.
-- Middle: category carousels stacked vertically. Each carousel contains ItemCards for that category (user items first, built-in after). The center-most item is active (selected). A small lock icon toggles category pinned/unpinned.
-- Bottom: control bar with buttons: Randomize (randomize unpinned categories), Background (choose from defaults), Save Outfit, Undo/Redo, Cancel.
+**Step 1: Item Selection (ItemSelectionStepNew)**
 
-#### Canvas element behaviors
+Layout:
 
-- Each placed item has transform metadata: x, y, scale, rotation, zIndex
-- Selecting an element opens a small context menu: bring forward/back, replace (opens category carousel focused), delete, lock position.
-- Dragging an item moves it. Pinch scales, twist rotates. Snap-to-grid toggle exists.
+- Header: Back button, "Build Your Outfit" title, selected count badge
+- Body: Vertical stack of SmoothCarousels (one per category)
+  - Full-width edge-to-edge carousels
+  - Center item is selected
+  - Flag button on center item to activate/deactivate category
+  - Smooth momentum-based scrolling
+  - Infinite loop for seamless experience
+- Footer: Display mode switcher (All/Main/Extra) + Randomize + Next buttons
 
-#### Save flow
+Interaction:
 
-- On Save: ask for outfit name (optional) and visibility (private / shared). Save metadata to Supabase and include serialized transforms per item. Do not upload images — keep references to local filenames or builtin IDs.
-- When saving as Shared (for community feed), create a Community Post and attach the outfit_id.
+- Scroll carousel horizontally to browse items
+- Center item auto-selects
+- Tap flag button to toggle category active/inactive
+- Inactive categories show dimmed items (opacity: 0.4)
+- Switch display modes to filter categories
+- Randomize button picks random items for active categories
+- Next button → Step 2 (Composition)
+
+**Step 2: Composition (CompositionStep)**
+
+Layout:
+
+- Header: Back button, toolbar (Undo/Redo/Background/Clear)
+- Body: Canvas with placed items
+  - Drag items to position
+  - Pinch to scale
+  - Two-finger rotation
+  - Layering controls
+- Footer: Preview bar + Save button
+
+Canvas Behaviors:
+
+- Each item has transform metadata: x, y, scale, rotation, zIndex
+- Drag to move
+- Pinch gesture to scale (min: 0.5, max: 3.0)
+- Rotate gesture for rotation
+- Tap to select (shows transform controls)
+- Double-tap to center
+- Undo/Redo for all actions
+
+#### Save Flow
+
+- Tap Save → Opens modal with:
+  - Outfit name (optional)
+  - Occasion picker
+  - Style picker (multiple)
+  - Season picker
+  - Visibility (private/shared)
+- Save creates outfit record in Supabase
+- Stores item references + transforms (no image upload)
+- Success → Navigate back to Outfits tab
+
+#### Technical Implementation
+
+**Active Components:**
+
+- `app/outfit/create.tsx` - Main screen coordinator
+- `components/outfit/ItemSelectionStepNew.tsx` - Step 1
+- `components/outfit/CategorySelectorWithSmooth.tsx` - Carousel container
+- `components/outfit/SmoothCarousel.tsx` - Individual carousel
+- `components/outfit/CompositionStep.tsx` - Step 2
+- `components/outfit/OutfitCanvas.tsx` - Canvas with gestures
+- `components/outfit/ItemMiniPreviewBar.tsx` - Preview bar
+- `components/outfit/BackgroundPicker.tsx` - Background selector
+
+**State Management:**
+
+- `store/outfit/outfitStore.ts` - Outfit state with undo/redo
+- creationStep (1 | 2)
+- selectedItemsForCreation
+- currentItems (placed items with transforms)
+- currentBackground
+
+**Services:**
+
+- `services/outfit/outfitService.ts` - CRUD operations
 
 ---
 
