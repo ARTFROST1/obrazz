@@ -17,8 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { itemService } from '@services/wardrobe/itemService';
-import { WardrobeItem, ItemCategory } from '@types/models/item';
-import { Season, StyleTag } from '@types/models/user';
+import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { Season, StyleTag } from '../../types/models/user';
 import { CategoryPicker } from '@components/wardrobe/CategoryPicker';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
 
@@ -53,7 +53,7 @@ export default function ItemDetailScreen() {
   const [editTitle, setEditTitle] = useState('');
   const [editBrand, setEditBrand] = useState('');
   const [editSize, setEditSize] = useState('');
-  const [editCategory, setEditCategory] = useState<ItemCategory>('top');
+  const [editCategory, setEditCategory] = useState<ItemCategory>('tops');
   const [editColors, setEditColors] = useState<string[]>([]);
   const [editStyles, setEditStyles] = useState<StyleTag[]>([]);
   const [editSeasons, setEditSeasons] = useState<Season[]>([]);
@@ -158,15 +158,16 @@ export default function ItemDetailScreen() {
       });
 
       // Update local state
-      const updatedItem = {
+      const updatedItem: WardrobeItem = {
         ...item,
         title: editTitle,
         brand: editBrand || undefined,
         size: editSize || undefined,
         category: editCategory,
-        colors: colors.length > 0 ? colors : undefined,
-        styles: editStyles.length > 0 ? editStyles : undefined,
-        seasons: editSeasons.length > 0 ? editSeasons : undefined,
+        colors: colors.length > 0 ? colors : [],
+        primaryColor: colors.length > 0 ? colors[0] : item.primaryColor,
+        styles: editStyles.length > 0 ? editStyles : [],
+        seasons: editSeasons.length > 0 ? editSeasons : [],
       };
 
       setItem(updatedItem);

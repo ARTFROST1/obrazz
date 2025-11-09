@@ -1,5 +1,5 @@
-import { supabase, clearAuthStorage } from '@/lib/supabase/client';
-import { useAuthStore } from '@/store/auth/authStore';
+import { supabase, clearAuthStorage } from '@lib/supabase/client';
+import { useAuthStore } from '@store/auth/authStore';
 
 export interface SignUpData {
   email: string;
@@ -224,7 +224,7 @@ class AuthService {
    * Initialize auth state listener
    */
   initializeAuthListener() {
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((_event: any, session: any) => {
       if (session?.user) {
         useAuthStore.getState().initialize(session.user, session);
       } else {

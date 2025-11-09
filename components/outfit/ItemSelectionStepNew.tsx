@@ -29,9 +29,32 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
     confirmItemSelection,
   } = useOutfitStore();
 
+  // Initialize active categories based on selected items (for edit mode)
+  const getInitialActiveCategories = (): Set<ItemCategory> => {
+    const activeSet = new Set<ItemCategory>();
+    CATEGORIES.forEach((category) => {
+      if (selectedItemsForCreation[category] !== null) {
+        activeSet.add(category);
+      }
+    });
+    // If no items selected (new outfit), activate all categories by default
+    const result = activeSet.size > 0 ? activeSet : new Set(CATEGORIES);
+
+    // Debug: Log initialization
+    console.log('🔍 [ItemSelectionStepNew] Initializing active categories:', {
+      selectedItems: Object.fromEntries(
+        Object.entries(selectedItemsForCreation).map(([cat, item]) => [cat, item?.id || null]),
+      ),
+      activeCategories: Array.from(result),
+      isEditMode: activeSet.size > 0,
+    });
+
+    return result;
+  };
+
   // Track active categories (replacing locked with active)
   const [activeCategories, setActiveCategories] = useState<Set<ItemCategory>>(
-    new Set(CATEGORIES), // All categories active by default
+    getInitialActiveCategories(),
   );
   const [displayMode, setDisplayMode] = useState<CategoryDisplayMode>('all');
 

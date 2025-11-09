@@ -6,6 +6,214 @@ This document tracks all bugs, errors, and their solutions encountered during th
 
 ## Recent Updates
 
+### BUG-004: Edit Mode Carousel Not Showing Selected Items
+
+**Date:** 2025-11-09  
+**Severity:** High (UX Issue)  
+**Status:** Resolved  
+**Component:** Outfit Creation, Edit Mode  
+**Environment:** All
+
+**Description:**
+При нажатии на кнопку Edit в детальной странице образа, открывалась карусель выбора элементов одежды, но карусели не показывали текущие выбранные элементы из образа. Вместо этого отображалась дефолтная карусель с первым элементом каждой категории.
+
+**Steps to Reproduce:**
+
+1. Открыть сохраненный образ через `/outfit/[id]`
+2. Нажать на кнопку "Edit Outfit"
+3. Наблюдать что карусели показывают первые элементы вместо выбранных
+4. Активные категории не соответствуют элементам в образе
+
+**Expected Behavior:**
+
+- Карусели должны показывать элементы, которые уже выбраны в образе
+- Каждая карусель прокручена к соответствующему элементу образа
+- Активны только те категории, которые используются в образе
+- Флаг-кнопки показывают правильное состояние (active/inactive)
+
+**Actual Behavior:**
+
+- Все карусели прокручены к первому элементу
+- Все категории активны по умолчанию
+- `selectedItemsForCreation` в store не инициализировался из образа
+- `activeCategories` не учитывали текущие элементы образа
+- `initialScrollIndex` не рассчитывался на основе `selectedItemId`
+
+**Root Cause:**
+
+1. **В `outfitStore.ts`** - функция `setCurrentOutfit` устанавливала только `currentItems`, но не заполняла `selectedItemsForCreation` из элементов образа
+2. **В `ItemSelectionStepNew.tsx`** - все категории инициализировались как активные независимо от того, есть ли в них элементы
+3. **В `CategorySelectorWithSmooth.tsx`** - `initialScrollIndex` брался из кэша или устанавливался в 0, не учитывая `selectedItemId`
+4. **В `SmoothCarousel.tsx`** - не было проблем, компонент корректно принимал `initialScrollIndex`
+
+**Solution:**
+
+Реализовано многоуровневое решение для гарантии правильной инициализации:
+
+**1. Обновлен `store/outfit/outfitStore.ts` (строки 120-139):**
+
+```typescript
+setCurrentOutfit: (outfit) => {
+  // Initialize selectedItemsForCreation from outfit items for edit mode
+  const selectedItems: Record<ItemCategory, WardrobeItem | null> = { ...emptySelectedItems };
+
+  if (outfit?.items) {
+    outfit.items.forEach((outfitItem) => {
+      if (outfitItem.item) {
+        selectedItems[outfitItem.category] = outfitItem.item;
+      }
+    });
+  }
+
+  set({
+    currentOutfit: outfit,
+    currentItems: outfit?.items || [],
+    currentBackground: outfit?.background || defaultBackground,
+    selectedItemsForCreation: selectedItems, // ✅ Теперь инициализируется
+    error: null,
+  });
+},
+```
+
+**2. Обновлен `components/outfit/ItemSelectionStepNew.tsx` (строки 32-42):**
+
+```typescript
+// Initialize active categories based on selected items (for edit mode)
+const getInitialActiveCategories = (): Set<ItemCategory> => {
+  const activeSet = new Set<ItemCategory>();
+  CATEGORIES.forEach((category) => {
+    if (selectedItemsForCreation[category] !== null) {
+      activeSet.add(category);
+    }
+  });
+  // If no items selected (new outfit), activate all categories by default
+  return activeSet.size > 0 ? activeSet : new Set(CATEGORIES);
+};
+
+const [activeCategories, setActiveCategories] = useState<Set<ItemCategory>>(
+  getInitialActiveCategories(), // ✅ Теперь инициализируется из выбранных элементов
+);
+```
+
+**3. Обновлен `components/outfit/CategorySelectorWithSmooth.tsx` (строки 92-102 и 133-136):**
+
+```typescript
+// Get initial scroll index for a category based on selected item
+const getInitialScrollIndex = useCallback(
+  (category: ItemCategory, categoryItems: WardrobeItem[]): number => {
+    const selectedItem = selectedItems[category];
+    if (!selectedItem || categoryItems.length === 0) return 0;
+
+    const index = categoryItems.findIndex((item) => item.id === selectedItem.id);
+    return index >= 0 ? index : 0;
+  },
+  [selectedItems],
+);
+
+// В render:
+const initialIndex =
+  categoryScrollIndexes[category] !== undefined
+    ? categoryScrollIndexes[category]
+    : getInitialScrollIndex(category, categoryItems); // ✅ Рассчитывается из selectedItem
+```
+
+**4. Добавлен loading state в `app/outfit/create.tsx` (КЛЮЧЕВОЕ РЕШЕНИЕ!):**
+
+```typescript
+const [isLoadingOutfit, setIsLoadingOutfit] = useState(isEditMode);
+
+const loadOutfitForEdit = async (outfitId: string) => {
+  try {
+    setIsLoadingOutfit(true); // ✅ Блокируем рендер
+    const outfit = await outfitService.getOutfitById(outfitId);
+    setCurrentOutfit(outfit);
+    setOutfitTitle(outfit.title || '');
+    setSelectedOccasion(outfit.occasions?.[0] || '');
+    setSelectedStyles(outfit.styles && outfit.styles.length > 0 ? outfit.styles : []);
+    setSelectedSeason(outfit.seasons?.[0] || '');
+    setCreationStep(1);
+  } catch (error) {
+    console.error('Error loading outfit:', error);
+    Alert.alert('Error', 'Failed to load outfit for editing');
+    router.back();
+  } finally {
+    setIsLoadingOutfit(false); // ✅ Разрешаем рендер только после загрузки
+  }
+};
+
+// В render:
+if (isLoadingOutfit) {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#000" />
+      <Text style={styles.loadingText}>Loading outfit...</Text>
+    </View>
+  );
+}
+```
+
+**Architecture Insight:**
+
+Проблема возникла из-за **race condition** между асинхронной загрузкой данных и синхронным рендером компонентов:
+
+1. React рендерит компоненты немедленно
+2. Async загрузка данных происходит позже
+3. Карусели инициализируются с пустыми данными
+4. Когда данные приходят, карусели уже проинициализированы
+
+**Решение**: Loading State
+
+- **Loading State** блокирует рендер компонентов до полной загрузки данных из сервера
+- Карусели рендерятся только ПОСЛЕ того как `selectedItemsForCreation` заполнен
+- Один рендер с правильными данными вместо двух рендеров (пустой → заполненный)
+- Никакого flickering или re-initialization
+
+**Prevention:**
+
+- **ВСЕГДА** добавлять loading state при асинхронной загрузке данных перед рендером
+- **ИЗБЕГАТЬ** использования key prop для форсирования remount - это вызывает flickering при каждом изменении
+- **ИЗБЕГАТЬ** реактивных useEffect на props которые часто меняются - это создает бесконечные циклы
+- При добавлении новых режимов (create/edit), всегда инициализировать все связанные состояния
+- Использовать единый источник истины для выбранных элементов
+- Тестировать оба режима (создание и редактирование) при изменениях в логике выбора
+- Предпочитать однократную правильную инициализацию вместо множественных re-renders
+
+**Related Files:**
+
+- `store/outfit/outfitStore.ts` - инициализация selectedItemsForCreation из outfit items
+- `app/outfit/create.tsx` - loading state для предотвращения рендера до загрузки данных
+- `components/outfit/ItemSelectionStepNew.tsx` - инициализация activeCategories
+- `components/outfit/CategorySelectorWithSmooth.tsx` - расчет initialScrollIndex из selectedItem
+
+**Date Resolved:** 2025-11-09
+
+**Update (11:43):** Откат проблемных изменений
+
+После первоначального fix было обнаружено что добавление `key` prop и реактивного `useEffect` вызвало **массивный flickering** на экране создания образа:
+
+**Проблема:**
+
+- `key={carouselKey}` форсировал полный remount всех каруселей при каждом выборе элемента
+- Это создавало бесконечный цикл: выбор → remount → re-init → выбор → remount
+- Все карусели мигали и скакали при каждом действии
+
+**Решение:**
+
+- ✅ Откачены изменения с `key` prop в `ItemSelectionStepNew.tsx`
+- ✅ Откачен реактивный `useEffect` в `SmoothCarousel.tsx`
+- ✅ Оставлен только **loading state** в `create.tsx` - это единственное необходимое изменение
+
+**Итоговое решение:**
+
+1. `outfitStore.setCurrentOutfit` - заполняет `selectedItemsForCreation` ✅
+2. `ItemSelectionStepNew` - инициализирует `activeCategories` из данных ✅
+3. `CategorySelectorWithSmooth` - рассчитывает `initialScrollIndex` ✅
+4. `create.tsx` - показывает loading до загрузки данных ✅
+
+**Никаких** key props или реактивных useEffect - только правильная инициализация один раз!
+
+---
+
 ### CLEANUP-001: Obsolete Component Files Removal
 
 **Date:** 2025-11-08  

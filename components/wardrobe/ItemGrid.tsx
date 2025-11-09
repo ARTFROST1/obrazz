@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { ItemCard } from './ItemCard';
-import { WardrobeItem } from '@types/models/item';
+import { WardrobeItem } from '../../types/models/item';
 
 interface ItemGridProps {
   items: WardrobeItem[];

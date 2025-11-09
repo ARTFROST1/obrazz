@@ -131,8 +131,8 @@ export default function OutfitDetailScreen() {
         ...outfit,
         title: outfitTitle,
         occasions: selectedOccasion ? [selectedOccasion] : undefined,
-        styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-        seasons: selectedSeason ? [selectedSeason] : undefined,
+        styles: selectedStyles.length > 0 ? selectedStyles : [],
+        seasons: selectedSeason ? [selectedSeason] : [],
       });
 
       updateOutfitInStore(outfit.id, {

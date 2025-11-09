@@ -89,6 +89,26 @@ export function CategorySelectorWithSmooth({
     [wardrobeItems],
   );
 
+  // Get initial scroll index for a category based on selected item
+  const getInitialScrollIndex = useCallback(
+    (category: ItemCategory, categoryItems: WardrobeItem[]): number => {
+      const selectedItem = selectedItems[category];
+      if (!selectedItem || categoryItems.length === 0) return 0;
+
+      const index = categoryItems.findIndex((item) => item.id === selectedItem.id);
+
+      // Debug: Log scroll index calculation
+      console.log(`🔍 [CategorySelector] Initial scroll for ${category}:`, {
+        selectedItemId: selectedItem?.id,
+        foundAtIndex: index,
+        totalItems: categoryItems.length,
+      });
+
+      return index >= 0 ? index : 0;
+    },
+    [selectedItems],
+  );
+
   // Handle scroll index change
   const handleScrollIndexChange = useCallback((category: ItemCategory, index: number) => {
     setCategoryScrollIndexes((prev) => ({
@@ -118,6 +138,12 @@ export function CategorySelectorWithSmooth({
           const selectedItem = selectedItems[category];
           const isCategoryActive = activeCategories.has(category);
 
+          // Get initial scroll index: use cached index if available, otherwise calculate from selected item
+          const initialIndex =
+            categoryScrollIndexes[category] !== undefined
+              ? categoryScrollIndexes[category]
+              : getInitialScrollIndex(category, categoryItems);
+
           return (
             <View key={category} style={[styles.carouselWrapper, { height: carouselHeight }]}>
               <SmoothCarousel
@@ -138,7 +164,7 @@ export function CategorySelectorWithSmooth({
                   onCategoryToggle(category);
                 }}
                 onScrollIndexChange={(index) => handleScrollIndexChange(category, index)}
-                initialScrollIndex={categoryScrollIndexes[category] || 0}
+                initialScrollIndex={initialIndex}
               />
             </View>
           );

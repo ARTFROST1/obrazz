@@ -317,6 +317,15 @@ export function SmoothCarousel({
   useEffect(() => {
     if (flatListRef.current && carouselItems.length > 0) {
       const initialIndex = indexOffset + (initialScrollIndex % items.length);
+
+      // Debug: Log carousel initialization
+      console.log(`🔍 [SmoothCarousel] Initializing ${category}:`, {
+        initialScrollIndex,
+        calculatedIndex: initialIndex,
+        itemsCount: items.length,
+        selectedItemId,
+      });
+
       setTimeout(() => {
         flatListRef.current?.scrollToOffset({
           offset: initialIndex * (itemWidth + spacing),

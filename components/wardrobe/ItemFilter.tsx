@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ItemCategory } from '@types/models/item';
-import { Season, StyleTag } from '@types/models/user';
+import { ItemCategory } from '../../types/models/item';
+import { Season, StyleTag } from '../../types/models/user';
 import { CategoryPicker } from './CategoryPicker';
 import { ColorPicker } from './ColorPicker';
 

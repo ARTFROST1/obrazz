@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '../storage';
-import { WardrobeItem, ItemFilter, ItemSortOptions, ItemCategory } from '@types/models/item';
+import { WardrobeItem, ItemFilter, ItemSortOptions, ItemCategory } from '../../types/models/item';
 
 interface WardrobeState {
   items: WardrobeItem[];

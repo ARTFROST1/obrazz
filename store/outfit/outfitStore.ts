@@ -118,10 +118,31 @@ export const useOutfitStore = create<OutfitState>()(
 
       // Current outfit actions
       setCurrentOutfit: (outfit) => {
+        // Initialize selectedItemsForCreation from outfit items for edit mode
+        const selectedItems: Record<ItemCategory, WardrobeItem | null> = { ...emptySelectedItems };
+
+        if (outfit?.items) {
+          outfit.items.forEach((outfitItem) => {
+            if (outfitItem.item) {
+              selectedItems[outfitItem.category] = outfitItem.item;
+            }
+          });
+        }
+
+        // Debug: Log what we're setting
+        console.log('🔍 [outfitStore] setCurrentOutfit:', {
+          outfitId: outfit?.id,
+          itemsCount: outfit?.items?.length || 0,
+          selectedCategories: Object.entries(selectedItems)
+            .filter(([_, item]) => item !== null)
+            .map(([cat, item]) => ({ category: cat, itemId: item?.id })),
+        });
+
         set({
           currentOutfit: outfit,
           currentItems: outfit?.items || [],
           currentBackground: outfit?.background || defaultBackground,
+          selectedItemsForCreation: selectedItems,
           error: null,
         });
       },

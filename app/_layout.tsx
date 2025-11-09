@@ -8,9 +8,9 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
-import { useAuthStore } from '@/store/auth/authStore';
-import { authService } from '@/services/auth/authService';
-import { Loader } from '@/components/ui';
+import { useAuthStore } from '@store/auth/authStore';
+import { authService } from '@services/auth/authService';
+import { Loader } from '@components/ui';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -79,7 +79,7 @@ function RootLayoutNav() {
         // Check for existing session with timeout
         console.log('[RootLayoutNav] Getting session...');
         const sessionPromise = authService.getSession();
-        const timeoutPromise = new Promise((resolve) =>
+        const timeoutPromise = new Promise<null>((resolve) =>
           setTimeout(() => {
             console.log('[RootLayoutNav] Session check timeout');
             resolve(null);
@@ -89,7 +89,7 @@ function RootLayoutNav() {
         const session = await Promise.race([sessionPromise, timeoutPromise]);
         console.log('[RootLayoutNav] Session result:', session ? 'Found' : 'Not found');
 
-        if (session) {
+        if (session && typeof session === 'object' && 'user' in session) {
           useAuthStore.getState().initialize(session.user, session);
         } else {
           useAuthStore.getState().clearAuth();

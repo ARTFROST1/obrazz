@@ -8,6 +8,7 @@ import {
   ScrollView,
   Keyboard,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
@@ -49,6 +50,7 @@ export default function CreateScreen() {
   const [showOccasionPicker, setShowOccasionPicker] = useState(false);
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [showSeasonPicker, setShowSeasonPicker] = useState(false);
+  const [isLoadingOutfit, setIsLoadingOutfit] = useState(isEditMode);
 
   // Load outfit if in edit mode
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function CreateScreen() {
 
   const loadOutfitForEdit = async (outfitId: string) => {
     try {
+      setIsLoadingOutfit(true);
       const outfit = await outfitService.getOutfitById(outfitId);
       setCurrentOutfit(outfit);
       setOutfitTitle(outfit.title || '');
@@ -79,6 +82,8 @@ export default function CreateScreen() {
       console.error('Error loading outfit:', error);
       Alert.alert('Error', 'Failed to load outfit for editing');
       router.back();
+    } finally {
+      setIsLoadingOutfit(false);
     }
   };
 
@@ -213,6 +218,16 @@ export default function CreateScreen() {
         break;
     }
   };
+
+  // Show loading state while outfit is being loaded in edit mode
+  if (isLoadingOutfit) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text style={styles.loadingText}>Loading outfit...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -445,6 +460,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
   },
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
