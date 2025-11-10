@@ -19,7 +19,7 @@ import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { itemService } from '@services/wardrobe/itemService';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
-import { CategoryPicker } from '@components/wardrobe/CategoryPicker';
+import { getAllCategoriesInfo } from '@constants/categories';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -38,6 +38,7 @@ const STYLES: StyleTag[] = [
 ];
 
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter'];
+const CATEGORIES = getAllCategoriesInfo('en');
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -57,6 +58,8 @@ export default function ItemDetailScreen() {
   const [editColors, setEditColors] = useState<string[]>([]);
   const [editStyles, setEditStyles] = useState<StyleTag[]>([]);
   const [editSeasons, setEditSeasons] = useState<Season[]>([]);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showStylePicker, setShowStylePicker] = useState(false);
 
   useEffect(() => {
     loadItem();
@@ -126,9 +129,7 @@ export default function ItemDetailScreen() {
       setDeleting(true);
       await itemService.deleteItem(item.id);
       deleteItemFromStore(item.id);
-      Alert.alert('Success', 'Item deleted successfully', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      router.back();
     } catch (error) {
       console.error('Error deleting item:', error);
       Alert.alert('Error', 'Failed to delete item');
@@ -173,7 +174,6 @@ export default function ItemDetailScreen() {
       setItem(updatedItem);
       updateItem(item.id, updatedItem);
       setShowUpdateModal(false);
-      Alert.alert('Success', 'Item updated successfully');
     } catch (error) {
       console.error('Error updating item:', error);
       Alert.alert('Error', 'Failed to update item');
@@ -198,6 +198,15 @@ export default function ItemDetailScreen() {
     setEditSeasons((prev) =>
       prev.includes(season) ? prev.filter((s) => s !== season) : [...prev, season],
     );
+  };
+
+  const openPicker = (pickerType: 'category' | 'style') => {
+    Keyboard.dismiss();
+    if (pickerType === 'category') {
+      setShowCategoryPicker(true);
+    } else {
+      setShowStylePicker(true);
+    }
   };
 
   if (loading) {
@@ -254,7 +263,11 @@ export default function ItemDetailScreen() {
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Brand</Text>
-              <Text style={[styles.infoValue, !item.brand && styles.notFilled]}>
+              <Text
+                style={[styles.infoValue, !item.brand && styles.notFilled]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
                 {item.brand || 'not filled in'}
               </Text>
             </View>
@@ -390,10 +403,12 @@ export default function ItemDetailScreen() {
               {/* Category */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Category</Text>
-                <CategoryPicker
-                  selectedCategories={[editCategory]}
-                  onCategorySelect={(cat) => setEditCategory(cat)}
-                />
+                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('category')}>
+                  <Text style={styles.dropdownText}>
+                    {CATEGORIES.find((c) => c.value === editCategory)?.label || editCategory}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
 
               {/* Colors */}
@@ -409,26 +424,14 @@ export default function ItemDetailScreen() {
               {/* Styles */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Style (optional)</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.chipScrollContainer}
-                >
-                  {STYLES.map((style) => {
-                    const selected = editStyles.includes(style);
-                    return (
-                      <TouchableOpacity
-                        key={style}
-                        style={[styles.chip, selected && styles.chipSelected]}
-                        onPress={() => handleStyleToggle(style)}
-                      >
-                        <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                          {style}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
+                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('style')}>
+                  <Text style={styles.dropdownText} numberOfLines={1}>
+                    {editStyles.length > 0
+                      ? editStyles.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')
+                      : 'Not selected'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
 
               {/* Seasons */}
@@ -477,6 +480,85 @@ export default function ItemDetailScreen() {
           </ScrollView>
         </View>
       )}
+
+      {/* Category Picker Modal */}
+      <Modal visible={showCategoryPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowCategoryPicker(false)}
+        >
+          <View style={styles.pickerModal}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Category</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {CATEGORIES.map((categoryInfo) => (
+                <TouchableOpacity
+                  key={categoryInfo.value}
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    setEditCategory(categoryInfo.value);
+                    setShowCategoryPicker(false);
+                  }}
+                >
+                  <View style={styles.pickerItemContent}>
+                    <Text style={styles.pickerItemIcon}>{categoryInfo.icon}</Text>
+                    <Text style={styles.pickerItemText}>{categoryInfo.label}</Text>
+                  </View>
+                  {editCategory === categoryInfo.value && (
+                    <Ionicons name="checkmark" size={24} color="#000" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Style Picker Modal */}
+      <Modal visible={showStylePicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.pickerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStylePicker(false)}
+        >
+          <View style={styles.pickerModal}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Styles (Multiple)</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {STYLES.map((style) => (
+                <TouchableOpacity
+                  key={style}
+                  style={[
+                    styles.pickerItem,
+                    editStyles.includes(style) && styles.pickerItemSelected,
+                  ]}
+                  onPress={() => handleStyleToggle(style)}
+                >
+                  <Text style={styles.pickerItemText}>
+                    {style.charAt(0).toUpperCase() + style.slice(1)}
+                  </Text>
+                  <View style={styles.checkmarkContainer}>
+                    {editStyles.includes(style) && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <View style={styles.pickerFooter}>
+              <TouchableOpacity
+                style={styles.pickerDoneButton}
+                onPress={() => setShowStylePicker(false)}
+              >
+                <Text style={styles.pickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -581,6 +663,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textTransform: 'capitalize',
+    maxWidth: 120,
   },
   titleRow: {
     flexDirection: 'row',
@@ -609,12 +692,16 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
     alignItems: 'center',
+    rowGap: 8,
   },
   inlineColors: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     marginLeft: 8,
     flex: 1,
     alignItems: 'center',
+    maxWidth: 280,
+    rowGap: 8,
   },
   notFilled: {
     color: '#999',
@@ -630,6 +717,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#E5E5E5',
+    marginTop: 16,
     marginBottom: 16,
   },
   loadingContainer: {
@@ -673,6 +761,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F8F8',
     borderRadius: 16,
     marginRight: 8,
+    marginBottom: 0,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -749,6 +838,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: '#E5E5E5',
   },
   modalButtonPrimary: {
     backgroundColor: '#000',
@@ -760,5 +851,102 @@ const styles = StyleSheet.create({
   },
   modalButtonTextPrimary: {
     color: '#FFF',
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#000',
+    flex: 1,
+    textTransform: 'capitalize',
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerModal: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    width: SCREEN_WIDTH * 0.8,
+    maxWidth: 500,
+    maxHeight: 500,
+    overflow: 'hidden',
+  },
+  pickerHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  pickerScroll: {
+    maxHeight: 320,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    minHeight: 56,
+    backgroundColor: '#FFF',
+  },
+  pickerItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  pickerItemIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  pickerItemText: {
+    fontSize: 16,
+    color: '#000',
+    flex: 1,
+    textTransform: 'capitalize',
+  },
+  pickerItemSelected: {
+    backgroundColor: '#F0F0F0',
+  },
+  checkmarkContainer: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+  },
+  pickerDoneButton: {
+    backgroundColor: '#000',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  pickerDoneText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -96,7 +96,7 @@ export const FAB: React.FC<FABProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 90 : 80, // Higher on iOS for NativeTabs
+    bottom: Platform.OS === 'ios' ? 120 : 110, // Raised 30% higher on both platforms
     right: 16,
     justifyContent: 'center',
     alignItems: 'center',

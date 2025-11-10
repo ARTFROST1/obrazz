@@ -125,7 +125,6 @@ export default function OutfitsScreen() {
               setLoading(true);
               await outfitService.duplicateOutfit(outfit.id, user.id);
               await loadOutfits();
-              Alert.alert('Success', 'Outfit duplicated successfully');
             } catch (error) {
               console.error('Error duplicating outfit:', error);
               Alert.alert('Error', 'Failed to duplicate outfit');
@@ -154,7 +153,6 @@ export default function OutfitsScreen() {
               setLoading(true);
               await outfitService.deleteOutfit(outfit.id);
               removeOutfitFromStore(outfit.id);
-              Alert.alert('Success', 'Outfit deleted successfully');
             } catch (error) {
               console.error('Error deleting outfit:', error);
               Alert.alert('Error', 'Failed to delete outfit');

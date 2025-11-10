@@ -19,7 +19,7 @@ import { itemService } from '@services/wardrobe/itemService';
 import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
 import { Input } from '@components/ui/Input';
 import { Button } from '@components/ui/Button';
-import { CategoryPicker } from '@components/wardrobe/CategoryPicker';
+import { CategoryGridPicker } from '@components/wardrobe/CategoryGridPicker';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
 import { ItemCategory } from '../types/models/item';
 import { Season, StyleTag } from '../types/models/user';
@@ -123,7 +123,6 @@ export default function AddItemScreen() {
       setRemovingBg(true);
       const processedUri = await backgroundRemoverService.removeBackground(imageUri);
       setImageUri(processedUri);
-      Alert.alert('Success', 'Background removed successfully!');
     } catch (error) {
       console.error('Error removing background:', error);
       Alert.alert('Error', 'Failed to remove background');
@@ -175,9 +174,7 @@ export default function AddItemScreen() {
       });
 
       addItem(newItem);
-      Alert.alert('Success', 'Item added to your wardrobe!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      router.back();
     } catch (error) {
       console.error('Error saving item:', error);
       Alert.alert('Error', 'Failed to save item');
@@ -253,7 +250,7 @@ export default function AddItemScreen() {
         {/* Category */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Category *</Text>
-          <CategoryPicker
+          <CategoryGridPicker
             selectedCategories={[category]}
             onCategorySelect={handleCategorySelect}
             multiSelect={false}

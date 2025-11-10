@@ -103,7 +103,6 @@ export default function OutfitDetailScreen() {
           try {
             await outfitService.deleteOutfit(outfit.id);
             deleteOutfitFromStore(outfit.id);
-            Alert.alert('Success', 'Outfit deleted successfully');
             router.back();
           } catch (error) {
             console.error('Error deleting outfit:', error);
@@ -143,7 +142,6 @@ export default function OutfitDetailScreen() {
       });
 
       setShowUpdateModal(false);
-      Alert.alert('Success', 'Outfit information updated');
     } catch (error) {
       console.error('Error updating outfit:', error);
       Alert.alert('Error', 'Failed to update outfit information');
@@ -715,6 +713,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: '#E5E5E5',
   },
   modalButtonPrimary: {
     backgroundColor: '#000',

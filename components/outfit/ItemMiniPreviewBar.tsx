@@ -62,7 +62,7 @@ export function ItemMiniPreviewBar({
             onPress={() => onItemRemove(outfitItem.itemId)}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
           >
-            <Ionicons name="close-circle" size={24} color="#FF3B30" />
+            <Ionicons name="close" size={18} color="#000" />
           </TouchableOpacity>
         )}
 
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   separator: {
     width: 16,
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     backgroundColor: '#F8F8F8',
     position: 'relative',
+    overflow: 'visible',
   },
   miniItemSelected: {
     borderColor: '#000',
@@ -153,12 +155,16 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     position: 'absolute',
-    top: -6,
-    right: -6,
+    top: -8,
+    right: -8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

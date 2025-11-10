@@ -175,16 +175,9 @@ export default function CreateScreen() {
           seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
-        Alert.alert('Success', 'Outfit updated successfully!', [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowSaveModal(false);
-              resetCurrentOutfit();
-              router.back();
-            },
-          },
-        ]);
+        setShowSaveModal(false);
+        resetCurrentOutfit();
+        router.back();
       } else {
         // Create new outfit
         await outfitService.createOutfit(user.id, {
@@ -198,17 +191,10 @@ export default function CreateScreen() {
           seasons: selectedSeason ? [selectedSeason] : undefined,
         });
 
-        Alert.alert('Success', 'Outfit saved successfully!', [
-          {
-            text: 'OK',
-            onPress: () => {
-              setShowSaveModal(false);
-              setOutfitTitle('');
-              resetCurrentOutfit();
-              router.back();
-            },
-          },
-        ]);
+        setShowSaveModal(false);
+        setOutfitTitle('');
+        resetCurrentOutfit();
+        router.back();
       }
     } catch (error) {
       console.error('Error saving outfit:', error);
@@ -412,7 +398,10 @@ export default function CreateScreen() {
               ].map((style) => (
                 <TouchableOpacity
                   key={style}
-                  style={styles.pickerItem}
+                  style={[
+                    styles.pickerItem,
+                    selectedStyles.includes(style as StyleTag) && styles.pickerItemSelected,
+                  ]}
                   onPress={() => {
                     const styleTag = style as StyleTag;
                     setSelectedStyles((prev) =>
@@ -425,9 +414,11 @@ export default function CreateScreen() {
                   <Text style={styles.pickerItemText}>
                     {style.charAt(0).toUpperCase() + style.slice(1)}
                   </Text>
-                  {selectedStyles.includes(style as StyleTag) && (
-                    <Ionicons name="checkmark" size={24} color="#000" />
-                  )}
+                  <View style={styles.checkmarkContainer}>
+                    {selectedStyles.includes(style as StyleTag) && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -549,6 +540,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    minHeight: 52,
   },
   dropdownText: {
     fontSize: 16,
@@ -590,10 +582,22 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    minHeight: 56,
+    backgroundColor: '#FFF',
   },
   pickerItemText: {
     fontSize: 16,
     color: '#000',
+    flex: 1,
+  },
+  pickerItemSelected: {
+    backgroundColor: '#F0F0F0',
+  },
+  checkmarkContainer: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pickerFooter: {
     padding: 16,
@@ -621,6 +625,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     paddingVertical: 14,
+    minHeight: 52,
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E5E5E5',
   },
   modalButtonPrimary: {
     backgroundColor: '#000',

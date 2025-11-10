@@ -3,7 +3,7 @@ import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { ItemCategory } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
-import { CategoryPicker } from './CategoryPicker';
+import { CategoryGridPicker } from './CategoryGridPicker';
 import { ColorPicker } from './ColorPicker';
 
 interface ItemFilterProps {
@@ -117,7 +117,7 @@ export const ItemFilter: React.FC<ItemFilterProps> = ({
           {/* Categories */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Categories</Text>
-            <CategoryPicker
+            <CategoryGridPicker
               selectedCategories={filters.categories}
               onCategorySelect={handleCategorySelect}
             />

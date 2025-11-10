@@ -76,21 +76,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onPress, onFavoritePre
         <Text style={styles.category} numberOfLines={1}>
           {item.category}
         </Text>
-        {item.brand && (
-          <Text style={styles.brand} numberOfLines={1}>
-            {item.brand}
-          </Text>
-        )}
       </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  brand: {
-    color: '#999',
-    fontSize: 11,
-  },
   category: {
     color: '#666',
     fontSize: 12,
@@ -99,6 +90,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     marginBottom: 12,
     overflow: 'hidden',
     width: CARD_WIDTH,

@@ -68,12 +68,7 @@ export default function SignUpScreen() {
       });
 
       if (result.success) {
-        Alert.alert('Success', result.message || 'Account created successfully!', [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)'),
-          },
-        ]);
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Sign Up Failed', result.error || 'Please try again.');
       }

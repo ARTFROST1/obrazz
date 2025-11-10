@@ -174,15 +174,19 @@ export default function WardrobeScreen() {
           )}
         </TouchableOpacity>
 
-        {hasActiveFilters && (
-          <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
-            <Text style={styles.clearFilterText}>Clear All</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.filterBarCenter}>
+          <Text style={styles.itemCount}>
+            {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+          </Text>
+        </View>
 
-        <Text style={styles.itemCount}>
-          {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
-        </Text>
+        <View style={styles.filterBarRight}>
+          {hasActiveFilters && (
+            <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
+              <Text style={styles.clearFilterText}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Items Grid */}
@@ -225,9 +229,7 @@ export default function WardrobeScreen() {
 }
 
 const styles = StyleSheet.create({
-  clearFilterButton: {
-    marginLeft: 12,
-  },
+  clearFilterButton: {},
   clearFilterText: {
     color: '#FF3B30',
     fontSize: 14,
@@ -268,8 +270,18 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E5E5',
     borderBottomWidth: 1,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  filterBarCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBarRight: {
+    minWidth: 80,
+    alignItems: 'flex-end',
   },
   filterButton: {
     alignItems: 'center',
@@ -295,9 +307,9 @@ const styles = StyleSheet.create({
   },
   itemCount: {
     color: '#666',
-    flex: 1,
     fontSize: 14,
-    textAlign: 'right',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   searchContainer: {
     alignItems: 'center',

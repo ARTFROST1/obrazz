@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ItemCategory } from '../../types/models/item';
 import { getAllCategoriesInfo } from '@constants/categories';
 
-interface CategoryPickerProps {
+interface CategoryGridPickerProps {
   selectedCategories: ItemCategory[];
   onCategorySelect: (category: ItemCategory) => void;
   multiSelect?: boolean;
@@ -11,7 +11,7 @@ interface CategoryPickerProps {
 
 const CATEGORIES = getAllCategoriesInfo('en');
 
-export const CategoryPicker: React.FC<CategoryPickerProps> = ({
+export const CategoryGridPicker: React.FC<CategoryGridPickerProps> = ({
   selectedCategories,
   onCategorySelect,
   multiSelect = true,
@@ -23,17 +23,13 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
   };
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
+    <View style={styles.container}>
       {CATEGORIES.map((categoryInfo) => {
         const selected = isSelected(categoryInfo.value);
         return (
           <TouchableOpacity
             key={categoryInfo.value}
-            style={[styles.chip, selected && styles.chipSelected]}
+            style={[styles.card, selected && styles.cardSelected]}
             onPress={() => handlePress(categoryInfo.value)}
             activeOpacity={0.7}
           >
@@ -44,38 +40,42 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
           </TouchableOpacity>
         );
       })}
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  chip: {
+  container: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  card: {
+    width: '47%',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#F8F8F8',
     borderColor: '#E5E5E5',
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    flexDirection: 'row',
-    marginRight: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
   },
-  chipSelected: {
+  cardSelected: {
     backgroundColor: '#000',
     borderColor: '#000',
   },
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
   icon: {
-    fontSize: 18,
-    marginRight: 6,
+    fontSize: 32,
+    marginBottom: 8,
   },
   label: {
     color: '#000',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    textAlign: 'center',
+    textTransform: 'capitalize',
   },
   labelSelected: {
     color: '#FFF',
