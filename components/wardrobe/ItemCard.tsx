@@ -16,20 +16,12 @@ interface ItemCardProps {
   item: WardrobeItem;
   onPress: (item: WardrobeItem) => void;
   onFavoritePress?: (item: WardrobeItem) => void;
-  isSelectable?: boolean;
-  isSelected?: boolean;
 }
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with margins
 
-export const ItemCard: React.FC<ItemCardProps> = ({
-  item,
-  onPress,
-  onFavoritePress,
-  isSelectable = false,
-  isSelected = false,
-}) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ item, onPress, onFavoritePress }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handleFavoritePress = () => {
@@ -54,15 +46,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(item)} activeOpacity={0.7}>
-      <View
-        style={[
-          styles.imageContainer,
-          {
-            borderColor: isSelected ? '#000000' : 'transparent',
-            borderWidth: isSelected ? 2 : 0,
-          },
-        ]}
-      >
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.imageLocalPath || item.imageUrl }}
           style={styles.image}
@@ -83,12 +67,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               />
             </Animated.View>
           </TouchableOpacity>
-        )}
-        {/* Selection Indicator */}
-        {isSelectable && isSelected && (
-          <View style={styles.selectionIndicator}>
-            <Ionicons name="checkmark-circle" size={24} color="#000000" />
-          </View>
         )}
       </View>
       <View style={styles.infoContainer}>
@@ -161,12 +139,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 2,
-  },
-  selectionIndicator: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
   },
 });
