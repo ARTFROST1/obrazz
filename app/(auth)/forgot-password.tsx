@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Input, Loader } from '@/components/ui';
-import { authService } from '@/services/auth/authService';
-import { validateEmail } from '@/utils/validation/authValidation';
+import { Button, Input, Loader } from '@components/ui';
+import { authService } from '@services/auth/authService';
+import { validateEmail } from '@utils/validation/authValidation';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
@@ -42,7 +42,7 @@ export default function ForgotPasswordScreen() {
       } else {
         Alert.alert('Error', result.error || 'Failed to send reset email.');
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'An unexpected error occurred.');
     } finally {
       setLoading(false);

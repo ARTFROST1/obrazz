@@ -10,14 +10,14 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Input, Loader } from '@/components/ui';
-import { authService } from '@/services/auth/authService';
+import { Button, Input, Loader } from '@components/ui';
+import { authService } from '@services/auth/authService';
 import {
   validateEmail,
   validatePassword,
   validatePasswordMatch,
   validateName,
-} from '@/utils/validation/authValidation';
+} from '@utils/validation/authValidation';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -72,7 +72,7 @@ export default function SignUpScreen() {
       } else {
         Alert.alert('Sign Up Failed', result.error || 'Please try again.');
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'An unexpected error occurred.');
     } finally {
       setLoading(false);

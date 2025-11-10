@@ -1,28 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { OutfitFilter, OutfitFilterState } from '@components/outfit';
+import { OutfitEmptyState } from '@components/outfit/OutfitEmptyState';
+import { OutfitGrid } from '@components/outfit/OutfitGrid';
+import { FAB } from '@components/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { outfitService } from '@services/outfit/outfitService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useOutfitStore } from '@store/outfit/outfitStore';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
   Alert,
-  useColorScheme,
   Platform,
   SafeAreaView,
   StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useOutfitStore } from '@store/outfit/outfitStore';
-import { useAuthStore } from '@store/auth/authStore';
-import { outfitService } from '@services/outfit/outfitService';
-import { OutfitGrid } from '@components/outfit/OutfitGrid';
-import { OutfitEmptyState } from '@components/outfit/OutfitEmptyState';
-import { OutfitFilter, OutfitFilterState } from '@components/outfit';
-import { FAB } from '@components/ui';
 import { Outfit } from '../../types/models/outfit';
-import { OccasionTag } from '../../types/models/outfit';
-import { Season, StyleTag } from '../../types/models/user';
 
 /**
  * Outfits Screen
@@ -54,6 +52,8 @@ export default function OutfitsScreen() {
   const [filterBy, setFilterBy] = useState<'all' | 'private' | 'shared' | 'public'>('all');
   const [refreshing, setRefreshing] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedOutfitIds, setSelectedOutfitIds] = useState<Set<string>>(new Set());
   const [outfitFilters, setOutfitFilters] = useState<OutfitFilterState>({
     occasions: [],
     styles: [],
@@ -62,10 +62,13 @@ export default function OutfitsScreen() {
     isFavorite: undefined,
   });
 
-  useEffect(() => {
-    loadOutfits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ✅ Load outfits when screen is focused (after creating/editing)
+  useFocusEffect(
+    useCallback(() => {
+      loadOutfits();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   // Update StatusBar when screen is focused or theme changes
   useFocusEffect(
@@ -101,7 +104,20 @@ export default function OutfitsScreen() {
   }, []);
 
   const handleOutfitPress = (outfit: Outfit) => {
-    router.push(`/outfit/${outfit.id}`);
+    if (isSelectionMode) {
+      // Toggle selection
+      setSelectedOutfitIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(outfit.id)) {
+          newSet.delete(outfit.id);
+        } else {
+          newSet.add(outfit.id);
+        }
+        return newSet;
+      });
+    } else {
+      router.push(`/outfit/${outfit.id}`);
+    }
   };
 
   const handleCreateOutfit = () => {
@@ -156,6 +172,48 @@ export default function OutfitsScreen() {
             } catch (error) {
               console.error('Error deleting outfit:', error);
               Alert.alert('Error', 'Failed to delete outfit');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleToggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedOutfitIds(new Set()); // Clear selection when toggling
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedOutfitIds.size === 0) return;
+
+    Alert.alert(
+      'Delete Outfits',
+      `Are you sure you want to delete ${selectedOutfitIds.size} ${selectedOutfitIds.size === 1 ? 'outfit' : 'outfits'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              // Delete outfits one by one
+              const deletePromises = Array.from(selectedOutfitIds).map((outfitId) =>
+                outfitService.deleteOutfit(outfitId),
+              );
+              await Promise.all(deletePromises);
+              // Reload outfits
+              await loadOutfits();
+              // Exit selection mode
+              setIsSelectionMode(false);
+              setSelectedOutfitIds(new Set());
+              // No success alert - silent deletion
+            } catch (error) {
+              console.error('Error deleting outfits:', error);
+              Alert.alert('Error', 'Failed to delete some outfits');
             } finally {
               setLoading(false);
             }
@@ -289,187 +347,230 @@ export default function OutfitsScreen() {
             <Text style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
               My Outfits
             </Text>
+            {!isSelectionMode ? (
+              <TouchableOpacity onPress={handleToggleSelectionMode} style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Select</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleToggleSelectionMode} style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </SafeAreaView>
 
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1C1C1E' : '#F8F8F8' }]}>
-        <Ionicons name="search" size={20} color={isDark ? '#8E8E93' : '#666666'} />
-        <TextInput
-          style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#000000' }]}
-          placeholder="Search outfits..."
-          placeholderTextColor={isDark ? '#8E8E93' : '#C4C4C4'}
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color={isDark ? '#8E8E93' : '#666666'} />
+      {/* Selection Actions Bar */}
+      {isSelectionMode && (
+        <View style={[styles.selectionBar, { backgroundColor: isDark ? '#1C1C1E' : '#F8F8F8' }]}>
+          <TouchableOpacity
+            onPress={() => {
+              // Select all
+              const allIds = new Set(filteredOutfits.map((outfit) => outfit.id));
+              setSelectedOutfitIds(allIds);
+            }}
+            style={styles.selectAllButton}
+          >
+            <Text style={[styles.selectAllButtonText, { color: '#007AFF' }]}>Select All</Text>
           </TouchableOpacity>
-        )}
-      </View>
+          <Text style={[styles.selectedCount, { color: isDark ? '#8E8E93' : '#666666' }]}>
+            {selectedOutfitIds.size} {selectedOutfitIds.size === 1 ? 'outfit' : 'outfits'} selected
+          </Text>
+          <TouchableOpacity
+            onPress={handleDeleteSelected}
+            disabled={selectedOutfitIds.size === 0}
+            style={[
+              styles.deleteButton,
+              selectedOutfitIds.size === 0 && styles.deleteButtonDisabled,
+            ]}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FFF" />
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Search Bar */}
+      {!isSelectionMode && (
+        <View style={[styles.searchContainer, { backgroundColor: isDark ? '#1C1C1E' : '#F8F8F8' }]}>
+          <Ionicons name="search" size={20} color={isDark ? '#8E8E93' : '#666666'} />
+          <TextInput
+            style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#000000' }]}
+            placeholder="Search outfits..."
+            placeholderTextColor={isDark ? '#8E8E93' : '#C4C4C4'}
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={isDark ? '#8E8E93' : '#666666'} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {/* Filter Chips */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'all' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'all'
-                  ? isDark
-                    ? '#FFFFFF'
-                    : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('all')}
-        >
-          <Text
+      {!isSelectionMode && (
+        <View style={styles.filterContainer}>
+          <TouchableOpacity
             style={[
-              styles.filterChipText,
+              styles.filterChip,
+              filterBy === 'all' && styles.filterChipActive,
               {
-                color:
+                backgroundColor:
                   filterBy === 'all'
                     ? isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : isDark
                       ? '#FFFFFF'
-                      : '#000000',
+                      : '#000000'
+                    : isDark
+                      ? '#2C2C2E'
+                      : '#F8F8F8',
               },
             ]}
+            onPress={() => handleFilterChange('all')}
           >
-            All
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.filterChipText,
+                {
+                  color:
+                    filterBy === 'all'
+                      ? isDark
+                        ? '#000000'
+                        : '#FFFFFF'
+                      : isDark
+                        ? '#FFFFFF'
+                        : '#000000',
+                },
+              ]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'private' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'private'
-                  ? isDark
-                    ? '#FFFFFF'
-                    : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('private')}
-        >
-          <Ionicons
-            name="lock-closed"
-            size={14}
-            color={
-              filterBy === 'private'
-                ? isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : isDark
-                  ? '#FFFFFF'
-                  : '#000000'
-            }
-          />
-          <Text
+          <TouchableOpacity
             style={[
-              styles.filterChipText,
+              styles.filterChip,
+              filterBy === 'private' && styles.filterChipActive,
               {
-                color:
+                backgroundColor:
                   filterBy === 'private'
                     ? isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : isDark
                       ? '#FFFFFF'
-                      : '#000000',
+                      : '#000000'
+                    : isDark
+                      ? '#2C2C2E'
+                      : '#F8F8F8',
               },
             ]}
+            onPress={() => handleFilterChange('private')}
           >
-            Private
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'shared' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'shared'
+            <Ionicons
+              name="lock-closed"
+              size={14}
+              color={
+                filterBy === 'private'
                   ? isDark
+                    ? '#000000'
+                    : '#FFFFFF'
+                  : isDark
                     ? '#FFFFFF'
                     : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('shared')}
-        >
-          <Ionicons
-            name="people"
-            size={14}
-            color={
-              filterBy === 'shared'
-                ? isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : isDark
-                  ? '#FFFFFF'
-                  : '#000000'
-            }
-          />
-          <Text
+              }
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                {
+                  color:
+                    filterBy === 'private'
+                      ? isDark
+                        ? '#000000'
+                        : '#FFFFFF'
+                      : isDark
+                        ? '#FFFFFF'
+                        : '#000000',
+                },
+              ]}
+            >
+              Private
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[
-              styles.filterChipText,
+              styles.filterChip,
+              filterBy === 'shared' && styles.filterChipActive,
               {
-                color:
+                backgroundColor:
                   filterBy === 'shared'
                     ? isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : isDark
                       ? '#FFFFFF'
-                      : '#000000',
+                      : '#000000'
+                    : isDark
+                      ? '#2C2C2E'
+                      : '#F8F8F8',
               },
             ]}
+            onPress={() => handleFilterChange('shared')}
           >
-            Shared
-          </Text>
-        </TouchableOpacity>
+            <Ionicons
+              name="people"
+              size={14}
+              color={
+                filterBy === 'shared'
+                  ? isDark
+                    ? '#000000'
+                    : '#FFFFFF'
+                  : isDark
+                    ? '#FFFFFF'
+                    : '#000000'
+              }
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                {
+                  color:
+                    filterBy === 'shared'
+                      ? isDark
+                        ? '#000000'
+                        : '#FFFFFF'
+                      : isDark
+                        ? '#FFFFFF'
+                        : '#000000',
+                },
+              ]}
+            >
+              Shared
+            </Text>
+          </TouchableOpacity>
 
-        {/* Filter Button */}
-        <TouchableOpacity
-          style={[
-            styles.filterButtonRight,
-            { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
-            hasActiveFilters && styles.filterButtonActive,
-          ]}
-          onPress={() => setShowFilterMenu(true)}
-        >
-          <Ionicons
-            name="filter"
-            size={16}
-            color={hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000'}
-          />
-          <Text
+          {/* Filter Button */}
+          <TouchableOpacity
             style={[
-              styles.filterButtonRightText,
-              { color: hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000' },
+              styles.filterButtonRight,
+              { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
+              hasActiveFilters && styles.filterButtonActive,
             ]}
+            onPress={() => setShowFilterMenu(true)}
           >
-            Filter
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Ionicons
+              name="filter"
+              size={16}
+              color={hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000'}
+            />
+            <Text
+              style={[
+                styles.filterButtonRightText,
+                { color: hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000' },
+              ]}
+            >
+              Filter
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Results Count */}
       {hasActiveFilters && (
@@ -502,22 +603,26 @@ export default function OutfitsScreen() {
         isRefreshing={refreshing}
         onRefresh={handleRefresh}
         onOutfitPress={handleOutfitPress}
-        onOutfitEdit={handleEditOutfit}
-        onOutfitDelete={handleDeleteOutfit}
-        onOutfitDuplicate={handleDuplicateOutfit}
-        onOutfitShare={handleShareOutfit}
-        onFavoritePress={handleFavoritePress}
+        onOutfitEdit={!isSelectionMode ? handleEditOutfit : undefined}
+        onOutfitDelete={!isSelectionMode ? handleDeleteOutfit : undefined}
+        onOutfitDuplicate={!isSelectionMode ? handleDuplicateOutfit : undefined}
+        onOutfitShare={!isSelectionMode ? handleShareOutfit : undefined}
+        onFavoritePress={!isSelectionMode ? handleFavoritePress : undefined}
         EmptyComponent={() => <OutfitEmptyState onCreatePress={handleCreateOutfit} />}
+        isSelectable={isSelectionMode}
+        selectedOutfitIds={selectedOutfitIds}
       />
 
       {/* FAB - Create New Outfit */}
-      <FAB
-        icon="add"
-        onPress={handleCreateOutfit}
-        backgroundColor={isDark ? '#FFFFFF' : '#000000'}
-        iconColor={isDark ? '#000000' : '#FFFFFF'}
-        accessibilityLabel="Create new outfit"
-      />
+      {!isSelectionMode && (
+        <FAB
+          icon="add"
+          onPress={handleCreateOutfit}
+          backgroundColor={isDark ? '#FFFFFF' : '#000000'}
+          iconColor={isDark ? '#000000' : '#FFFFFF'}
+          accessibilityLabel="Create new outfit"
+        />
+      )}
 
       {/* Outfit Filter Modal */}
       <OutfitFilter
@@ -545,6 +650,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     // borderBottomColor set dynamically
   },
   headerTitle: {
@@ -600,6 +708,10 @@ const styles = StyleSheet.create({
     gap: 4,
     marginLeft: 'auto',
   },
+  filterButtonActive: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
   filterButtonRightText: {
     fontSize: 14,
     fontWeight: '500',
@@ -618,5 +730,53 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#007AFF',
     fontWeight: '500',
+  },
+  selectButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  selectionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  selectAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectAllButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  selectedCount: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  deleteButtonDisabled: {
+    backgroundColor: '#CCC',
+  },
+  deleteButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

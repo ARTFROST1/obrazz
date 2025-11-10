@@ -5,12 +5,13 @@ import {
   Image,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { getCategoryLabel } from '@constants/categories';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -301,7 +302,7 @@ export function SmoothCarousel({
         selectedItemId,
       });
 
-      setTimeout(() => {
+      scrollTimeoutRef.current = setTimeout(() => {
         flatListRef.current?.scrollToOffset({
           offset: initialIndex * (itemWidth + spacing),
           animated: false,
@@ -312,8 +313,9 @@ export function SmoothCarousel({
 
     // Cleanup on unmount
     return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      const timeout = scrollTimeoutRef.current;
+      if (timeout) {
+        clearTimeout(timeout);
       }
     };
   }, [
@@ -324,6 +326,7 @@ export function SmoothCarousel({
     indexOffset,
     items.length,
     carouselItems.length,
+    selectedItemId,
   ]);
 
   const contentContainerStyle = useMemo(
@@ -332,6 +335,21 @@ export function SmoothCarousel({
     }),
     [sidePadding],
   );
+
+  // Empty state when no items in category
+  if (items.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyStateContainer}>
+          <View style={[styles.emptyStateCard, { width: itemWidth, height: itemHeight }]}>
+            <Ionicons name="alert-circle-outline" size={40} color="#999" />
+            <Text style={styles.emptyStateTitle}>No Items</Text>
+            <Text style={styles.emptyStateSubtitle}>{getCategoryLabel(category)}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -401,5 +419,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FAFAFA',
+  },
+  // Empty state styles
+  emptyStateContainer: {
+    width: SCREEN_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateCard: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E5E5E5',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  emptyStateSubtitle: {
+    fontSize: 12,
+    color: '#999',
   },
 });
