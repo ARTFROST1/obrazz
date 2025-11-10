@@ -2,6 +2,168 @@
 
 ## Recent Updates
 
+### BUG-007: Outfits List Not Auto-Refreshing After Creation
+
+**Date:** 2025-11-10  
+**Severity:** Medium (UX Issue)  
+**Status:** ✅ Resolved  
+**Component:** Outfits Screen  
+**Environment:** All
+
+**Description:**
+После создания или редактирования образа и возврата на страницу со списком образов, новый/измененный образ не отображался автоматически. Требовалось вручную обновлять страницу (pull-to-refresh).
+
+**Steps to Reproduce:**
+
+1. Открыть страницу Outfits
+2. Создать новый образ через FAB → Save
+3. Вернуться на страницу Outfits
+4. Наблюдать что новый образ НЕ отображается в сетке
+5. Потянуть вниз для refresh → образ появляется
+
+**Expected Behavior:**
+
+- После создания образа и возврата на страницу Outfits, новый образ должен сразу отображаться в сетке
+- После редактирования образа, изменения должны быть видны сразу
+- Список должен автоматически обновляться при возврате на экран
+
+**Actual Behavior:**
+
+- Список образов загружался только один раз при первом монтировании через `useEffect`
+- При возврате на экран после создания/редактирования данные не обновлялись
+- Требовался ручной refresh для отображения изменений
+
+**Root Cause:**
+В `app/(tabs)/outfits.tsx` использовался только `useEffect(() => { loadOutfits() }, [])` для первичной загрузки данных. Этот эффект срабатывает только при монтировании компонента, но не при возврате на экран из другой страницы.
+
+**Solution:**
+Заменён `useEffect` на `useFocusEffect` для автоматической перезагрузки данных при каждом фокусе на экране.
+
+**Changes:**
+
+```typescript
+// ❌ Before - load only on mount
+useEffect(() => {
+  loadOutfits();
+}, []);
+
+// ✅ After - reload when screen is focused
+useFocusEffect(
+  useCallback(() => {
+    loadOutfits();
+  }, []),
+);
+```
+
+**Files Changed:**
+
+1. `app/(tabs)/outfits.tsx`:
+   - Заменён `useEffect` на `useFocusEffect` для загрузки образов
+   - Добавлен отсутствующий стиль `filterButtonActive`
+
+**Benefits:**
+
+- ✅ Список образов автоматически обновляется при возврате на экран
+- ✅ Новые образы отображаются сразу после создания
+- ✅ Изменения в образах видны сразу после редактирования
+- ✅ Не требуется ручной refresh
+- ✅ Улучшенный UX - всегда актуальные данные
+
+**Technical Notes:**
+`useFocusEffect` из `expo-router` вызывает callback каждый раз когда экран получает фокус. Это идеально подходит для обновления данных при навигации между экранами.
+
+**Testing:**
+
+1. ✅ Создание нового образа → автоматическое отображение в списке
+2. ✅ Редактирование образа → изменения видны сразу
+3. ✅ Дублирование образа → новая копия появляется
+4. ✅ Удаление образа → список обновляется
+5. ✅ Переключение между табами → данные остаются актуальными
+
+**Date Resolved:** 2025-11-10
+
+---
+
+### ENHANCEMENT-001: Empty State for Categories with No Items
+
+**Date:** 2025-11-10  
+**Type:** UX Enhancement  
+**Status:** ✅ Completed  
+**Component:** Outfit Creation → SmoothCarousel  
+**Environment:** All
+
+**Description:**
+Добавлено отображение Empty State для категорий без вещей в каруселях создания образа. Вместо полного скрытия карусели, теперь показывается информативная заглушка с предупреждением о пустой категории.
+
+**Previous Behavior:**
+
+- Категории без вещей полностью исчезали из списка каруселей
+- Пользователь не понимал, почему некоторые категории отсутствуют
+- Неочевидно было, нужно ли добавлять вещи в эти категории
+
+**New Behavior:**
+
+- Карусель отображается даже если в категории 0 вещей
+- Показывается центрированная карточка с:
+  - Иконкой предупреждения (alert-circle-outline)
+  - Текстом "No Items"
+  - Названием категории
+- Карточка имеет пунктирную границу и светло-серый фон
+- Сохраняется консистентность высоты всех каруселей
+
+**Implementation:**
+
+```typescript
+// Empty state when no items in category
+if (items.length === 0) {
+  return (
+    <View style={styles.container}>
+      <View style={styles.emptyStateContainer}>
+        <View style={[styles.emptyStateCard, { width: itemWidth, height: itemHeight }]}>
+          <Ionicons name="alert-circle-outline" size={40} color="#999" />
+          <Text style={styles.emptyStateTitle}>No Items</Text>
+          <Text style={styles.emptyStateSubtitle}>{getCategoryLabel(category)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+```
+
+**Design:**
+
+- Карточка адаптируется под размеры текущей карусели (itemWidth × itemHeight)
+- Пунктирная граница (borderStyle: 'dashed') для визуального отличия от обычных карточек
+- Иконка размером 40px в нейтральном сером цвете (#999)
+- Двухуровневый текст: заголовок + название категории
+- Центрирование относительно экрана для консистентности с обычными каруселями
+
+**Files Changed:**
+
+1. `components/outfit/SmoothCarousel.tsx`:
+   - Добавлен импорт `Text` и `getCategoryLabel`
+   - Добавлена проверка `items.length === 0` перед рендером FlatList
+   - Добавлены стили: `emptyStateContainer`, `emptyStateCard`, `emptyStateTitle`, `emptyStateSubtitle`
+
+**Benefits:**
+
+- ✅ Улучшенная информативность для пользователя
+- ✅ Визуальная консистентность - все категории отображаются
+- ✅ Понятная индикация о необходимости добавить вещи
+- ✅ Не ломает существующую логику каруселей
+- ✅ Адаптивный дизайн под разные размеры экрана
+
+**Testing:**
+
+1. Custom Tab → добавить категорию без вещей → видна карусель с Empty State
+2. All Tab → категории без вещей показывают Empty State
+3. Basic/Dress Tabs → пустые категории отображаются корректно
+4. Размеры Empty State адаптируются под высоту карусели в разных табах
+
+**Date Completed:** 2025-11-10
+
+---
+
 ### BUG-006: ImageCropper pinch felt crooked/uncontrollable — focal-point zoom & elastic boundaries
 
 **Date:** 2025-11-10  

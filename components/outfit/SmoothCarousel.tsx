@@ -8,9 +8,11 @@ import {
   TouchableOpacity,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { getCategoryLabel } from '@constants/categories';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -333,6 +335,21 @@ export function SmoothCarousel({
     [sidePadding],
   );
 
+  // Empty state when no items in category
+  if (items.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyStateContainer}>
+          <View style={[styles.emptyStateCard, { width: itemWidth, height: itemHeight }]}>
+            <Ionicons name="alert-circle-outline" size={40} color="#999" />
+            <Text style={styles.emptyStateTitle}>No Items</Text>
+            <Text style={styles.emptyStateSubtitle}>{getCategoryLabel(category)}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -401,5 +418,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FAFAFA',
+  },
+  // Empty state styles
+  emptyStateContainer: {
+    width: SCREEN_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateCard: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E5E5E5',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  emptyStateSubtitle: {
+    fontSize: 12,
+    color: '#999',
   },
 });

@@ -62,10 +62,13 @@ export default function OutfitsScreen() {
     isFavorite: undefined,
   });
 
-  useEffect(() => {
-    loadOutfits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ✅ Load outfits when screen is focused (after creating/editing)
+  useFocusEffect(
+    useCallback(() => {
+      loadOutfits();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   // Update StatusBar when screen is focused or theme changes
   useFocusEffect(
@@ -601,6 +604,10 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     gap: 4,
     marginLeft: 'auto',
+  },
+  filterButtonActive: {
+    backgroundColor: '#000',
+    borderColor: '#000',
   },
   filterButtonRightText: {
     fontSize: 14,
