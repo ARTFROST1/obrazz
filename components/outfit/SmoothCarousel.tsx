@@ -28,8 +28,6 @@ interface CarouselItemProps {
   itemWidth: number;
   itemHeight: number;
   isCenterItem: boolean;
-  isCategoryActive: boolean;
-  onCategoryToggle: () => void;
 }
 
 // Memoized carousel item component for performance
@@ -39,8 +37,6 @@ const CarouselItem = memo(function CarouselItem({
   itemWidth,
   itemHeight,
   isCenterItem,
-  isCategoryActive,
-  onCategoryToggle,
 }: CarouselItemProps) {
   const imagePath = item.imageLocalPath || item.imageUrl;
 
@@ -50,7 +46,7 @@ const CarouselItem = memo(function CarouselItem({
         style={[
           styles.itemCard,
           { width: itemWidth, height: itemHeight },
-          !isCategoryActive && styles.itemCardInactive,
+          isCenterItem && styles.itemCardCenter,
         ]}
       >
         {imagePath ? (
@@ -59,21 +55,6 @@ const CarouselItem = memo(function CarouselItem({
           <View style={styles.emptyImage}>
             <Ionicons name="shirt-outline" size={50} color="#E5E5E5" />
           </View>
-        )}
-
-        {/* Flag button overlay - only on center item */}
-        {isCenterItem && (
-          <TouchableOpacity
-            style={styles.flagButton}
-            onPress={onCategoryToggle}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isCategoryActive ? 'flag' : 'flag-outline'}
-              size={20}
-              color={isCategoryActive ? '#000' : '#999'}
-            />
-          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -86,16 +67,14 @@ interface SmoothCarouselProps {
   itemWidth: number;
   itemHeight: number;
   selectedItemId: string | null;
-  isCategoryActive: boolean;
   onItemSelect: (item: WardrobeItem) => void;
-  onCategoryToggle: () => void;
   onScrollIndexChange?: (index: number) => void;
   initialScrollIndex?: number;
 }
 
 /**
  * SmoothCarousel - Ultra-smooth carousel with realistic physics
- * Edge-to-edge design with center focus and flag button overlay
+ * Edge-to-edge design with center focus (no flag buttons)
  */
 export function SmoothCarousel({
   category,
@@ -103,9 +82,7 @@ export function SmoothCarousel({
   itemWidth,
   itemHeight,
   selectedItemId,
-  isCategoryActive,
   onItemSelect,
-  onCategoryToggle,
   onScrollIndexChange,
   initialScrollIndex = 0,
 }: SmoothCarouselProps) {
@@ -305,12 +282,10 @@ export function SmoothCarousel({
           itemWidth={itemWidth}
           itemHeight={itemHeight}
           isCenterItem={isCenterItem}
-          isCategoryActive={isCategoryActive}
-          onCategoryToggle={onCategoryToggle}
         />
       );
     },
-    [itemWidth, itemHeight, isCategoryActive, onCategoryToggle, centerIndex],
+    [itemWidth, itemHeight, centerIndex],
   );
 
   // Initialize scroll position
@@ -341,7 +316,15 @@ export function SmoothCarousel({
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [initialScrollIndex, itemWidth, spacing, indexOffset, items.length, carouselItems.length]);
+  }, [
+    category,
+    initialScrollIndex,
+    itemWidth,
+    spacing,
+    indexOffset,
+    items.length,
+    carouselItems.length,
+  ]);
 
   const contentContainerStyle = useMemo(
     () => ({
@@ -404,8 +387,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  itemCardInactive: {
-    opacity: 0.4,
+  itemCardCenter: {
+    // Subtle highlight for center item
+    borderWidth: 2,
+    borderColor: '#000',
   },
   itemImage: {
     width: '100%',
@@ -416,21 +401,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FAFAFA',
-  },
-  flagButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
   },
 });

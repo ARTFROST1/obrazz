@@ -48,6 +48,7 @@ export interface CanvasSettings {
   showGrid: boolean;
   snapToGrid: boolean;
   gridSize: number;
+  customTabCategories?: ItemCategory[]; // ✅ For saving/loading custom tab configuration
 }
 
 export interface AiOutfitMetadata {
@@ -62,7 +63,7 @@ export interface AiOutfitMetadata {
   alternatives?: string[];
 }
 
-export type OccasionTag = 
+export type OccasionTag =
   | 'casual'
   | 'work'
   | 'party'
@@ -102,6 +103,7 @@ export interface OutfitCreationParams {
   seasons?: Season[];
   occasions?: OccasionTag[];
   visibility?: 'private' | 'shared' | 'public';
+  canvasSettings?: CanvasSettings; // ✅ Include canvas settings with custom tab config
 }
 
 export interface AiGenerationParams {

@@ -21,6 +21,7 @@ class OutfitService {
       description: params.description,
       items: params.items,
       background: params.background || { type: 'color', value: '#FFFFFF', opacity: 1 },
+      canvas_settings: params.canvasSettings, // ✅ Save canvas settings with custom tab config
       visibility: params.visibility || 'private',
       is_ai_generated: false,
       styles: params.styles || [],
@@ -35,6 +36,8 @@ class OutfitService {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
+    console.log('💾 [outfitService] Creating outfit with canvasSettings:', params.canvasSettings);
 
     const { data, error } = await supabase.from(this.tableName).insert(newOutfit).select().single();
 
@@ -169,7 +172,7 @@ class OutfitService {
       ...outfit,
       items: outfit.items.map((outfitItem) => ({
         ...outfitItem,
-        item: itemsMap.get(outfitItem.itemId),
+        item: itemsMap.get(outfitItem.itemId) || outfitItem.item, // ✅ Preserve existing item if not in map
       })),
     }));
   }
@@ -178,6 +181,8 @@ class OutfitService {
    * Get a single outfit by ID
    */
   async getOutfitById(outfitId: string): Promise<Outfit> {
+    console.log('📥 [outfitService] Getting outfit by ID:', outfitId);
+
     const { data, error } = await supabase
       .from(this.tableName)
       .select('*')
@@ -189,17 +194,40 @@ class OutfitService {
       throw new Error(`Failed to fetch outfit: ${error.message}`);
     }
 
-    return this.mapDatabaseToOutfit(data);
+    const outfit = this.mapDatabaseToOutfit(data);
+
+    // ✅ Populate items with full data
+    const [populatedOutfit] = await this.populateOutfitItems([outfit]);
+
+    console.log('✅ [outfitService] Outfit populated with items:', {
+      outfitId: populatedOutfit.id,
+      itemsCount: populatedOutfit.items.length,
+    });
+
+    return populatedOutfit;
   }
 
   /**
    * Update an existing outfit
    */
   async updateOutfit(outfitId: string, updates: Partial<Outfit>): Promise<Outfit> {
-    const updateData = {
-      ...updates,
+    const updateData: any = {
       updated_at: new Date().toISOString(),
     };
+
+    // ✅ Map camelCase to snake_case for DB
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.items !== undefined) updateData.items = updates.items;
+    if (updates.background !== undefined) updateData.background = updates.background;
+    if (updates.visibility !== undefined) updateData.visibility = updates.visibility;
+    if (updates.styles !== undefined) updateData.styles = updates.styles;
+    if (updates.seasons !== undefined) updateData.seasons = updates.seasons;
+    if (updates.occasions !== undefined) updateData.occasions = updates.occasions;
+    if (updates.canvasSettings !== undefined) {
+      updateData.canvas_settings = updates.canvasSettings; // ✅ Save canvas settings
+      console.log('💾 [outfitService] Updating canvasSettings:', updates.canvasSettings);
+    }
 
     const { data, error } = await supabase
       .from(this.tableName)

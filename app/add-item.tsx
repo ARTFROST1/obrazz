@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageCropper } from '@components/common/ImageCropper';
 import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { itemService } from '@services/wardrobe/itemService';
@@ -28,6 +29,8 @@ export default function AddItemScreen() {
   const { addItem } = useWardrobeStore();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [tempImageUri, setTempImageUri] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<ItemCategory>('tops');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -59,13 +62,13 @@ export default function AddItemScreen() {
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [3, 4],
-        quality: 0.8,
+        allowsEditing: false,
+        quality: 1.0,
       });
 
       if (!result.canceled && result.assets[0]) {
-        setImageUri(result.assets[0].uri);
+        setTempImageUri(result.assets[0].uri);
+        setShowCropper(true);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -80,18 +83,29 @@ export default function AddItemScreen() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [3, 4],
-        quality: 0.8,
+        allowsEditing: false,
+        quality: 1.0,
       });
 
       if (!result.canceled && result.assets[0]) {
-        setImageUri(result.assets[0].uri);
+        setTempImageUri(result.assets[0].uri);
+        setShowCropper(true);
       }
     } catch (error) {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
+  };
+
+  const handleCropComplete = (croppedUri: string) => {
+    setImageUri(croppedUri);
+    setShowCropper(false);
+    setTempImageUri(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImageUri(null);
   };
 
   const handleRemoveBackground = async () => {
@@ -316,6 +330,16 @@ export default function AddItemScreen() {
           Save to Wardrobe
         </Button>
       </View>
+
+      {/* Image Cropper Modal */}
+      {tempImageUri && (
+        <ImageCropper
+          visible={showCropper}
+          imageUri={tempImageUri}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </View>
   );
 }

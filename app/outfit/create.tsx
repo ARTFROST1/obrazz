@@ -13,7 +13,9 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useAuthStore } from '@store/auth/authStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { outfitService } from '@services/outfit/outfitService';
+import { itemService } from '@services/wardrobe/itemService';
 import { ItemSelectionStepNew, CompositionStep } from '@components/outfit';
 import { Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,6 +53,26 @@ export default function CreateScreen() {
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [showSeasonPicker, setShowSeasonPicker] = useState(false);
   const [isLoadingOutfit, setIsLoadingOutfit] = useState(isEditMode);
+
+  // ✅ Load wardrobe items on mount (Fix #2)
+  useEffect(() => {
+    const loadWardrobeItems = async () => {
+      if (!user?.id) return;
+
+      try {
+        console.log('📦 [create.tsx] Loading wardrobe items from DB...');
+        const items = await itemService.getUserItems(user.id);
+        console.log(`✅ [create.tsx] Loaded ${items.length} wardrobe items`);
+
+        const { setItems } = useWardrobeStore.getState();
+        setItems(items);
+      } catch (error) {
+        console.error('❌ [create.tsx] Failed to load wardrobe items:', error);
+      }
+    };
+
+    loadWardrobeItems();
+  }, [user?.id]);
 
   // Load outfit if in edit mode
   useEffect(() => {
@@ -139,7 +161,7 @@ export default function CreateScreen() {
 
     setIsSaving(true);
     try {
-      const { currentBackground } = useOutfitStore.getState();
+      const { currentBackground, canvasSettings } = useOutfitStore.getState(); // ✅ Get canvasSettings
 
       if (isEditMode && id) {
         // Update existing outfit
@@ -147,6 +169,7 @@ export default function CreateScreen() {
           title: outfitTitle || 'My Outfit',
           items: currentItems,
           background: currentBackground,
+          canvasSettings, // ✅ Include canvasSettings with customTabCategories
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,
           seasons: selectedSeason ? [selectedSeason] : undefined,
@@ -168,6 +191,7 @@ export default function CreateScreen() {
           title: outfitTitle || 'My Outfit',
           items: currentItems,
           background: currentBackground,
+          canvasSettings, // ✅ Include canvasSettings with customTabCategories
           visibility: 'private',
           occasions: selectedOccasion ? [selectedOccasion] : undefined,
           styles: selectedStyles.length > 0 ? selectedStyles : undefined,

@@ -1,85 +1,107 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { View, StyleSheet, Dimensions, LayoutChangeEvent } from 'react-native';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { View, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView } from 'react-native';
 import { SmoothCarousel } from './SmoothCarousel';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { CATEGORY_GROUPS as IMPORTED_CATEGORY_GROUPS } from '@constants/categories';
+import { OutfitTabType } from '../../types/components/OutfitCreator';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Category display modes
-export type CategoryDisplayMode = 'all' | 'main' | 'extra';
-
-// Category groups (re-export from constants)
-export const CATEGORY_GROUPS = IMPORTED_CATEGORY_GROUPS;
-
 /**
  * Calculate item dimensions maintaining 3:4 aspect ratio
+ * Now supports different tab types with optimized sizing
  */
 function calculateItemDimensions(
   numberOfCategories: number,
   availableHeight: number,
-): { itemWidth: number; itemHeight: number; carouselHeight: number } {
-  // Height per carousel
-  const carouselHeight = Math.floor(availableHeight / numberOfCategories);
+  tabType: OutfitTabType,
+): {
+  itemWidth: number;
+  itemHeight: number;
+  carouselHeight: number;
+  needsVerticalScroll: boolean;
+} {
+  // Special handling for basic and dress tabs (3 carousels)
+  if (tabType === 'basic' || tabType === 'dress') {
+    const carouselHeight = Math.floor(availableHeight / 3);
+    const itemHeight = Math.floor(carouselHeight - 20);
+    const itemWidth = Math.floor(itemHeight * 0.75);
 
-  // Item height (leave some space for padding)
+    return {
+      itemWidth: Math.max(120, Math.min(180, itemWidth)),
+      itemHeight: Math.max(160, Math.min(240, itemHeight)),
+      carouselHeight,
+      needsVerticalScroll: false,
+    };
+  }
+
+  // For 'all' and 'custom' tabs - dynamic calculation
+  const MIN_CAROUSEL_HEIGHT = 100;
+  const MAX_CAROUSEL_HEIGHT = 140;
+  const calculatedHeight = Math.floor(availableHeight / numberOfCategories);
+  const carouselHeight = Math.max(
+    MIN_CAROUSEL_HEIGHT,
+    Math.min(MAX_CAROUSEL_HEIGHT, calculatedHeight),
+  );
+
+  // Check if vertical scroll is needed
+  const totalHeight = carouselHeight * numberOfCategories;
+  const needsVerticalScroll = totalHeight > availableHeight;
+
+  // Item dimensions
   const itemHeight = Math.floor(carouselHeight - 16);
-
-  // Calculate width maintaining 3:4 aspect ratio
   const itemWidth = Math.floor(itemHeight * 0.75);
 
   return {
-    itemWidth: Math.max(100, Math.min(200, itemWidth)),
-    itemHeight: Math.max(133, Math.min(266, itemHeight)),
+    itemWidth: Math.max(70, Math.min(120, itemWidth)),
+    itemHeight: Math.max(90, Math.min(160, itemHeight)),
     carouselHeight,
+    needsVerticalScroll,
   };
 }
 
 interface CategorySelectorWithSmoothProps {
   categories: ItemCategory[];
   wardrobeItems: WardrobeItem[];
-  selectedItems: Record<ItemCategory, WardrobeItem | null>;
-  activeCategories: Set<ItemCategory>;
-  displayMode: CategoryDisplayMode;
-  onItemSelect: (category: ItemCategory, item: WardrobeItem | null) => void;
-  onCategoryToggle: (category: ItemCategory) => void;
+  selectedItems: (WardrobeItem | null)[];
+  tabType: OutfitTabType;
+  onItemSelect: (slotIndex: number, item: WardrobeItem | null) => void;
+  outfitId?: string; // ✅ FIX: Isolate scroll cache per outfit
 }
 
 /**
  * CategorySelectorWithSmooth - Container for smooth carousels
- * Full-width edge-to-edge design with category toggles
+ * Full-width edge-to-edge design with tab-based filtering
  */
 export function CategorySelectorWithSmooth({
   categories,
   wardrobeItems,
   selectedItems,
-  activeCategories,
-  displayMode,
+  tabType,
   onItemSelect,
-  onCategoryToggle,
+  outfitId, // ✅ FIX: Accept outfit ID for cache isolation
 }: CategorySelectorWithSmoothProps) {
   const [containerHeight, setContainerHeight] = useState(0);
-  const [categoryScrollIndexes, setCategoryScrollIndexes] = useState<Record<ItemCategory, number>>(
-    {} as Record<ItemCategory, number>,
-  );
+  // ✅ Cache scroll positions: "tab-category-slot" → scrollIndex
+  // This prevents conflicts between tabs and preserves positions
+  const [scrollCache, setScrollCache] = useState<Record<string, number>>({});
+  // ✅ Track previous selectedItems to detect changes and clear cache
+  const prevSelectedItemsRef = useRef<(WardrobeItem | null)[]>([]);
 
-  // Filter categories based on display mode
-  const visibleCategories = useMemo(() => {
-    if (displayMode === 'main') {
-      return categories.filter((cat) => CATEGORY_GROUPS.main.includes(cat as any));
-    } else if (displayMode === 'extra') {
-      return categories.filter((cat) => CATEGORY_GROUPS.extra.includes(cat as any));
-    }
-    return categories;
-  }, [categories, displayMode]);
+  // Categories are already filtered by parent based on tab
+  const visibleCategories = categories;
 
-  // Calculate dimensions
-  const { itemWidth, itemHeight, carouselHeight } = useMemo(() => {
+  // Calculate dimensions with tab-specific sizing
+  const { itemWidth, itemHeight, carouselHeight, needsVerticalScroll } = useMemo(() => {
     if (containerHeight === 0) {
-      return { itemWidth: 120, itemHeight: 160, carouselHeight: 180 };
+      return {
+        itemWidth: 120,
+        itemHeight: 160,
+        carouselHeight: 180,
+        needsVerticalScroll: false,
+      };
     }
-    return calculateItemDimensions(visibleCategories.length, containerHeight);
-  }, [visibleCategories.length, containerHeight]);
+    return calculateItemDimensions(visibleCategories.length, containerHeight, tabType);
+  }, [visibleCategories.length, containerHeight, tabType]);
 
   // Get items for a specific category
   const getItemsByCategory = useCallback(
@@ -89,16 +111,16 @@ export function CategorySelectorWithSmooth({
     [wardrobeItems],
   );
 
-  // Get initial scroll index for a category based on selected item
+  // Get initial scroll index based on selected item at slotIndex
   const getInitialScrollIndex = useCallback(
-    (category: ItemCategory, categoryItems: WardrobeItem[]): number => {
-      const selectedItem = selectedItems[category];
+    (slotIndex: number, categoryItems: WardrobeItem[]): number => {
+      const selectedItem = selectedItems[slotIndex];
       if (!selectedItem || categoryItems.length === 0) return 0;
 
       const index = categoryItems.findIndex((item) => item.id === selectedItem.id);
 
       // Debug: Log scroll index calculation
-      console.log(`🔍 [CategorySelector] Initial scroll for ${category}:`, {
+      console.log(`🔍 [CategorySelector] Initial scroll for slot ${slotIndex}:`, {
         selectedItemId: selectedItem?.id,
         foundAtIndex: index,
         totalItems: categoryItems.length,
@@ -109,13 +131,66 @@ export function CategorySelectorWithSmooth({
     [selectedItems],
   );
 
-  // Handle scroll index change
-  const handleScrollIndexChange = useCallback((category: ItemCategory, index: number) => {
-    setCategoryScrollIndexes((prev) => ({
-      ...prev,
-      [category]: index,
-    }));
-  }, []);
+  // ✅ FIX: Track selectedItems changes and reset scroll cache for changed slots
+  // This ensures carousels scroll to correct items when editing an outfit
+  useEffect(() => {
+    const changedSlots: number[] = [];
+
+    selectedItems.forEach((item, slotIndex) => {
+      const prevItem = prevSelectedItemsRef.current[slotIndex];
+
+      // Check if item ID changed (handles null -> item and item1 -> item2)
+      const prevId = prevItem?.id;
+      const currentId = item?.id;
+      const itemChanged = prevId !== currentId;
+
+      // If item changed and is not null, mark slot for cache reset
+      if (itemChanged && item !== null) {
+        changedSlots.push(slotIndex);
+      }
+    });
+
+    if (changedSlots.length > 0) {
+      console.log(
+        '🔄 [CategorySelector] Selected items changed, clearing cache for:',
+        changedSlots,
+      );
+
+      // Clear cache only for changed slots with unique keys
+      setScrollCache((prev) => {
+        const next = { ...prev };
+        changedSlots.forEach((slot) => {
+          const category = categories[slot];
+          const cacheKey = `${outfitId || 'new'}-${tabType}-${category}-${slot}`;
+          const itemTitle = selectedItems[slot]?.title || 'item';
+          console.log(`  ↪️ Clearing cache for ${cacheKey}: ${itemTitle}`);
+          delete next[cacheKey];
+        });
+        return next;
+      });
+    }
+
+    // Update ref for next comparison
+    prevSelectedItemsRef.current = [...selectedItems];
+  }, [selectedItems, categories, tabType, outfitId]);
+
+  // Handle scroll index change - now with unique cache keys per outfit+tab+category+slot
+  const handleScrollIndexChange = useCallback(
+    (slotIndex: number, index: number, category: ItemCategory) => {
+      const cacheKey = `${outfitId || 'new'}-${tabType}-${category}-${slotIndex}`;
+      console.log(`💾 [CategorySelector] Caching scroll position:`, {
+        key: cacheKey,
+        index,
+        outfitId: outfitId || 'new',
+      });
+
+      setScrollCache((prev) => ({
+        ...prev,
+        [cacheKey]: index,
+      }));
+    },
+    [tabType, outfitId],
+  );
 
   // Handle layout measurement
   const handleLayout = useCallback(
@@ -129,47 +204,57 @@ export function CategorySelectorWithSmooth({
   );
 
   const totalHeight = carouselHeight * visibleCategories.length;
+  const CarouselsContent = (
+    <View style={[styles.carouselsContainer, { height: totalHeight }]}>
+      {visibleCategories.map((category, slotIndex) => {
+        const categoryItems = getItemsByCategory(category);
+        const selectedItem = selectedItems[slotIndex];
+
+        // Get initial scroll index: use cached index if available, otherwise calculate from selected item
+        const cacheKey = `${outfitId || 'new'}-${tabType}-${category}-${slotIndex}`;
+        const initialIndex =
+          scrollCache[cacheKey] !== undefined
+            ? scrollCache[cacheKey]
+            : getInitialScrollIndex(slotIndex, categoryItems);
+
+        console.log(`📍 [CategorySelector] Cache lookup for ${cacheKey}:`, {
+          cached: scrollCache[cacheKey],
+          willUse: initialIndex,
+          category,
+          tabType,
+          outfitId: outfitId || 'new',
+        });
+
+        return (
+          <View
+            key={`carousel-${tabType}-${category}-${slotIndex}`}
+            style={[styles.carouselWrapper, { height: carouselHeight }]}
+          >
+            <SmoothCarousel
+              category={category}
+              items={categoryItems}
+              itemWidth={itemWidth}
+              itemHeight={itemHeight}
+              selectedItemId={selectedItem?.id || null}
+              onItemSelect={(item) => onItemSelect(slotIndex, item)}
+              onScrollIndexChange={(index) => handleScrollIndexChange(slotIndex, index, category)}
+              initialScrollIndex={initialIndex}
+            />
+          </View>
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.container} onLayout={handleLayout}>
-      <View style={[styles.carouselsContainer, { height: totalHeight }]}>
-        {visibleCategories.map((category) => {
-          const categoryItems = getItemsByCategory(category);
-          const selectedItem = selectedItems[category];
-          const isCategoryActive = activeCategories.has(category);
-
-          // Get initial scroll index: use cached index if available, otherwise calculate from selected item
-          const initialIndex =
-            categoryScrollIndexes[category] !== undefined
-              ? categoryScrollIndexes[category]
-              : getInitialScrollIndex(category, categoryItems);
-
-          return (
-            <View key={category} style={[styles.carouselWrapper, { height: carouselHeight }]}>
-              <SmoothCarousel
-                category={category}
-                items={categoryItems}
-                itemWidth={itemWidth}
-                itemHeight={itemHeight}
-                selectedItemId={selectedItem?.id || null}
-                isCategoryActive={isCategoryActive}
-                onItemSelect={(item) => {
-                  onItemSelect(category, item);
-                  // If category is inactive, activate it
-                  if (!isCategoryActive) {
-                    onCategoryToggle(category);
-                  }
-                }}
-                onCategoryToggle={() => {
-                  onCategoryToggle(category);
-                }}
-                onScrollIndexChange={(index) => handleScrollIndexChange(category, index)}
-                initialScrollIndex={initialIndex}
-              />
-            </View>
-          );
-        })}
-      </View>
+      {needsVerticalScroll ? (
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} bounces={false}>
+          {CarouselsContent}
+        </ScrollView>
+      ) : (
+        CarouselsContent
+      )}
     </View>
   );
 }
@@ -178,6 +263,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  scrollView: {
+    flex: 1,
   },
   carouselsContainer: {
     width: SCREEN_WIDTH,

@@ -3,7 +3,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '../storage';
 import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
 import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { OutfitTabType } from '../../types/components/OutfitCreator';
 import { CATEGORIES } from '@constants/categories';
+import { DEFAULT_CUSTOM_CATEGORIES } from '@constants/outfitTabs';
 
 interface HistoryState {
   items: OutfitItem[];
@@ -19,7 +21,17 @@ interface OutfitState {
 
   // Two-step creation process
   creationStep: 1 | 2;
-  selectedItemsForCreation: Record<ItemCategory, WardrobeItem | null>;
+
+  // ✅ NEW: Storage architecture for clean tab synchronization
+  selectedItemsByCategory: Record<ItemCategory, WardrobeItem | null>; // Global storage (Basic, Dress, All)
+  customTabSelectedItems: (WardrobeItem | null)[]; // Custom tab storage (independent)
+  selectedItemsForCreation: (WardrobeItem | null)[]; // Derived/computed from above
+
+  // Tab system
+  activeTab: OutfitTabType;
+  customTabCategories: ItemCategory[];
+  customTabOrder: number[];
+  isCustomTabEditing: boolean;
 
   // Saved outfits
   outfits: Outfit[];
@@ -44,11 +56,23 @@ interface OutfitState {
 
   // Two-step creation actions
   setCreationStep: (step: 1 | 2) => void;
-  selectItemForCategory: (category: ItemCategory, item: WardrobeItem | null) => void;
+  selectItemForCategory: (slotIndex: number, item: WardrobeItem | null) => void;
   getSelectedItemsCount: () => number;
   confirmItemSelection: () => void;
   clearItemSelection: () => void;
   goBackToSelection: () => void;
+
+  // ✅ NEW: Update derived state
+  updateSelectedItemsForCreation: () => void;
+
+  // Tab management
+  setActiveTab: (tab: OutfitTabType) => void;
+  updateCustomTab: (categories: ItemCategory[], order: number[]) => void;
+  toggleCustomTabEditing: () => void;
+  addCategoryToCustom: (category: ItemCategory) => void;
+  removeCategoryFromCustom: (category: ItemCategory) => void;
+  reorderCustomCategories: (fromIndex: number, toIndex: number) => void;
+  getActiveTabCategories: () => ItemCategory[];
 
   // Outfit management
   setOutfits: (outfits: Outfit[]) => void;
@@ -88,16 +112,68 @@ const defaultCanvasSettings: CanvasSettings = {
   gridSize: 20,
 };
 
-const emptySelectedItems: Record<ItemCategory, WardrobeItem | null> = {
-  headwear: null,
-  outerwear: null,
-  tops: null,
-  bottoms: null,
-  footwear: null,
-  accessories: null,
-  fullbody: null,
-  other: null,
+// Helper to create empty selection array
+const createEmptySelection = (size: number): (WardrobeItem | null)[] => {
+  return new Array(size).fill(null);
 };
+
+// ✅ HELPER FUNCTIONS for tab detection and synchronization
+
+// Helper to compare arrays
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((val, index) => val === b[index]);
+}
+
+// Check if categories match Basic tab
+function isBasicTab(categories: ItemCategory[]): boolean {
+  return (
+    categories.length === 3 &&
+    categories[0] === 'tops' &&
+    categories[1] === 'bottoms' &&
+    categories[2] === 'footwear'
+  );
+}
+
+// Check if categories match Dress tab
+function isDressTab(categories: ItemCategory[]): boolean {
+  return (
+    categories.length === 3 &&
+    categories[0] === 'fullbody' &&
+    categories[1] === 'footwear' &&
+    categories[2] === 'accessories'
+  );
+}
+
+// Check if categories match All tab
+function isAllTab(categories: ItemCategory[]): boolean {
+  if (categories.length !== CATEGORIES.length) return false;
+  return categories.every((cat, index) => cat === CATEGORIES[index]);
+}
+
+// Detect tab type from categories (for smart tab restoration)
+function detectTabType(categories: ItemCategory[]): OutfitTabType {
+  if (isBasicTab(categories)) return 'basic';
+  if (isDressTab(categories)) return 'dress';
+  if (isAllTab(categories)) return 'all';
+  return 'custom';
+}
+
+// ✅ NEW: Compute selectedItemsForCreation based on active tab
+function computeSelectedItemsForCreation(
+  activeTab: OutfitTabType,
+  categories: ItemCategory[],
+  selectedByCategory: Record<ItemCategory, WardrobeItem | null>,
+  customSelected: (WardrobeItem | null)[],
+): (WardrobeItem | null)[] {
+  if (activeTab === 'custom') {
+    // Custom tab uses its own storage
+    return [...customSelected];
+  } else {
+    // Basic, Dress, All: map from global storage
+    return categories.map((cat) => selectedByCategory[cat] ?? null);
+  }
+}
 
 export const useOutfitStore = create<OutfitState>()(
   persist(
@@ -108,7 +184,25 @@ export const useOutfitStore = create<OutfitState>()(
       currentBackground: defaultBackground,
       canvasSettings: defaultCanvasSettings,
       creationStep: 1,
-      selectedItemsForCreation: { ...emptySelectedItems },
+
+      // ✅ NEW: Initialize clean architecture storages
+      selectedItemsByCategory: {
+        headwear: null,
+        outerwear: null,
+        tops: null,
+        bottoms: null,
+        footwear: null,
+        accessories: null,
+        fullbody: null,
+        other: null,
+      },
+      customTabSelectedItems: [],
+      selectedItemsForCreation: createEmptySelection(DEFAULT_CUSTOM_CATEGORIES.length),
+
+      activeTab: 'custom', // ✅ FIX #1: Open Custom tab by default (with Basic categories)
+      customTabCategories: DEFAULT_CUSTOM_CATEGORIES, // ['tops', 'bottoms', 'footwear'] - same as Basic
+      customTabOrder: DEFAULT_CUSTOM_CATEGORIES.map((_, i) => i),
+      isCustomTabEditing: false,
       outfits: [],
       isLoading: false,
       error: null,
@@ -118,32 +212,98 @@ export const useOutfitStore = create<OutfitState>()(
 
       // Current outfit actions
       setCurrentOutfit: (outfit) => {
-        // Initialize selectedItemsForCreation from outfit items for edit mode
-        const selectedItems: Record<ItemCategory, WardrobeItem | null> = { ...emptySelectedItems };
-
-        if (outfit?.items) {
-          outfit.items.forEach((outfitItem) => {
-            if (outfitItem.item) {
-              selectedItems[outfitItem.category] = outfitItem.item;
-            }
+        if (!outfit) {
+          // Handle null case - resetting to initial state
+          console.log('📝 [outfitStore] setCurrentOutfit: null outfit - resetting to defaults');
+          set({
+            currentOutfit: null,
+            currentItems: [],
+            currentBackground: defaultBackground,
+            customTabCategories: DEFAULT_CUSTOM_CATEGORIES,
+            customTabSelectedItems: [],
+            selectedItemsByCategory: {
+              headwear: null,
+              outerwear: null,
+              tops: null,
+              bottoms: null,
+              footwear: null,
+              accessories: null,
+              fullbody: null,
+              other: null,
+            },
+            activeTab: 'custom',
+            canvasSettings: defaultCanvasSettings,
+            error: null,
           });
+          get().updateSelectedItemsForCreation();
+          console.log(
+            '✅ [outfitStore] Reset complete - customTabCategories:',
+            DEFAULT_CUSTOM_CATEGORIES,
+          );
+          return;
         }
 
-        // Debug: Log what we're setting
-        console.log('🔍 [outfitStore] setCurrentOutfit:', {
-          outfitId: outfit?.id,
-          itemsCount: outfit?.items?.length || 0,
-          selectedCategories: Object.entries(selectedItems)
-            .filter(([_, item]) => item !== null)
-            .map(([cat, item]) => ({ category: cat, itemId: item?.id })),
+        console.log('📝 [outfitStore] setCurrentOutfit - EDIT MODE:', {
+          outfitId: outfit.id,
+          totalItems: outfit.items?.length || 0,
+          hasCanvasSettings: !!outfit.canvasSettings,
         });
+
+        // ✅ NEW: Filter VISIBLE items for edit mode
+        const allItems = outfit.items || [];
+        const visibleItems = allItems
+          .filter((item) => item.isVisible !== false) // include items without isVisible flag
+          .sort((a, b) => a.slot - b.slot);
+
+        // ✅ NEW: Extract categories from visible items IN ORDER
+        const customCategories = visibleItems.map((item) => item.category);
+
+        console.log('📍 [Edit Mode] Visible items analysis:', {
+          totalItems: allItems.length,
+          visibleItems: visibleItems.length,
+          hiddenItems: allItems.length - visibleItems.length,
+          categories: customCategories,
+          slots: visibleItems.map((item) => item.slot),
+        });
+
+        // ✅ NEW: Restore to customTabSelectedItems (edit mode is always custom)
+        const customTabSelectedItems = visibleItems.map((item) => item.item || null);
+
+        console.log('📍 [Edit Mode] Restored items:', {
+          items: customTabSelectedItems.map((item) => item?.title || 'null'),
+        });
+
+        // ✅ NEW: Clear global storage (not used in custom tab edit mode)
+        const selectedItemsByCategory = {
+          headwear: null,
+          outerwear: null,
+          tops: null,
+          bottoms: null,
+          footwear: null,
+          accessories: null,
+          fullbody: null,
+          other: null,
+        };
 
         set({
           currentOutfit: outfit,
-          currentItems: outfit?.items || [],
-          currentBackground: outfit?.background || defaultBackground,
-          selectedItemsForCreation: selectedItems,
+          currentItems: allItems, // все items (включая скрытые для canvas)
+          currentBackground: outfit.background || defaultBackground,
+          customTabCategories: customCategories, // только видимые категории
+          customTabSelectedItems: customTabSelectedItems, // только видимые items
+          selectedItemsByCategory: selectedItemsByCategory, // очищен
+          activeTab: 'custom', // ✅ ВСЕГДА custom для edit
+          canvasSettings: outfit.canvasSettings || defaultCanvasSettings,
           error: null,
+        });
+
+        // ✅ Recompute derived state
+        get().updateSelectedItemsForCreation();
+
+        console.log('✅ [Edit Mode] Setup complete:', {
+          activeTab: 'custom',
+          carouselsCount: customCategories.length,
+          categories: customCategories,
         });
       },
 
@@ -210,78 +370,161 @@ export const useOutfitStore = create<OutfitState>()(
         set({ creationStep: step });
       },
 
-      selectItemForCategory: (category, item) => {
-        set({
-          selectedItemsForCreation: {
-            ...get().selectedItemsForCreation,
-            [category]: item,
-          },
+      // ✅ NEW: Update derived state based on active tab
+      updateSelectedItemsForCreation: () => {
+        const state = get();
+        const categories = state.getActiveTabCategories();
+
+        const computed = computeSelectedItemsForCreation(
+          state.activeTab,
+          categories,
+          state.selectedItemsByCategory,
+          state.customTabSelectedItems,
+        );
+
+        console.log('🔄 [outfitStore] Recomputing selectedItemsForCreation:', {
+          activeTab: state.activeTab,
+          categories,
+          computed: computed.map((item) => item?.title || 'null'),
         });
+
+        set({ selectedItemsForCreation: computed });
+      },
+
+      selectItemForCategory: (slotIndex, item) => {
+        const state = get();
+        const activeTab = state.activeTab;
+        const categories = state.getActiveTabCategories();
+        const category = categories[slotIndex];
+
+        if (activeTab === 'custom') {
+          // ✅ Custom tab: update custom storage
+          const customItems = [...state.customTabSelectedItems];
+
+          // Ensure array is big enough
+          while (customItems.length <= slotIndex) {
+            customItems.push(null);
+          }
+
+          customItems[slotIndex] = item;
+
+          console.log(`✏️ [outfitStore] Custom tab: slot ${slotIndex} → ${item?.title || 'null'}`);
+
+          set({ customTabSelectedItems: customItems });
+        } else {
+          // ✅ Basic/Dress/All: update global storage
+          console.log(`✏️ [outfitStore] Global: ${category} → ${item?.title || 'null'}`);
+
+          set({
+            selectedItemsByCategory: {
+              ...state.selectedItemsByCategory,
+              [category]: item,
+            },
+          });
+        }
+
+        // ✅ Recompute derived state
+        get().updateSelectedItemsForCreation();
       },
 
       getSelectedItemsCount: () => {
-        const selected = get().selectedItemsForCreation;
-        return Object.values(selected).filter((item) => item !== null).length;
+        return get().selectedItemsForCreation.filter((item) => item !== null).length;
       },
 
       confirmItemSelection: () => {
-        // Convert selected items to OutfitItems with initial transforms
         const selected = get().selectedItemsForCreation;
+        const categories = get().getActiveTabCategories(); // ✅ FIX #3: Use ACTIVE tab categories
+        const activeTab = get().activeTab;
+        const currentSettings = get().canvasSettings;
+
+        console.log('✅ [outfitStore] Confirming selection from ACTIVE tab:', {
+          activeTab,
+          categories,
+          categoriesCount: categories.length,
+          selectedCount: selected.filter(Boolean).length,
+        });
 
         const CANVAS_WIDTH = 300;
         const CANVAS_HEIGHT = 400;
 
         const outfitItems: OutfitItem[] = [];
-        let slotIndex = 0;
 
-        CATEGORIES.forEach((category) => {
-          const item = selected[category];
-          if (item) {
-            const categoryIndex = CATEGORIES.indexOf(category);
+        selected.forEach((item, slotIndex) => {
+          if (item && categories[slotIndex]) {
+            const category = categories[slotIndex];
             const centerX = CANVAS_WIDTH / 2 - 50;
-            const spacing = CANVAS_HEIGHT / (CATEGORIES.length + 1);
-            const centerY = spacing * (categoryIndex + 1) - 50;
+            const spacing = CANVAS_HEIGHT / (categories.length + 1);
+            const centerY = spacing * (slotIndex + 1) - 50;
 
             outfitItems.push({
               itemId: item.id,
               item,
               category,
-              slot: slotIndex++,
+              slot: slotIndex,
               transform: {
                 x: centerX,
                 y: centerY,
                 scale: 1,
                 rotation: 0,
-                zIndex: categoryIndex,
+                zIndex: slotIndex,
               },
               isVisible: true,
             });
+
+            console.log(`  ✓ Item ${slotIndex}: ${item.title} (${category})`);
           }
+        });
+
+        console.log('💾 [outfitStore] Saving categories from active tab to canvasSettings:', {
+          activeTab,
+          categories,
+          itemsCount: outfitItems.length,
         });
 
         set({
           currentItems: outfitItems,
           creationStep: 2,
+          canvasSettings: {
+            ...currentSettings,
+            customTabCategories: categories, // ✅ Save ACTIVE tab categories
+          },
         });
 
         get().pushHistory();
       },
 
       clearItemSelection: () => {
+        console.log('🗑️ [outfitStore] Clearing all selections');
+
+        // ✅ Clear both storages
         set({
-          selectedItemsForCreation: { ...emptySelectedItems },
+          selectedItemsByCategory: {
+            headwear: null,
+            outerwear: null,
+            tops: null,
+            bottoms: null,
+            footwear: null,
+            accessories: null,
+            fullbody: null,
+            other: null,
+          },
+          customTabSelectedItems: [],
           creationStep: 1,
         });
+
+        // ✅ Recompute derived state
+        get().updateSelectedItemsForCreation();
       },
 
       goBackToSelection: () => {
-        // Save current canvas items back to selected items
         const currentItems = get().currentItems;
-        const selectedItems: Record<ItemCategory, WardrobeItem | null> = { ...emptySelectedItems };
+        const categories = get().customTabCategories;
+
+        const selectedItems: (WardrobeItem | null)[] = createEmptySelection(categories.length);
 
         currentItems.forEach((outfitItem) => {
-          if (outfitItem.item) {
-            selectedItems[outfitItem.category] = outfitItem.item;
+          if (outfitItem.item && outfitItem.slot < selectedItems.length) {
+            selectedItems[outfitItem.slot] = outfitItem.item;
           }
         });
 
@@ -289,6 +532,113 @@ export const useOutfitStore = create<OutfitState>()(
           selectedItemsForCreation: selectedItems,
           creationStep: 1,
         });
+      },
+
+      // Tab management
+      setActiveTab: (tab) => {
+        const currentTab = get().activeTab;
+
+        console.log(`🔄 [outfitStore] Switching tab: ${currentTab} → ${tab}`);
+
+        // ✅ CLEAN: Just set the tab
+        set({ activeTab: tab });
+
+        // ✅ Recompute derived state
+        get().updateSelectedItemsForCreation();
+      },
+
+      updateCustomTab: (categories, order) => {
+        const oldCategories = get().customTabCategories;
+        const oldSelected = get().selectedItemsForCreation;
+
+        let newSelected: (WardrobeItem | null)[];
+
+        if (categories.length !== oldCategories.length) {
+          // Resize array
+          newSelected = createEmptySelection(categories.length);
+
+          // Try to preserve selections where possible
+          for (let i = 0; i < Math.min(oldSelected.length, newSelected.length); i++) {
+            newSelected[i] = oldSelected[i];
+          }
+        } else {
+          newSelected = oldSelected;
+        }
+
+        set({
+          customTabCategories: categories,
+          customTabOrder: order,
+          selectedItemsForCreation: newSelected,
+        });
+      },
+
+      toggleCustomTabEditing: () => {
+        set({ isCustomTabEditing: !get().isCustomTabEditing });
+      },
+
+      addCategoryToCustom: (category) => {
+        const { customTabCategories, customTabOrder } = get();
+
+        if (
+          !customTabCategories.includes(category) &&
+          customTabCategories.length < CATEGORIES.length
+        ) {
+          const newCategories = [...customTabCategories, category];
+          const newOrder = [...customTabOrder, customTabCategories.length];
+
+          set({
+            customTabCategories: newCategories,
+            customTabOrder: newOrder,
+          });
+        }
+      },
+
+      removeCategoryFromCustom: (category) => {
+        const { customTabCategories, customTabOrder } = get();
+
+        if (customTabCategories.length > 1) {
+          const index = customTabCategories.indexOf(category);
+          if (index !== -1) {
+            const newCategories = customTabCategories.filter((_, i) => i !== index);
+            const newOrder = customTabOrder
+              .filter((orderIndex) => orderIndex !== index)
+              .map((orderIndex) => (orderIndex > index ? orderIndex - 1 : orderIndex));
+
+            set({
+              customTabCategories: newCategories,
+              customTabOrder: newOrder,
+            });
+          }
+        }
+      },
+
+      reorderCustomCategories: (fromIndex, toIndex) => {
+        const { customTabCategories } = get();
+        const newCategories = [...customTabCategories];
+        const [movedItem] = newCategories.splice(fromIndex, 1);
+        newCategories.splice(toIndex, 0, movedItem);
+
+        set({
+          customTabCategories: newCategories,
+          customTabOrder: newCategories.map((_, i) => i),
+        });
+      },
+
+      getActiveTabCategories: () => {
+        const { activeTab, customTabCategories } = get();
+
+        switch (activeTab) {
+          case 'basic':
+            return ['tops', 'bottoms', 'footwear'];
+          case 'dress':
+            return ['fullbody', 'footwear', 'accessories'];
+          case 'all':
+            return CATEGORIES;
+          case 'custom':
+            return customTabCategories;
+          default:
+            return CATEGORIES;
+        }
       },
 
       // Outfit management
@@ -385,15 +735,46 @@ export const useOutfitStore = create<OutfitState>()(
 
       // Reset
       resetCurrentOutfit: () => {
+        console.log(
+          '🔄 [outfitStore] resetCurrentOutfit - CREATE MODE: Resetting to initial state',
+        );
+        console.log('  ↪️ customTabCategories will be set to:', DEFAULT_CUSTOM_CATEGORIES);
+        console.log('  ↪️ activeTab will be set to: custom');
+        console.log('  ↪️ This is the clean state for NEW outfit creation');
+
         set({
           currentOutfit: null,
           currentItems: [],
           currentBackground: defaultBackground,
+          canvasSettings: defaultCanvasSettings,
           creationStep: 1,
-          selectedItemsForCreation: { ...emptySelectedItems },
+
+          // ✅ Clear both storages
+          selectedItemsByCategory: {
+            headwear: null,
+            outerwear: null,
+            tops: null,
+            bottoms: null,
+            footwear: null,
+            accessories: null,
+            fullbody: null,
+            other: null,
+          },
+          customTabSelectedItems: [],
+
+          activeTab: 'custom',
+          customTabCategories: DEFAULT_CUSTOM_CATEGORIES, // ['tops', 'bottoms', 'footwear']
+          customTabOrder: DEFAULT_CUSTOM_CATEGORIES.map((_, i) => i),
+          isCustomTabEditing: false,
           error: null,
         });
+
+        // ✅ Recompute derived state
+        get().updateSelectedItemsForCreation();
         get().clearHistory();
+
+        console.log('✅ [outfitStore] Reset complete - ready for new outfit creation');
+        console.log('  ℹ️ NOTE: ItemSelectionStepNew will load from AsyncStorage if available');
       },
 
       clearCanvas: () => {
@@ -416,6 +797,9 @@ export const useOutfitStore = create<OutfitState>()(
       partialize: (state) => ({
         outfits: state.outfits,
         canvasSettings: state.canvasSettings,
+        activeTab: state.activeTab,
+        customTabCategories: state.customTabCategories,
+        customTabOrder: state.customTabOrder,
       }),
       skipHydration: true, // Skip hydration on server (SSR)
     },

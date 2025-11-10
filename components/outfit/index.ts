@@ -2,12 +2,14 @@
 export { OutfitCanvas } from './OutfitCanvas';
 export { BackgroundPicker } from './BackgroundPicker';
 
-// Two-step creation process
+// Two-step creation process with tab system
 export { ItemSelectionStepNew } from './ItemSelectionStepNew';
 export { CompositionStep } from './CompositionStep';
 export { CategorySelectorWithSmooth } from './CategorySelectorWithSmooth';
 export { SmoothCarousel } from './SmoothCarousel';
 export { ItemMiniPreviewBar } from './ItemMiniPreviewBar';
+export { OutfitTabBar } from './OutfitTabBar';
+export { CustomTabManager } from './CustomTabManager';
 
 // Display components
 export { OutfitPreview } from './OutfitPreview';

@@ -1,10 +1,118 @@
 # Bug Tracking - Obrazz
 
-## Overview
-
-This document tracks all bugs, errors, and their solutions encountered during the development of the Obrazz application. Each entry includes error details, root cause analysis, and resolution steps.
-
 ## Recent Updates
+
+### BUG-006: ImageCropper pinch felt crooked/uncontrollable — focal-point zoom & elastic boundaries
+
+**Date:** 2025-11-10  
+**Severity:** High (UX/Core Interaction)  
+**Status:** ✅ Resolved  
+**Component:** Wardrobe → ImageCropper  
+**Environment:** iOS & Android
+
+**Description:**
+Пользовательские жесты масштабирования (pinch) ощущались «кривыми»: сложно удерживать точку под пальцами, изображение прыгало, зум был слишком резким, картинка возвращалась на прежнюю позицию при отпускании пальцев.
+
+**Root Cause:**
+
+- Масштабирование не было жёстко привязано к фокальной точке (focal point) жеста.
+- Клампы применялись во время жеста, что создавало «рваный» UX.
+- Отсутствовал эластичный эффект (elastic bounds) как в нативной галерее.
+- Минимальный масштаб вычислялся не из фактического «fit-to-frame».
+
+**Solution:** Полная переработка поддержки мульти-тач жестов с эластичными границами.
+
+**Key Features:**
+
+- ✅ **Focal-point anchored pinch**: масштабирование строго к точке между пальцами, без прыжков.
+- ✅ **Elastic bounds**: можно временно выйти за границы (over-zoom/over-pan), но после отпускания плавно возвращается.
+- ✅ **Simultaneous gestures**: одновременные pinch (2 пальца) + pan (1 палец), без конфликтов.
+- ✅ **Double-tap zoom**: двойной тап для быстрого зума/сброса к minScale.
+- ✅ **Smooth spring animations**: плавные анимации возврата к границам (damping: 20, stiffness: 300).
+- ✅ **No clamping during gesture**: клампы только после отпускания пальцев для стабильности.
+
+**Technical Implementation:**
+
+```typescript
+// Pinch: allow temporary over-zoom (0.5×minScale to 1.5×MAX_SCALE)
+onUpdate: scale.value = pinchStartScale * e.scale (no immediate clamp)
+onEnd: animate back to [minScale, MAX_SCALE] if needed
+
+// Pan: allow temporary over-drag (elastic effect)
+onUpdate: translateX/Y = panStart + translation (no immediate clamp)
+onEnd: animate back to valid bounds if needed
+
+// Spring config: { damping: 20, stiffness: 300 } for natural feel
+```
+
+**Files Changed:**
+
+1. `components/common/ImageCropper.tsx` — полная переработка жестов (pinch/pan/double-tap), эластичные границы.
+
+**Testing:**
+
+- iOS/Android:
+  - Pinch удерживает точку под пальцами при любом масштабе, без прыжков.
+  - Можно временно уменьшить/увеличить за пределы — плавно возвращается после отпускания.
+  - Pan одним пальцем — можно временно «вытянуть» за края, плавно возвращается.
+  - Double tap: плавный зум к 2× от minScale, повторно — сброс к minScale.
+
+**Result:** Плавный, предсказуемый pinch-to-zoom на уровне нативной галереи (iOS Photos/Android Gallery-like UX).
+
+**Date Resolved:** 2025-11-10
+
+---
+
+### BUG-005: iOS Image Cropping - Custom 3:4 Crop Solution
+
+**Date:** 2025-11-10  
+**Severity:** High (UX/Core Functionality)  
+**Status:** ✅ Resolved  
+**Component:** Wardrobe, Image Upload  
+**Environment:** All (iOS & Android)
+
+**Description:**
+Встроенный редактор `expo-image-picker` на iOS показывал квадратную область обрезки, игнорируя `aspect: [3, 4]` из-за ограничений iOS UIImagePickerController API.
+
+**Root Cause:**
+iOS UIImagePickerController всегда использует квадратную crop область независимо от параметра `aspect`.
+
+**Solution:**
+Создан кастомный `ImageCropper` компонент с полным контролем обрезки 3:4 на обеих платформах.
+
+**Testing:**
+
+1. **iOS - Camera:**
+
+   ```
+   Wardrobe → FAB → Camera → Take Photo
+   → ImageCropper открывается
+   → Pinch to zoom, drag to position
+   → Confirm → Обрезка 3:4 → Сохранено
+   ```
+
+2. **iOS - Gallery:**
+
+   ```
+   Wardrobe → FAB → Gallery → Select Image
+   → ImageCropper открывается
+   → Adjust image
+   → Confirm → Обрезка 3:4 → Сохранено
+   ```
+
+3. **Android:**
+   Тот же flow - полная совместимость
+
+**Related Documentation:**
+
+- `Docs/IOS_CROP_FIX.md` - техническая документация решения
+- `react-native-reanimated` docs
+- `react-native-gesture-handler` docs
+- `expo-image-manipulator` docs
+
+**Date Resolved:** 2025-11-10
+
+---
 
 ### BUG-004: Edit Mode Carousel Not Showing Selected Items
 
