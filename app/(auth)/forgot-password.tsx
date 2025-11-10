@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Input, Loader } from '@/components/ui';
-import { authService } from '@/services/auth/authService';
-import { validateEmail } from '@/utils/validation/authValidation';
+import { Button, Input, Loader } from '@components/ui';
+import { authService } from '@services/auth/authService';
+import { validateEmail } from '@utils/validation/authValidation';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {

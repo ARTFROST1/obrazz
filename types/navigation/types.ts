@@ -6,16 +6,16 @@ export type RootStackParamList = {
   '(auth)/sign-in': { email?: string };
   '(auth)/sign-up': undefined;
   '(auth)/forgot-password': { email?: string };
-  
+
   // Main Tabs
   '(tabs)': undefined;
   '(tabs)/index': undefined; // Home/Community
   '(tabs)/wardrobe': undefined;
   '(tabs)/create': undefined;
   '(tabs)/profile': undefined;
-  
+
   // Modals
-  '(modals)/add-item': { 
+  '(modals)/add-item': {
     source?: 'camera' | 'gallery' | 'web';
     imageUri?: string;
   };
@@ -26,9 +26,9 @@ export type RootStackParamList = {
     source?: 'limit_reached' | 'settings' | 'profile';
   };
   '(modals)/settings': undefined;
-  
+
   // Detail Screens
-  'outfit/[id]': { 
+  'outfit/[id]': {
     id: string;
     mode?: 'view' | 'edit';
   };
@@ -36,10 +36,10 @@ export type RootStackParamList = {
     outfitId?: string;
     preselectedItems?: string[];
   };
-  'item/[id]': { 
+  'item/[id]': {
     id: string;
   };
-  
+
   // Community
   'post/[id]': {
     id: string;
@@ -47,10 +47,10 @@ export type RootStackParamList = {
   'user/[id]': {
     id: string;
   };
-  
+
   // Onboarding
-  'onboarding': undefined;
-  
+  onboarding: undefined;
+
   // Web Capture
   'web-capture': {
     initialUrl?: string;

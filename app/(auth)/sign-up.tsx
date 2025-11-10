@@ -10,14 +10,14 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Input, Loader } from '@/components/ui';
-import { authService } from '@/services/auth/authService';
+import { Button, Input, Loader } from '@components/ui';
+import { authService } from '@services/auth/authService';
 import {
   validateEmail,
   validatePassword,
   validatePasswordMatch,
   validateName,
-} from '@/utils/validation/authValidation';
+} from '@utils/validation/authValidation';
 
 export default function SignUpScreen() {
   const router = useRouter();

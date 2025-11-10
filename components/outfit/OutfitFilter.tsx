@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { OccasionTag } from '@types/models/outfit';
-import { Season, StyleTag } from '@types/models/user';
+import type { OccasionTag, Season, StyleTag } from '../../types/models';
 
 interface OutfitFilterProps {
   visible: boolean;

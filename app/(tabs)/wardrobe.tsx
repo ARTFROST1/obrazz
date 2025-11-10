@@ -18,7 +18,7 @@ import { itemService } from '@services/wardrobe/itemService';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { ItemFilter, FilterState } from '@components/wardrobe/ItemFilter';
 import { FAB } from '@components/ui';
-import { WardrobeItem } from '@types/models/item';
+import type { WardrobeItem } from '../../types/models';
 
 export default function WardrobeScreen() {
   const { user } = useAuthStore();
@@ -38,6 +38,8 @@ export default function WardrobeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadItems();
@@ -76,7 +78,20 @@ export default function WardrobeScreen() {
   }, [user?.id]);
 
   const handleItemPress = (item: WardrobeItem) => {
-    router.push(`/item/${item.id}`);
+    if (isSelectionMode) {
+      // Toggle selection
+      setSelectedItemIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(item.id)) {
+          newSet.delete(item.id);
+        } else {
+          newSet.add(item.id);
+        }
+        return newSet;
+      });
+    } else {
+      router.push(`/item/${item.id}`);
+    }
   };
 
   const handleFavoritePress = async (item: WardrobeItem) => {
@@ -92,6 +107,47 @@ export default function WardrobeScreen() {
 
   const handleAddItem = () => {
     router.push('/add-item');
+  };
+
+  const handleToggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedItemIds(new Set()); // Clear selection when toggling
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItemIds.size === 0) return;
+
+    Alert.alert(
+      'Delete Items',
+      `Are you sure you want to delete ${selectedItemIds.size} ${selectedItemIds.size === 1 ? 'item' : 'items'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              // Delete items one by one
+              const deletePromises = Array.from(selectedItemIds).map((itemId) =>
+                itemService.deleteItem(itemId),
+              );
+              await Promise.all(deletePromises);
+              // Reload items
+              await loadItems();
+              // Exit selection mode
+              setIsSelectionMode(false);
+              setSelectedItemIds(new Set());
+            } catch (error) {
+              console.error('Error deleting items:', error);
+              Alert.alert('Error', 'Failed to delete some items');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleSearch = (query: string) => {
@@ -131,6 +187,15 @@ export default function WardrobeScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>My Wardrobe</Text>
+            {!isSelectionMode ? (
+              <TouchableOpacity onPress={handleToggleSelectionMode} style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Select</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleToggleSelectionMode} style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -152,50 +217,81 @@ export default function WardrobeScreen() {
         ) : null}
       </View>
 
-      {/* Filter Bar */}
-      <View style={styles.filterBar}>
-        <TouchableOpacity
-          style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
-          onPress={() => setShowFilter(true)}
-        >
-          <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
-          <Text
-            style={[
-              styles.filterButtonText,
-              hasActiveFilters ? styles.filterButtonTextActive : null,
-            ]}
+      {/* Selection Actions Bar */}
+      {isSelectionMode && (
+        <View style={styles.selectionBar}>
+          <TouchableOpacity
+            onPress={() => {
+              // Select all
+              const allIds = new Set(filteredItems.map((item) => item.id));
+              setSelectedItemIds(allIds);
+            }}
+            style={styles.selectAllButton}
           >
-            Filter
-          </Text>
-          {hasActiveFilters && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>•</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {hasActiveFilters && (
-          <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
-            <Text style={styles.clearFilterText}>Clear All</Text>
+            <Text style={styles.selectAllButtonText}>Select All</Text>
           </TouchableOpacity>
-        )}
+          <Text style={styles.selectedCount}>
+            {selectedItemIds.size} {selectedItemIds.size === 1 ? 'item' : 'items'} selected
+          </Text>
+          <TouchableOpacity
+            onPress={handleDeleteSelected}
+            disabled={selectedItemIds.size === 0}
+            style={[styles.deleteButton, selectedItemIds.size === 0 && styles.deleteButtonDisabled]}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FFF" />
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-        <Text style={styles.itemCount}>
-          {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
-        </Text>
-      </View>
+      {/* Filter Bar */}
+      {!isSelectionMode && (
+        <View style={styles.filterBar}>
+          <TouchableOpacity
+            style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
+            onPress={() => setShowFilter(true)}
+          >
+            <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
+            <Text
+              style={[
+                styles.filterButtonText,
+                hasActiveFilters ? styles.filterButtonTextActive : null,
+              ]}
+            >
+              Filter
+            </Text>
+            {hasActiveFilters && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>•</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {hasActiveFilters && (
+            <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
+              <Text style={styles.clearFilterText}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+
+          <Text style={styles.itemCount}>
+            {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+          </Text>
+        </View>
+      )}
 
       {/* Items Grid */}
       <ItemGrid
         items={filteredItems}
         onItemPress={handleItemPress}
-        onFavoritePress={handleFavoritePress}
+        onFavoritePress={!isSelectionMode ? handleFavoritePress : undefined}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         loading={isLoading}
         emptyMessage={
           hasActiveFilters ? 'No items match your filters' : 'Add your first item to get started!'
         }
+        isSelectable={isSelectionMode}
+        selectedItemIds={selectedItemIds}
       />
 
       {/* Filter Modal */}
@@ -213,13 +309,15 @@ export default function WardrobeScreen() {
       />
 
       {/* FAB - Add New Item */}
-      <FAB
-        icon="add"
-        onPress={handleAddItem}
-        backgroundColor="#000000"
-        iconColor="#FFFFFF"
-        accessibilityLabel="Add new item"
-      />
+      {!isSelectionMode && (
+        <FAB
+          icon="add"
+          onPress={handleAddItem}
+          backgroundColor="#000000"
+          iconColor="#FFFFFF"
+          accessibilityLabel="Add new item"
+        />
+      )}
     </View>
   );
 }
@@ -250,6 +348,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     color: '#000000',
@@ -317,5 +418,56 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
+  },
+  selectButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  selectionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F8F8F8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  selectAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectAllButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  selectedCount: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  deleteButtonDisabled: {
+    backgroundColor: '#CCC',
+  },
+  deleteButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

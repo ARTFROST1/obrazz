@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Loader } from '@/components/ui';
-import { useAuthStore } from '@/store/auth/authStore';
-import { authService } from '@/services/auth/authService';
+import { Button, Loader } from '@components/ui';
+import { useAuthStore } from '@store/auth/authStore';
+import { authService } from '@services/auth/authService';
 
 export default function ProfileScreen() {
   const router = useRouter();

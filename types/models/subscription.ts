@@ -54,7 +54,7 @@ export interface UserSubscription {
   usage: UsageStats;
 }
 
-export type SubscriptionStatus = 
+export type SubscriptionStatus =
   | 'active'
   | 'expired'
   | 'cancelled'

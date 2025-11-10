@@ -1,4 +1,11 @@
-import { User, WardrobeItem, Outfit, CommunityPost, Subscription } from '../models';
+import {
+  User,
+  WardrobeItem,
+  Outfit,
+  CommunityPost,
+  Subscription,
+  SubscriptionPlan,
+} from '../models';
 
 // Base API Response
 export interface ApiResponse<T> {

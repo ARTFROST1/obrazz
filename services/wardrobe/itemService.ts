@@ -377,7 +377,13 @@ class ItemService {
     try {
       // Validate path
       if (!imagePath || typeof imagePath !== 'string') {
-        console.warn('[ItemService.deleteLocalImage] Invalid path:', imagePath);
+        console.log('[ItemService.deleteLocalImage] Skipping - invalid path:', imagePath);
+        return;
+      }
+
+      // Skip if path is not a local file system path
+      if (!imagePath.includes(FileSystem.documentDirectory || '')) {
+        console.log('[ItemService.deleteLocalImage] Skipping - not a local file path:', imagePath);
         return;
       }
 
@@ -385,25 +391,29 @@ class ItemService {
 
       // Check if file exists before trying to delete
       const fileInfo = await FileSystem.getInfoAsync(imagePath);
-      console.log('[ItemService.deleteLocalImage] File exists:', fileInfo.exists);
 
       if (fileInfo.exists) {
-        await FileSystem.deleteAsync(imagePath, { idempotent: true });
-        console.log('[ItemService.deleteLocalImage] File deleted successfully');
+        try {
+          await FileSystem.deleteAsync(imagePath, { idempotent: true });
+          console.log('[ItemService.deleteLocalImage] ✅ File deleted successfully');
+        } catch (deleteError) {
+          // Sometimes file is locked or permission issue
+          console.log(
+            '[ItemService.deleteLocalImage] ⚠️ Could not delete file (might be in use):',
+            deleteError instanceof Error ? deleteError.message : 'Unknown error',
+          );
+        }
       } else {
-        console.log('[ItemService.deleteLocalImage] File already deleted or does not exist');
+        console.log('[ItemService.deleteLocalImage] ℹ️ File already deleted or does not exist');
       }
     } catch (error) {
-      // Log error but don't throw - deletion failures shouldn't block the main operation
-      console.error('[ItemService.deleteLocalImage] Error deleting local image:', error);
-      if (error instanceof Error) {
-        console.error('[ItemService.deleteLocalImage] Error details:', {
-          name: error.name,
-          message: error.message,
-          path: imagePath,
-        });
-      }
-      // Don't throw - file might already be deleted or path might be invalid
+      // This catch is for getInfoAsync errors (path issues, permission issues, etc.)
+      // These are non-critical - file might be already deleted, moved, or path format changed
+      console.log(
+        '[ItemService.deleteLocalImage] ℹ️ Could not access file (likely already deleted):',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+      // Don't throw or log as error - this is expected behavior
     }
   }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button } from '@/components/ui';
+import { Button } from '@components/ui';
 
 export default function WelcomeScreen() {
   const router = useRouter();
