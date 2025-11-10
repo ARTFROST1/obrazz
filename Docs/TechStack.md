@@ -278,18 +278,23 @@
 }
 ```
 
-**📋 Для Stage 3+ (Wardrobe Management):**
+**✅ Установлено для Stage 3+ (Wardrobe Management):**
+
+```json
+{
+  "react-native-zoom-toolkit": "^1.2.6"
+}
+```
+
+**📋 Для будущих стадий:**
 
 ```json
 {
   "react-native-fast-image": "^8.7.0",
-  "react-native-image-crop-picker": "^0.42.0",
   "react-native-image-resizer": "^3.1.0",
   "react-native-image-zoom-viewer": "^3.1.2",
   "react-native-super-grid": "^6.1.0",
   "react-native-masonry-list": "^2.16.2",
-  "react-native-draggable-flatlist": "^4.1.0",
-  "react-native-sortable-list": "^0.0.27",
   "react-native-fs": "^2.21.0"
 }
 ```
@@ -718,4 +723,23 @@ module.exports = function (api) {
 
 ---
 
-_Последнее обновление: 13 января 2025 (Stage 1 завершён)_
+_Последнее обновление: 10 ноября 2025 (Stage 4.10 завершён)_
+
+## 📊 Новые Зависимости (Stages 4.8-4.10)
+
+**Stage 4.8 - 4-Tab System:**
+
+- Custom utilities: `utils/storage/customTabStorage.ts`
+- Types: `types/components/OutfitCreator.ts`
+- Constants: `constants/outfitTabs.ts`
+
+**Stage 4.9 - ImageCropper:**
+
+- ✅ `react-native-zoom-toolkit@^1.2.6` - Pinch-to-zoom for crop
+- Components: `ImageCropper.tsx`, `CropOverlay.tsx`
+
+**Stage 4.10 - Data Persistence:**
+
+- Enhanced `outfitService.ts` with full item data loading
+- Enhanced `outfitStore.ts` with priority-based restoration
+- AsyncStorage conditional loading logic

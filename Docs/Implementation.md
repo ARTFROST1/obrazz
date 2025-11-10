@@ -244,7 +244,7 @@
 **Documentation:**
 
 - Memory system entry about SmoothCarousel implementation
-- `Docs/CURRENT_STATUS.md` - Current implementation details
+- `Docs/Extra/CURRENT_STATUS.md` - Current implementation details
 - Archived: `Docs/Extra/Archive/` - Historical carousel evolution
 
 #### Предыдущая Проблема:
@@ -261,19 +261,19 @@
 1. **SmoothCarousel.tsx** - Современная карусель с реалистичной физикой
    - Deceleration: 0.985 (natural momentum)
    - Infinite loop с 30+ duplicates buffer
-   - Flag button для активации/деактивации категорий
    - Full-width edge-to-edge design
    - Seamless прокрутка как в CS:GO case opening
+   - Border highlight на центральном элементе
 
 2. **CategorySelectorWithSmooth.tsx** - Container для управления каруселями
    - Dynamic sizing на основе доступного пространства
-   - 3 display modes: All (8 категорий), Main (4), Extra (4)
+   - Support для различных наборов категорий
    - Синхронизация выбора между режимами
 
 3. **ItemSelectionStepNew.tsx** - Новый selection step
    - Убран ProgressIndicator (показ count в header)
-   - Display mode switcher в footer
-   - Randomize функция для unlocked категорий
+   - Tab system для переключения наборов категорий
+   - Randomize функция для текущего таба
 
 **Технические Улучшения:**
 
@@ -286,56 +286,253 @@
 #### Sub-steps:
 
 - [x] Анализ проблем предыдущей системы
-  - [x] Идентифицированы причины flickering
-  - [x] Определены узкие места производительности
-  - [x] Проанализирована архитектура state management
-
-- [x] Создание SmoothCarousel.tsx
-  - [x] Реализация realistic physics (deceleration: 0.985)
-  - [x] Infinite loop с buffer из 30+ duplicates
-  - [x] Ref-based tracking вместо state для центрального индекса
-  - [x] Flag button overlay на центральном элементе
-  - [x] Velocity-based smart snapping
-  - [x] Anti-flickering с isAdjustingRef guard
-
+- [x] Создание SmoothCarousel.tsx с realistic physics
+- [x] Infinite loop с buffer из 30+ duplicates
+- [x] Ref-based tracking вместо state
+- [x] Velocity-based smart snapping
+- [x] Anti-flickering с isAdjustingRef guard
 - [x] Создание CategorySelectorWithSmooth.tsx
-  - [x] Container для управления множественными каруселями
-  - [x] Dynamic dimension calculation
-  - [x] Display mode filtering (all/main/extra)
-  - [x] State synchronization между режимами
-  - [x] Category scroll index tracking
-
+- [x] Dynamic dimension calculation
 - [x] Обновление ItemSelectionStepNew.tsx
-  - [x] Интеграция SmoothCarousel вместо старой системы
-  - [x] Убран ProgressIndicator (count в header badge)
-  - [x] Display mode switcher (All/Main/Extra)
-  - [x] Active categories вместо locked (flag system)
-  - [x] Randomize для active categories
-
-- [x] Удаление устаревших компонентов
-  - [x] CategoryCarousel.tsx (removed)
-  - [x] CategoryCarouselCentered.tsx (removed)
-  - [x] CategorySelectorList.tsx (removed)
-  - [x] ItemSelectionStep.tsx (removed)
-  - [x] ProgressIndicator.tsx (removed)
-
+- [x] Удаление устаревших компонентов (5 файлов)
 - [x] Обновление exports
-  - [x] components/outfit/index.ts - cleaned up
-  - [x] Barrel exports только для активных компонентов
-
-- [x] Документация и архивация
-  - [x] CURRENT_STATUS.md - полный статус проекта
-  - [x] CLEANUP_SUMMARY.md - детали cleanup
-  - [x] Docs/Extra/Archive/ - 33 файла архивировано
-  - [x] Bug_tracking.md - CLEANUP-001 entry
-
+- [x] Документация и архивация (33 файла в Archive)
+- [x] Bug_tracking.md - CLEANUP-001 entry
 - [x] Тестирование и верификация
-  - [x] Smooth scrolling при всех скоростях
-  - [x] Infinite loop работает seamlessly
-  - [x] No flickering или glitches
-  - [x] Category toggle работает корректно
-  - [x] Display mode switching без проблем
-  - [x] Item selection синхронизируется правильно
+
+---
+
+### Stage 4.8: Outfit Creator 4-Tab System ✅
+
+**Dependencies:** Stage 4.7 completion
+**Timeline:** 1-2 недели
+**Status:** COMPLETED (November 2025)
+
+**Purpose:** Переход от 3 display modes к 4 вкладкам с различными комбинациями категорий + кастомизируемая вкладка
+
+**Documentation:** `Docs/Extra/OUTFIT_CREATOR_TABS_REFACTOR.md`
+
+#### Новая Архитектура:
+
+**4 Вкладки:**
+
+1. **Tab 1: Basic** (👕) - tops, bottoms, footwear (3 карусели)
+2. **Tab 2: Dress** (👗) - fullbody, footwear, accessories (3 карусели)
+3. **Tab 3: All** (🔲) - все 8 категорий с вертикальным скроллом
+4. **Tab 4: Custom** (⚙️) - пользовательский набор категорий
+
+#### Key Features:
+
+- ✅ **OutfitTabBar.tsx** - новый компонент tab navigation
+- ✅ **CustomTabManager.tsx** - управление кастомными категориями
+- ✅ **Inline editing** в Custom tab - добавление/удаление категорий
+- ✅ **AsyncStorage persistence** - сохранение конфигурации Custom tab
+- ✅ **Duplicates allowed** - возможность добавить одну категорию несколько раз
+- ✅ **Dynamic height calculation** - адаптация высоты каруселей под кол-во категорий
+- ✅ **Clean carousels** - убраны flag buttons, карусели без overlays
+
+#### Technical Changes:
+
+**Новые типы:**
+
+- `OutfitTabType = 'basic' | 'dress' | 'all' | 'custom'`
+- `CustomTabState` - состояние кастомного таба
+
+**Новые файлы:**
+
+- `types/components/OutfitCreator.ts` - типы для табов
+- `constants/outfitTabs.ts` - конфигурация табов
+- `utils/storage/customTabStorage.ts` - persistence logic
+- `components/outfit/OutfitTabBar.tsx` - tab navigation
+- `components/outfit/CustomTabManager.tsx` - inline editing
+
+**Обновленные компоненты:**
+
+- `ItemSelectionStepNew.tsx` - интеграция tab system
+- `CategorySelectorWithSmooth.tsx` - динамический sizing
+- `SmoothCarousel.tsx` - убраны flag buttons
+- `outfitStore.ts` - tab state management
+
+#### Sub-steps:
+
+- [x] Создание типов и констант для табов
+- [x] Реализация OutfitTabBar компонента
+- [x] Создание CustomTabManager с inline editing
+- [x] Обновление SmoothCarousel - удаление flag buttons
+- [x] Интеграция tab system в ItemSelectionStepNew
+- [x] AsyncStorage persistence для Custom tab
+- [x] Обновление outfitStore с tab state
+- [x] Dynamic height calculation для разных табов
+- [x] Обработка edge cases (пустой custom tab, дубликаты)
+- [x] Тестирование всех табов и переключения
+
+---
+
+### Stage 4.9: ImageCropper Refactor ✅
+
+**Dependencies:** Stage 3 completion
+**Timeline:** 3-5 дней
+**Status:** COMPLETED (November 2025)
+
+**Purpose:** Улучшение UX обрезки изображений с нативным pinch-to-zoom и elastic boundaries
+
+**Documentation:** `Docs/Bug_tracking.md` - BUG-005, BUG-006
+
+#### Проблемы до рефакторинга:
+
+- iOS UIImagePickerController игнорирует `aspect: [3, 4]`
+- Всегда показывает квадратную область обрезки
+- Неконтролируемый pinch gesture
+- Изображение "прыгает" при масштабировании
+
+#### Новая Реализация:
+
+**Компонент:** `components/common/ImageCropper.tsx`
+
+**Key Features:**
+
+- ✅ **Custom 3:4 crop overlay** - кастомная область обрезки 3:4
+- ✅ **react-native-zoom-toolkit** - библиотека для pinch-to-zoom
+- ✅ **CropOverlay.tsx** - визуальный overlay с затемнением
+- ✅ **Focal-point anchored pinch** - масштабирование к точке между пальцами
+- ✅ **Elastic boundaries** - временный выход за границы с плавным возвратом
+- ✅ **Simultaneous gestures** - одновременный pinch (2 пальца) + pan (1 палец)
+- ✅ **Double-tap zoom** - быстрый зум по двойному тапу
+- ✅ **Spring animations** - плавные анимации возврата (damping: 20, stiffness: 300)
+- ✅ **No clamping during gesture** - клампы только после отпускания
+
+#### Technical Implementation:
+
+```typescript
+// Elastic bounds: allow temporary over-zoom/over-pan
+onUpdate: scale.value = pinchStartScale * e.scale (no clamp)
+onEnd: animate back to [minScale, MAX_SCALE] with spring
+
+// Spring config для нативного feel
+{ damping: 20, stiffness: 300 }
+```
+
+**Integration:**
+
+- Используется в `app/add-item.tsx` после выбора камеры/галереи
+- Работает на iOS и Android
+- Финальная обрезка через `expo-image-manipulator`
+
+#### Sub-steps:
+
+- [x] Интеграция react-native-zoom-toolkit
+- [x] Создание CropOverlay компонента
+- [x] Создание ImageCropper с pinch gestures
+- [x] Focal-point anchored scaling
+- [x] Elastic boundaries implementation
+- [x] Spring animations для возврата к границам
+- [x] Double-tap zoom функционал
+- [x] Интеграция с expo-image-manipulator
+- [x] Тестирование на iOS/Android
+- [x] Bug tracking documentation (BUG-005, BUG-006)
+
+---
+
+### Stage 4.10: Outfit Data Persistence Architecture ✅
+
+**Dependencies:** Stage 4.8 completion
+**Timeline:** 2-3 дня  
+**Status:** COMPLETED (November 2025)
+
+**Purpose:** Исправление критической проблемы с загрузкой данных при редактировании образов
+
+#### Проблема:
+
+При редактировании любого образа загружались `customTabCategories` из **последнего созданного образа** (из AsyncStorage), а не из редактируемого. Вещи отображались не в тех каруселях и позициях.
+
+#### Root Cause:
+
+- `ItemSelectionStepNew.tsx` автоматически загружал custom tab из AsyncStorage при каждом открытии
+- В edit mode это перезаписывало данные редактируемого образа
+- AsyncStorage содержал конфигурацию последнего **созданного** образа
+
+#### Решение:
+
+**Архитектура загрузки данных:**
+
+1. **Новый образ:**
+   - `customTabCategories = BASIC_CATEGORIES` (default)
+   - Загрузка из AsyncStorage для User Preferences
+
+2. **Редактирование:**
+   - `customTabCategories` загружаются из `canvasSettings` образа
+   - AsyncStorage НЕ загружается в edit mode
+   - Backward compatibility: восстановление из `items` если нет `canvasSettings`
+
+3. **Независимое хранение:**
+   - Каждый образ хранит свою конфигурацию в DB
+   - AsyncStorage используется только для user preferences (новые образы)
+
+#### Technical Changes:
+
+**Файлы:**
+
+1. **ItemSelectionStepNew.tsx:**
+
+```typescript
+// ✅ Skip AsyncStorage load in edit mode
+useEffect(() => {
+  if (isEditMode) {
+    console.log('🚫 Skipping AsyncStorage load - edit mode');
+    return;
+  }
+  loadCustomTabConfig(); // Only for create mode
+}, [isEditMode]);
+
+// ✅ Only save to AsyncStorage in create mode
+useEffect(() => {
+  if (activeTab === 'custom' && !isEditMode) {
+    saveCustomTabConfig(customTabCategories, order);
+  }
+}, [customTabCategories, activeTab, isEditMode]);
+```
+
+2. **outfitService.ts:**
+
+```typescript
+// ✅ Load full item data with categories
+const getOutfitById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('outfits')
+    .select('*, items(*)') // ✅ Load full items
+    .eq('id', id)
+    .single();
+
+  return data;
+};
+```
+
+3. **outfitStore.ts:**
+
+```typescript
+// ✅ Priority: canvasSettings > items restoration > defaults
+setCurrentOutfit: (outfit) => {
+  if (outfit?.canvasSettings?.customTabCategories) {
+    // Load from canvasSettings (primary source)
+    set({ customTabCategories: outfit.canvasSettings.customTabCategories });
+  } else if (outfit?.items) {
+    // Restore from items (backward compatibility)
+    const restored = restoreCategoriesFromItems(outfit.items);
+    set({ customTabCategories: restored });
+  }
+};
+```
+
+#### Sub-steps:
+
+- [x] Отключить автозагрузку AsyncStorage в edit mode
+- [x] Добавить загрузку полных данных items в getOutfitById()
+- [x] Улучшить логику setCurrentOutfit() с приоритетами
+- [x] Добавить детальное логирование на всех этапах
+- [x] Backward compatibility для старых образов
+- [x] Тестирование create mode
+- [x] Тестирование edit mode
+- [x] Документация архитектуры
 
 ### Stage 5: AI Outfit Generation
 
@@ -455,28 +652,54 @@
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Pixian.ai API Documentation](https://ru.pixian.ai/api)
 
-## Current Project Statistics (November 2025)
+## Current Project Statistics (November 10, 2025)
 
 **Code Metrics:**
 
 - Total Screens: 18
-- Total Components: 25 (active)
+- Total Components: 29 (active)
+  - 14 outfit components (SmoothCarousel system + Tab system)
+  - 5 wardrobe components
+  - 5 common components (включая ImageCropper + CropOverlay)
+  - 5 UI components
 - Total Services: 4
-- Total Stores: 4
-- Total Type Definitions: 11 files
+- Total Stores: 4 (with advanced state management)
+- Total Type Definitions: 12 files
 - Categories: 8 (unified system)
 
 **Implementation Status:**
 
-- Stages 1-4.7: ✅ Completed
+- Stages 1-4.10: ✅ Completed
 - Stages 5-10: 🚧 Planned
 
-**Recent Improvements:**
+**Recent Improvements (November 2025):**
 
-- SmoothCarousel system implementation
-- 5 obsolete components removed (31KB)
-- 33 documentation files archived
-- Unified category system (8 categories)
+1. **SmoothCarousel System** (Stage 4.7)
+   - 5 obsolete components removed (31KB)
+   - 33 documentation files archived
+   - Realistic physics with deceleration: 0.985
+
+2. **4-Tab System** (Stage 4.8)
+   - Basic, Dress, All, Custom tabs
+   - CustomTabManager with inline editing
+   - AsyncStorage persistence
+   - Dynamic height calculation
+
+3. **ImageCropper Refactor** (Stage 4.9)
+   - Focal-point anchored pinch-to-zoom
+   - Elastic boundaries с spring animations
+   - react-native-zoom-toolkit integration
+   - Custom 3:4 crop overlay
+
+4. **Data Persistence Fix** (Stage 4.10)
+   - Fixed critical edit mode bug
+   - Proper canvasSettings persistence
+   - Backward compatibility для старых образов
+
+**Dependencies Added:**
+
+- `react-native-zoom-toolkit` - для ImageCropper
+- Custom utilities: `customTabStorage.ts`
 
 ## Important Notes
 
@@ -486,4 +709,6 @@
 - Обязательная типизация всего кода с TypeScript
 - Следование принципам React Native best practices
 - SmoothCarousel - единственная активная система каруселей
-- Документация обновлена и актуальна (November 2025)
+- **4-Tab System** - новая архитектура создания образов
+- **ImageCropper** - нативный UX для обрезки изображений
+- Документация обновлена и актуальна (November 10, 2025)

@@ -1,7 +1,7 @@
 # Project Structure - Obrazz
 
-**Last Updated:** November 8, 2025  
-**Current Stage:** Stage 4.7 Complete ✅ (Smooth Carousel System)
+**Last Updated:** November 10, 2025  
+**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
 
 ## Overview
 
@@ -44,7 +44,9 @@ obrazz/
 ├── config/ ✅                 # Configuration files
 │   └── env.ts ✅            # Environment config
 ├── constants/ ✅              # Constants
-│   └── Colors.ts ✅
+│   ├── Colors.ts ✅
+│   ├── categories.ts ✅     # 8 unified categories
+│   └── outfitTabs.ts ✅     # Tab configurations (Stage 4.8 - NEW)
 ├── contexts/ 📋               # React contexts (готова структура)
 ├── Docs/ ✅                  # Documentation
 │   ├── TechStack.md ✅
@@ -77,9 +79,12 @@ obrazz/
 │   ├── api/ ✅
 │   ├── models/ ✅
 │   └── navigation/ ✅
-├── utils/ 📋                  # Utility functions
+├── utils/ ✅                  # Utility functions
+│   ├── storage/ ✅           # Storage utilities (Stage 4.8)
+│   │   └── customTabStorage.ts ✅ # AsyncStorage for custom tab (NEW)
+│   ├── validation/ ✅       # Validation utilities
+│   │   └── authValidation.ts ✅  # Auth validation
 │   ├── image/ 🚧
-│   ├── validation/ ✅       # Auth validation utilities
 │   └── helpers/ 🚧
 ├── locales/ 📋                # i18n translations (готова структура)
 │   ├── en/ 🚧
@@ -150,25 +155,31 @@ components/
 │   ├── Loader.tsx ✅          # Loading spinner
 │   ├── FAB.tsx ✅            # Floating Action Button
 │   └── index.ts ✅           # Barrel export
-├── common/
-│   ├── Card.tsx
-│   ├── Modal.tsx
-│   └── ErrorBoundary.tsx
-├── wardrobe/ ✅
+├── common/ ✅                # Common components (Stage 4.9)
+│   ├── ImageCropper.tsx ✅   # Custom 3:4 crop with pinch-to-zoom (NEW)
+│   ├── CropOverlay.tsx ✅    # Visual crop overlay (NEW)
+│   ├── Card.tsx 🚧
+│   ├── Modal.tsx 🚧
+│   └── ErrorBoundary.tsx 🚧
+├── wardrobe/ ✅              # Wardrobe components (Stage 3)
 │   ├── ItemCard.tsx ✅        # Item preview card
 │   ├── ItemGrid.tsx ✅        # Grid display for items
 │   ├── ItemFilter.tsx ✅      # Filtering component
+│   ├── CategoryPicker.tsx ✅  # Category selection
+│   ├── ColorPicker.tsx ✅     # Color selection
 │   └── ItemEmptyState.tsx ✅  # Empty wardrobe state
-├── outfit/ ✅ (Stage 4.7 - Smooth Carousel System)
-│   ├── OutfitCanvas.tsx ✅    # Drag & drop canvas
-│   ├── BackgroundPicker.tsx ✅ # Background selector
-│   ├── ItemSelectionStepNew.tsx ✅ # Step 1: Item selection (NEW SYSTEM)
+├── outfit/ ✅                # Outfit components (Stages 4.7-4.10)
+│   ├── SmoothCarousel.tsx ✅  # Physics-based carousel (Stage 4.7)
+│   ├── CategorySelectorWithSmooth.tsx ✅ # Carousel container
+│   ├── ItemSelectionStepNew.tsx ✅ # Step 1 with tab system (Stage 4.8)
+│   ├── OutfitTabBar.tsx ✅    # Tab navigation (Stage 4.8 - NEW)
+│   ├── CustomTabManager.tsx ✅ # Inline category editing (Stage 4.8 - NEW)
 │   ├── CompositionStep.tsx ✅ # Step 2: Canvas composition
-│   ├── CategorySelectorWithSmooth.tsx ✅ # Container for smooth carousels
-│   ├── SmoothCarousel.tsx ✅  # Modern carousel with physics (NEW)
+│   ├── OutfitCanvas.tsx ✅    # Drag & drop canvas with gestures
+│   ├── BackgroundPicker.tsx ✅ # Background selector
 │   ├── ItemMiniPreviewBar.tsx ✅ # Bottom preview bar
-│   ├── OutfitCard.tsx ✅      # Outfit preview card (Stage 4.5)
-│   ├── OutfitGrid.tsx ✅      # Grid of outfit cards (Stage 4.5)
+│   ├── OutfitCard.tsx ✅      # Outfit preview card
+│   ├── OutfitGrid.tsx ✅      # Grid of outfit cards
 │   ├── OutfitEmptyState.tsx ✅ # Empty outfit state
 │   ├── OutfitFilter.tsx ✅    # Filter component
 │   ├── OutfitPreview.tsx ✅   # Outfit detail preview
@@ -222,11 +233,16 @@ types/
 │   ├── supabase.ts ✅        # Supabase types
 │   └── responses.ts ✅       # API response types
 ├── models/ ✅
-│   ├── user.ts ✅
-│   ├── item.ts ✅
-│   ├── outfit.ts ✅
-│   ├── post.ts ✅
-│   └── subscription.ts ✅
+│   ├── index.ts ✅           # Barrel export
+│   ├── user.ts ✅            # User model
+│   ├── item.ts ✅            # Item model with ItemCategory
+│   ├── outfit.ts ✅          # Outfit model with CanvasSettings
+│   ├── post.ts ✅            # Post model
+│   └── subscription.ts ✅    # Subscription model
+├── components/ ✅            # Component-specific types (Stage 4.8)
+│   ├── FAB.ts ✅            # FAB types
+│   ├── OutfitCard.ts ✅     # OutfitCard types
+│   └── OutfitCreator.ts ✅  # OutfitTabType, CustomTabState (NEW)
 └── navigation/ ✅
     └── types.ts ✅           # Navigation param lists
 ```

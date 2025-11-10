@@ -2,9 +2,9 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** November 8, 2025  
-**Current Stage:** Stage 4.7 Complete ✅ (SmoothCarousel System)  
-**Project Status:** Auth, Wardrobe Management, SmoothCarousel Outfit Creator, and Outfits Collection - FULLY IMPLEMENTED  
+**Latest Update:** November 10, 2025  
+**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)  
+**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED  
 **Last Scan:** Full codebase verification completed
 
 ---
@@ -114,7 +114,7 @@
 - Outfit detail/view screen
 - Navigation to /outfit/create stack screen
 
-#### ✅ Stage 4.7: SmoothCarousel System (Current Implementation)
+#### ✅ Stage 4.7: SmoothCarousel System
 
 **Complete carousel system replacement with modern physics-based implementation**
 
@@ -123,43 +123,91 @@
 - **SmoothCarousel.tsx** - Modern carousel with realistic physics
   - Deceleration: 0.985 (natural momentum like CS:GO case opening)
   - Infinite loop with 30+ duplicates buffer for seamless scrolling
-  - Flag button overlay on center item for category activation/deactivation
   - Full-width edge-to-edge design across entire screen
-  - Velocity-based smart snapping (low velocity = snap, high velocity = momentum)
+  - Border highlight on center item (no overlay buttons)
+  - Velocity-based smart snapping
   - Ref-based tracking to prevent flickering
   - Items maintain 3:4 aspect ratio
-- **CategorySelectorWithSmooth.tsx** - Container managing multiple carousels
-  - Dynamic sizing based on available screen space
-  - 3 display modes: All (8 categories), Main (4), Extra (4)
-  - State synchronization between display modes
-  - Category scroll index tracking
-- **ItemSelectionStepNew.tsx** - Modern selection step
-  - Count badge in header (no progress bar)
-  - Display mode switcher in footer (All/Main/Extra buttons)
-  - Randomize function for active categories
-  - Category activation system with flag buttons
 
 **Technical Improvements:**
 
 - Minimal state updates (ref-based tracking)
 - Native snap with momentum physics
 - Anti-flickering protection
-- Smooth transitions between duplicates
 - Performance optimized for fast scrolling
-
-**Display Modes:**
-
-- **All (8 categories):** headwear, outerwear, tops, bottoms, footwear, accessories, fullbody, other
-- **Main (4 categories):** outerwear, tops, bottoms, footwear
-- **Extra (4 categories):** headwear, accessories, fullbody, other
 
 **Removed Legacy Components:**
 
-- CategoryCarousel.tsx (obsolete)
-- CategoryCarouselCentered.tsx (replaced by SmoothCarousel)
-- CategorySelectorList.tsx (replaced by CategorySelectorWithSmooth)
-- ItemSelectionStep.tsx (replaced by ItemSelectionStepNew)
-- ProgressIndicator.tsx (replaced by header badge)
+- 5 obsolete carousel components removed (31KB)
+- 33 documentation files archived
+
+---
+
+#### ✅ Stage 4.8: 4-Tab System (Current Implementation)
+
+**Transition from 3 display modes to 4 customizable tabs**
+
+**New Architecture:**
+
+- **Tab 1: Basic** (👕) - 3 carousels: tops, bottoms, footwear
+- **Tab 2: Dress** (👗) - 3 carousels: fullbody, footwear, accessories
+- **Tab 3: All** (🔲) - 8 carousels: all categories with vertical scroll
+- **Tab 4: Custom** (⚙️) - User-configurable categories
+
+**Key Features:**
+
+- **OutfitTabBar.tsx** - Tab navigation component
+- **CustomTabManager.tsx** - Inline category editing
+  - Add/remove categories
+  - Duplicates allowed
+  - AsyncStorage persistence
+- **Clean carousels** - No flag buttons or overlays
+- **Dynamic height** - Adapts to number of categories in tab
+
+**New Files:**
+
+- `types/components/OutfitCreator.ts` - OutfitTabType
+- `constants/outfitTabs.ts` - Tab configurations
+- `utils/storage/customTabStorage.ts` - Persistence logic
+
+---
+
+#### ✅ Stage 4.9: ImageCropper Refactor
+
+**Custom 3:4 crop with nativelike pinch-to-zoom**
+
+**Key Features:**
+
+- **Focal-point anchored pinch** - Zoom to touch point
+- **Elastic boundaries** - Temporary over-zoom/pan with spring return
+- **Simultaneous gestures** - 2-finger pinch + 1-finger pan
+- **Double-tap zoom** - Quick zoom toggle
+- **Spring animations** - damping: 20, stiffness: 300
+
+**Components:**
+
+- `components/common/ImageCropper.tsx` - Main component
+- `components/common/CropOverlay.tsx` - Visual overlay
+- Uses `react-native-zoom-toolkit`
+
+---
+
+#### ✅ Stage 4.10: Data Persistence Architecture
+
+**Fixed critical edit mode data corruption bug**
+
+**Solution:**
+
+- AsyncStorage NOT loaded in edit mode
+- Custom tab config loaded from outfit's `canvasSettings`
+- Backward compatibility for older outfits
+- Independent storage per outfit
+
+**Files Updated:**
+
+- `ItemSelectionStepNew.tsx` - Conditional AsyncStorage loading
+- `outfitService.ts` - Full item data loading
+- `outfitStore.ts` - Priority-based config restoration
 
 ### 🚧 In Progress / Planned
 
@@ -479,66 +527,103 @@ Primary place to view all user items, quickly add new clothing, filter and manag
 
 ### D. Item Add / Edit / Detail
 
+**Last Updated:** November 10, 2025  
+**Current Version:** With ImageCropper integration
+
 #### Add Item screen
 
 - Header: Back + Save
-- Image area (top): preview of captured photo. Buttons: Take Photo, Choose from Gallery, Import from Web.
-- On image select: automatically call background removal service (show loader). Store processed PNG transparently in local storage.
+- Image area (top): preview of captured photo. Buttons: Take Photo, Choose from Gallery
+- **Image Selection Flow:**
+  1. User taps Camera or Gallery
+  2. **ImageCropper opens** - custom 3:4 crop overlay
+  3. User adjusts image with pinch-to-zoom and pan
+  4. User confirms crop → Background removal service called
+  5. Processed PNG stored locally
 - Metadata section:
-  - Category (picker) — required
+  - Category (picker) — required (8 unified categories)
   - Color (pick main color from palette or manual hex)
   - Material (text or pick list)
   - Style (picker: casual, formal, sporty, street, boho, etc.)
   - Season (chips: Spring, Summer, Autumn, Winter)
   - Optional: Title (user can name the piece)
-- Save behavior: Persist metadata to Supabase (user_id + metadata + local image filename). Keep image file on device.
+- Save behavior: Persist metadata to Supabase + local image path
+
+#### ImageCropper Component
+
+**File:** `components/common/ImageCropper.tsx`
+
+**Features:**
+
+- **Custom 3:4 crop overlay** - precise aspect ratio control
+- **Focal-point anchored pinch** - zoom to touch point between fingers
+- **Elastic boundaries** - temporary over-zoom/pan with spring animations
+- **Simultaneous gestures** - pinch (2 fingers) + pan (1 finger)
+- **Double-tap zoom** - quick zoom toggle
+- **Spring animations** - damping: 20, stiffness: 300
+- **No clamping during gesture** - smooth UX without jumps
+
+**Technical:**
+
+- Uses `react-native-zoom-toolkit` for gesture handling
+- `CropOverlay.tsx` provides visual feedback
+- Final crop via `expo-image-manipulator`
+- Works on iOS and Android
 
 #### Item Detail
 
-- Show full image (transparent background) centered on a neutral canvas. Show metadata below.
-- Actions: Edit, Delete, Add to outfit (launch creator and pre-select this item in its category), Share (export image), Mark as built-in (admin only)
-- When editing and image is replaced, re-run background removal.
+- Show full image (transparent background) centered on neutral canvas
+- Metadata displayed below image
+- Actions: Edit, Delete, Add to outfit, Share (export image)
+- When editing with new image: re-run ImageCropper → Background removal
 
 Edge cases:
 
-- If automatic background removal fails, fallback to original image and show suggestion to retake photo with higher contrast.
+- If background removal fails: fallback to cropped image with suggestion to retake
+- Missing image: show placeholder with re-upload option
 
 ---
 
 ### E. Outfit Creator (Manual) - CURRENT IMPLEMENTATION
 
+**Last Updated:** November 10, 2025  
+**Current Version:** 4-Tab System with SmoothCarousel
+
 #### Purpose
 
-Modern two-step process for creating outfits with smooth carousel selection and drag-and-drop composition.
+Modern two-step process for creating outfits with tab-based category selection and drag-and-drop composition.
 
 #### Entry modes
 
-- **Create New** - Starts at Step 1 (Item Selection)
+- **Create New** - Starts at Step 1 (Item Selection) with default tab
 - **Edit Existing** - Loads directly to Step 2 (Composition) with saved items
 
 #### Two-Step Process
 
-**Step 1: Item Selection (ItemSelectionStepNew)**
+**Step 1: Item Selection (ItemSelectionStepNew) with 4-Tab System**
 
 Layout:
 
 - Header: Back button, "Build Your Outfit" title, selected count badge
-- Body: Vertical stack of SmoothCarousels (one per category)
+- Tab Bar: 4 tabs for different category combinations
+  - **Tab 1: Basic** (👕) - 3 categories: tops, bottoms, footwear
+  - **Tab 2: Dress** (👗) - 3 categories: fullbody, footwear, accessories
+  - **Tab 3: All** (🔲) - 8 categories: all available
+  - **Tab 4: Custom** (⚙️) - user-configurable categories
+- Body: Vertical stack of SmoothCarousels (one per category in current tab)
   - Full-width edge-to-edge carousels
-  - Center item is selected
-  - Flag button on center item to activate/deactivate category
-  - Smooth momentum-based scrolling
+  - Center item selected (highlighted with border)
+  - Smooth momentum-based scrolling (deceleration: 0.985)
   - Infinite loop for seamless experience
-- Footer: Display mode switcher (All/Main/Extra) + Randomize + Next buttons
+- Footer: Randomize + Next buttons
 
-Interaction:
+Tab Interactions:
 
-- Scroll carousel horizontally to browse items
+- Tap tab to switch category set
+- Scroll carousels horizontally to browse items
 - Center item auto-selects
-- Tap flag button to toggle category active/inactive
-- Inactive categories show dimmed items (opacity: 0.4)
-- Switch display modes to filter categories
-- Randomize button picks random items for active categories
+- Randomize picks random items from current tab
+- Custom tab: tap again when active to enter edit mode
 - Next button → Step 2 (Composition)
 
 **Step 2: Composition (CompositionStep)**
@@ -572,15 +657,33 @@ Canvas Behaviors:
   - Season picker
   - Visibility (private/shared)
 - Save creates outfit record in Supabase
-- Stores item references + transforms (no image upload)
+- **Stores:**
+  - Item references + transforms
+  - Canvas settings (custom tab configuration)
+  - Background selection
 - Success → Navigate back to Outfits tab
+
+#### Data Persistence
+
+**Create Mode:**
+
+- Custom tab loaded from AsyncStorage (user preferences)
+- Default to Basic tab if no saved preference
+
+**Edit Mode:**
+
+- Custom tab loaded from outfit's `canvasSettings`
+- AsyncStorage NOT loaded to prevent data corruption
+- Backward compatibility for older outfits
 
 #### Technical Implementation
 
 **Active Components:**
 
 - `app/outfit/create.tsx` - Main screen coordinator
-- `components/outfit/ItemSelectionStepNew.tsx` - Step 1
+- `components/outfit/ItemSelectionStepNew.tsx` - Step 1 with tabs
+- `components/outfit/OutfitTabBar.tsx` - Tab navigation (NEW)
+- `components/outfit/CustomTabManager.tsx` - Inline editing (NEW)
 - `components/outfit/CategorySelectorWithSmooth.tsx` - Carousel container
 - `components/outfit/SmoothCarousel.tsx` - Individual carousel
 - `components/outfit/CompositionStep.tsx` - Step 2
@@ -590,15 +693,23 @@ Canvas Behaviors:
 
 **State Management:**
 
-- `store/outfit/outfitStore.ts` - Outfit state with undo/redo
-- creationStep (1 | 2)
-- selectedItemsForCreation
-- currentItems (placed items with transforms)
-- currentBackground
+- `store/outfit/outfitStore.ts` - Enhanced outfit state
+  - creationStep (1 | 2)
+  - activeTab ('basic' | 'dress' | 'all' | 'custom')
+  - customTabCategories (configurable)
+  - isCustomTabEditing
+  - selectedItemsForCreation
+  - currentItems (with transforms)
+  - currentBackground
+  - canvasSettings
+
+**Storage:**
+
+- `utils/storage/customTabStorage.ts` - AsyncStorage persistence
 
 **Services:**
 
-- `services/outfit/outfitService.ts` - CRUD operations
+- `services/outfit/outfitService.ts` - CRUD with canvasSettings
 
 ---
 
