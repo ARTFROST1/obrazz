@@ -16,6 +16,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { CropZoom, useImageResolution, type CropZoomRefType } from 'react-native-zoom-toolkit';
 import { CropOverlay } from './CropOverlay';
+import { ResizableCropOverlay } from './ResizableCropOverlay';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CROP_ASPECT_RATIO = 3 / 4; // width / height
@@ -35,6 +36,9 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 }) => {
   const cropRef = useRef<CropZoomRefType>(null);
   const [cropping, setCropping] = useState(false);
+  const [customCropSize, setCustomCropSize] = useState<{ width: number; height: number } | null>(
+    null,
+  );
 
   // Use the library's hook to get image resolution
   const { isFetching, resolution } = useImageResolution({ uri: imageUri });
@@ -97,7 +101,8 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
     return adaptiveCropSize;
   }, [resolution]);
 
-  const cropSize = getAdaptiveCropSize();
+  // Use custom size if set, otherwise use adaptive size
+  const cropSize = customCropSize || getAdaptiveCropSize();
 
   // Final output size - always 3:4 for consistency
   const FINAL_OUTPUT_SIZE = {
@@ -126,8 +131,17 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 
   const maxScale = calculateMaxScale();
 
-  // Render overlay function
-  const renderOverlay = () => <CropOverlay cropSize={cropSize} />;
+  // Handle crop size change from resizable overlay
+  const handleCropSizeChange = (newSize: { width: number; height: number }) => {
+    console.log('[ImageCropper] Crop size changed:', newSize);
+    setCustomCropSize(newSize);
+  };
+
+  // Render overlay function - only for CropZoom (static overlay)
+  const renderOverlay = () => {
+    // Always render static overlay for CropZoom
+    return <CropOverlay cropSize={cropSize} />;
+  };
 
   /**
    * Resize image to fit inside the crop frame using CONTAIN behavior
@@ -335,15 +349,20 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 
       console.log('[ImageCropper] Crop completed, resizing to fit if needed...');
 
-      // Step 1: Resize image to fit inside final 3:4 frame (CONTAIN behavior)
-      // Cropped image has original aspect ratio, resize to fit 3:4 output
-      const resizedImage = await resizeToFitCropFrame(croppedImage.uri, FINAL_OUTPUT_SIZE);
+      // Determine target size: use custom crop size if set, otherwise default to 3:4
+      const targetSize = customCropSize || FINAL_OUTPUT_SIZE;
+
+      console.log('[ImageCropper] Target output size:', targetSize);
+
+      // Step 1: Resize image to fit inside target frame (CONTAIN behavior)
+      // Cropped image has original aspect ratio, resize to fit target output
+      const resizedImage = await resizeToFitCropFrame(croppedImage.uri, targetSize);
 
       console.log('[ImageCropper] Resize complete, adding white background if needed...');
 
-      // Step 2: Add white background letterboxing to achieve perfect 3:4
-      // Resized image (with original aspect) is centered on 3:4 white canvas
-      const finalImage = await addWhiteBackgroundIfNeeded(resizedImage, FINAL_OUTPUT_SIZE);
+      // Step 2: Add white background letterboxing to achieve target size
+      // Resized image (with original aspect) is centered on target canvas
+      const finalImage = await addWhiteBackgroundIfNeeded(resizedImage, targetSize);
 
       console.log('[ImageCropper] Final image ready:', finalImage);
 
@@ -402,32 +421,44 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
           </View>
         ) : (
           /* CropZoom component with image */
-          <CropZoom
-            ref={cropRef}
-            cropSize={cropSize}
-            resolution={resolution}
-            maxScale={maxScale}
-            OverlayComponent={renderOverlay}
-            panMode="clamp"
-            scaleMode="bounce"
-          >
-            <RNImage
-              source={{ uri: imageUri }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMethod="scale"
-            />
-          </CropZoom>
+          <View style={{ flex: 1 }}>
+            {/* CropZoom layer - always active for zoom/pan */}
+            <CropZoom
+              ref={cropRef}
+              cropSize={cropSize}
+              resolution={resolution}
+              maxScale={maxScale}
+              OverlayComponent={renderOverlay}
+              panMode="clamp"
+              scaleMode="bounce"
+            >
+              <RNImage
+                source={{ uri: imageUri }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMethod="scale"
+              />
+            </CropZoom>
+
+            {/* Resizable overlay - rendered as separate layer ABOVE CropZoom */}
+            <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+              <ResizableCropOverlay
+                cropSize={cropSize}
+                onCropChange={handleCropSizeChange}
+                enabled={true}
+              />
+            </View>
+          </View>
         )}
 
         {/* Instructions */}
         {!isFetching && resolution && (
           <View style={styles.instructions}>
             <View style={styles.instructionRow}>
-              <Text style={styles.instructionIcon}>✋</Text>
-              <Text style={styles.instructionText}>Drag</Text>
-              <View style={styles.instructionDivider} />
               <Text style={styles.instructionIcon}>🤏</Text>
               <Text style={styles.instructionText}>Pinch to Zoom</Text>
+              <View style={styles.instructionDivider} />
+              <Text style={styles.instructionIcon}>✋</Text>
+              <Text style={styles.instructionText}>Drag Corners</Text>
             </View>
           </View>
         )}
