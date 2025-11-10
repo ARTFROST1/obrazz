@@ -2,6 +2,110 @@
 
 ## Recent Updates
 
+### ENHANCEMENT-004: Multi-Select & Bulk Delete for Wardrobe & Outfits
+
+**Date:** 2025-11-11  
+**Type:** Feature Enhancement  
+**Status:** ✅ Completed  
+**Priority:** Medium
+
+**Summary:**
+Добавлен функционал множественного выбора с массовым удалением для страниц Wardrobe и Outfits.
+
+**Features Implemented:**
+
+1. **Selection Mode:**
+   - Кнопка "Select" в правом верхнем углу на обеих страницах
+   - Переключение между обычным режимом и режимом выбора
+   - Visual feedback (checkbox indicator) на выбранных элементах
+   - Кнопка "Cancel" для выхода из режима выбора
+
+2. **Selection Controls:**
+   - "Select All / Deselect All" - выбрать/отменить все элементы
+   - "Delete (N)" - удалить выбранные элементы с подтверждением
+   - Disabled state для кнопки Delete когда ничего не выбрано
+   - Панель действий внизу экрана в режиме выбора
+
+3. **User Experience:**
+   - FAB скрывается в режиме выбора
+   - Favorite button скрывается в режиме выбора (только для ItemCard)
+   - При клике на элемент в режиме выбора - toggle selection
+   - При выходе из режима выбора - снимается весь выбор
+   - ✅ Убраны всплывающие сообщения об успешном удалении (по требованию пользователя)
+
+**Files Modified:**
+
+1. **Components:**
+   - `components/wardrobe/ItemCard.tsx` - добавлены props: `isSelectable`, `isSelected`
+   - `components/wardrobe/ItemGrid.tsx` - добавлены props: `isSelectable`, `selectedItems`
+   - `components/outfit/OutfitCard.tsx` - уже имел поддержку выбора (props существовали)
+   - `components/outfit/OutfitGrid.tsx` - добавлены props: `isSelectable`, `selectedOutfits`
+
+2. **Screens:**
+   - `app/(tabs)/wardrobe.tsx`:
+     - Добавлен state: `isSelectionMode`, `selectedItems`
+     - Добавлена кнопка "Select" в header
+     - Добавлены handlers: `handleToggleSelectionMode`, `handleSelectAll`, `handleDeleteSelected`
+     - Добавлена панель действий `selectionActions`
+     - FAB скрывается в режиме выбора
+   - `app/(tabs)/outfits.tsx`:
+     - Добавлен state: `isSelectionMode`, `selectedOutfits`
+     - Добавлена кнопка "Select" в header
+     - Добавлены handlers: `handleToggleSelectionMode`, `handleSelectAll`, `handleDeleteSelected`
+     - Добавлена панель действий `selectionActions`
+     - FAB скрывается в режиме выбора
+     - ✅ Убран `Alert.alert('Success', ...)` после удаления образа
+
+**Technical Details:**
+
+- **Selection State:** Используется `Set<string>` для оптимальной проверки O(1)
+- **Bulk Delete:** `Promise.all()` для параллельного удаления всех выбранных элементов
+- **Atomic Operations:** После удаления автоматически перезагружается список
+- **Dark Mode Support:** Все стили адаптированы под светлую и темную темы
+- **Responsive Design:** Кнопки и панели корректно отображаются на всех экранах
+
+**Testing Checklist:**
+
+- [x] Режим выбора включается/выключается корректно
+- [x] Visual feedback при выборе элементов
+- [x] Select All работает корректно
+- [x] Deselect All работает корректно
+- [x] Массовое удаление с подтверждением
+- [x] FAB скрывается в режиме выбора
+- [x] Favorite button скрывается в режиме выбора
+- [x] При выходе из режима selection снимается
+- [x] Dark mode поддержка
+- [x] Нет всплывающих сообщений после успешного удаления
+
+**User Impact:** Позитивный. Упрощено управление большими коллекциями вещей и образов.
+
+**Hotfix (2025-11-11 00:26):**
+
+- ✅ Исправлено позиционирование панели действий - добавлен `paddingBottom` (iOS: 34px, Android: 20px)
+- ✅ Увеличен `paddingBottom` в ItemGrid (Android: 120px) и OutfitGrid (Android: 130px)
+- ✅ Кнопки теперь не перекрываются bottom navigation bar
+
+**Hotfix (2025-11-11 00:28):**
+
+- ✅ Кнопки Select All и Delete перемещены в верхнюю панель (filter bar)
+- ✅ В режиме выбора фильтры заменяются на кнопки действий
+- ✅ **Wardrobe:** Кнопки в filter bar вместо низа экрана
+- ✅ **Outfits:** Кнопки в filter chips area вместо низа экрана
+- ✅ Убрана нижняя панель действий - весь UI теперь в верхней части
+- ✅ Улучшенная UX - нет необходимости скроллить вниз для действий
+- ✅ Возвращен нормальный padding в Grid компонентах (ItemGrid: 80px, OutfitGrid: 90px на Android)
+
+**Hotfix (2025-11-11 00:35):**
+
+- ✅ Унифицированы стили кнопок на обеих страницах
+- ✅ `borderRadius: 20` (более закругленные кнопки)
+- ✅ `fontSize: 13` (одинаковый размер текста)
+- ✅ `flex: 1` (одинаковая ширина кнопок с ровным разделением по центру)
+- ✅ `gap: 8` (одинаковое расстояние между кнопками)
+- ✅ Динамические backgroundColor и borderColor на обеих страницах
+
+---
+
 ### DEBUG-SESSION-001: Full Project Debug & Code Quality Check
 
 **Date:** 2025-11-10  

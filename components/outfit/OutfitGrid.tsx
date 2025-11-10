@@ -26,6 +26,8 @@ export interface OutfitGridProps {
   onFavoritePress?: (outfit: Outfit) => void;
   EmptyComponent?: React.ComponentType<any>;
   numColumns?: number;
+  isSelectable?: boolean;
+  selectedOutfits?: Set<string>;
 }
 
 /**
@@ -58,6 +60,8 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
   onFavoritePress,
   EmptyComponent,
   numColumns = 2,
+  isSelectable = false,
+  selectedOutfits = new Set(),
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -76,6 +80,8 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
         onDelete={onOutfitDelete}
         onShare={onOutfitShare}
         onFavoritePress={onFavoritePress}
+        isSelectable={isSelectable}
+        isSelected={selectedOutfits.has(item.id)}
       />
     </View>
   );

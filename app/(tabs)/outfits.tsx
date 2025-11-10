@@ -59,6 +59,8 @@ export default function OutfitsScreen() {
     sortBy: 'newest',
     isFavorite: undefined,
   });
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedOutfits, setSelectedOutfits] = useState<Set<string>>(new Set());
 
   // ✅ Load outfits when screen is focused (after creating/editing)
   useFocusEffect(
@@ -102,7 +104,20 @@ export default function OutfitsScreen() {
   }, []);
 
   const handleOutfitPress = (outfit: Outfit) => {
-    router.push(`/outfit/${outfit.id}`);
+    if (isSelectionMode) {
+      // Toggle selection
+      setSelectedOutfits((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(outfit.id)) {
+          newSet.delete(outfit.id);
+        } else {
+          newSet.add(outfit.id);
+        }
+        return newSet;
+      });
+    } else {
+      router.push(`/outfit/${outfit.id}`);
+    }
   };
 
   const handleCreateOutfit = () => {
@@ -154,7 +169,7 @@ export default function OutfitsScreen() {
               setLoading(true);
               await outfitService.deleteOutfit(outfit.id);
               removeOutfitFromStore(outfit.id);
-              Alert.alert('Success', 'Outfit deleted successfully');
+              // ✅ No success message as per user request
             } catch (error) {
               console.error('Error deleting outfit:', error);
               Alert.alert('Error', 'Failed to delete outfit');
@@ -197,6 +212,55 @@ export default function OutfitsScreen() {
 
   const handleApplyFilters = (filters: OutfitFilterState) => {
     setOutfitFilters(filters);
+  };
+
+  const handleToggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedOutfits(new Set());
+  };
+
+  const handleSelectAll = () => {
+    if (selectedOutfits.size === filteredOutfits.length) {
+      setSelectedOutfits(new Set());
+    } else {
+      setSelectedOutfits(new Set(filteredOutfits.map((outfit) => outfit.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedOutfits.size === 0) return;
+
+    Alert.alert(
+      'Delete Outfits',
+      `Are you sure you want to delete ${selectedOutfits.size} ${selectedOutfits.size === 1 ? 'outfit' : 'outfits'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              // Delete all selected outfits
+              await Promise.all(
+                Array.from(selectedOutfits).map((outfitId) => outfitService.deleteOutfit(outfitId)),
+              );
+              // Reload outfits
+              await loadOutfits();
+              // Exit selection mode
+              setIsSelectionMode(false);
+              setSelectedOutfits(new Set());
+              // ✅ No success message as per user request
+            } catch (error) {
+              console.error('Error deleting outfits:', error);
+              Alert.alert('Error', 'Failed to delete some outfits');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   // Filter and sort outfits
@@ -291,6 +355,13 @@ export default function OutfitsScreen() {
             <Text style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
               My Outfits
             </Text>
+            <TouchableOpacity
+              style={styles.selectButton}
+              onPress={handleToggleSelectionMode}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.selectButtonText}>{isSelectionMode ? 'Cancel' : 'Select'}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -312,165 +383,213 @@ export default function OutfitsScreen() {
         )}
       </View>
 
-      {/* Filter Chips */}
+      {/* Filter Chips / Selection Actions */}
       <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'all' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'all'
-                  ? isDark
-                    ? '#FFFFFF'
-                    : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('all')}
-        >
-          <Text
-            style={[
-              styles.filterChipText,
-              {
-                color:
-                  filterBy === 'all'
-                    ? isDark
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : isDark
-                      ? '#FFFFFF'
-                      : '#000000',
-              },
-            ]}
-          >
-            All
-          </Text>
-        </TouchableOpacity>
+        {isSelectionMode ? (
+          // Selection Mode Actions
+          <>
+            <TouchableOpacity
+              style={[
+                styles.selectionActionButton,
+                {
+                  backgroundColor: isDark ? '#2C2C2E' : '#FFF',
+                  borderColor: isDark ? '#38383A' : '#E5E5E5',
+                },
+              ]}
+              onPress={handleSelectAll}
+            >
+              <Ionicons name="checkmark-done" size={20} color={isDark ? '#FFFFFF' : '#000'} />
+              <Text style={[styles.selectionActionText, { color: isDark ? '#FFFFFF' : '#000' }]}>
+                {selectedOutfits.size === filteredOutfits.length ? 'Deselect All' : 'Select All'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.selectionActionButton,
+                styles.deleteActionButton,
+                {
+                  backgroundColor: isDark ? '#2C2C2E' : '#FFF',
+                  borderColor: isDark ? '#38383A' : '#E5E5E5',
+                },
+                selectedOutfits.size === 0 && styles.disabledButton,
+              ]}
+              onPress={handleDeleteSelected}
+              disabled={selectedOutfits.size === 0}
+            >
+              <Ionicons
+                name="trash"
+                size={20}
+                color={selectedOutfits.size === 0 ? '#CCC' : '#FF3B30'}
+              />
+              <Text
+                style={[styles.deleteActionText, selectedOutfits.size === 0 && styles.disabledText]}
+              >
+                Delete ({selectedOutfits.size})
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          // Normal Filter Mode
+          <>
+            <TouchableOpacity
+              style={[
+                styles.filterChip,
+                filterBy === 'all' && styles.filterChipActive,
+                {
+                  backgroundColor:
+                    filterBy === 'all'
+                      ? isDark
+                        ? '#FFFFFF'
+                        : '#000000'
+                      : isDark
+                        ? '#2C2C2E'
+                        : '#F8F8F8',
+                },
+              ]}
+              onPress={() => handleFilterChange('all')}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color:
+                      filterBy === 'all'
+                        ? isDark
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : isDark
+                          ? '#FFFFFF'
+                          : '#000000',
+                  },
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'private' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'private'
-                  ? isDark
-                    ? '#FFFFFF'
-                    : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('private')}
-        >
-          <Ionicons
-            name="lock-closed"
-            size={14}
-            color={
-              filterBy === 'private'
-                ? isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : isDark
-                  ? '#FFFFFF'
-                  : '#000000'
-            }
-          />
-          <Text
-            style={[
-              styles.filterChipText,
-              {
-                color:
+            <TouchableOpacity
+              style={[
+                styles.filterChip,
+                filterBy === 'private' && styles.filterChipActive,
+                {
+                  backgroundColor:
+                    filterBy === 'private'
+                      ? isDark
+                        ? '#FFFFFF'
+                        : '#000000'
+                      : isDark
+                        ? '#2C2C2E'
+                        : '#F8F8F8',
+                },
+              ]}
+              onPress={() => handleFilterChange('private')}
+            >
+              <Ionicons
+                name="lock-closed"
+                size={14}
+                color={
                   filterBy === 'private'
                     ? isDark
                       ? '#000000'
                       : '#FFFFFF'
                     : isDark
                       ? '#FFFFFF'
-                      : '#000000',
-              },
-            ]}
-          >
-            Private
-          </Text>
-        </TouchableOpacity>
+                      : '#000000'
+                }
+              />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color:
+                      filterBy === 'private'
+                        ? isDark
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : isDark
+                          ? '#FFFFFF'
+                          : '#000000',
+                  },
+                ]}
+              >
+                Private
+              </Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            filterBy === 'shared' && styles.filterChipActive,
-            {
-              backgroundColor:
-                filterBy === 'shared'
-                  ? isDark
-                    ? '#FFFFFF'
-                    : '#000000'
-                  : isDark
-                    ? '#2C2C2E'
-                    : '#F8F8F8',
-            },
-          ]}
-          onPress={() => handleFilterChange('shared')}
-        >
-          <Ionicons
-            name="people"
-            size={14}
-            color={
-              filterBy === 'shared'
-                ? isDark
-                  ? '#000000'
-                  : '#FFFFFF'
-                : isDark
-                  ? '#FFFFFF'
-                  : '#000000'
-            }
-          />
-          <Text
-            style={[
-              styles.filterChipText,
-              {
-                color:
+            <TouchableOpacity
+              style={[
+                styles.filterChip,
+                filterBy === 'shared' && styles.filterChipActive,
+                {
+                  backgroundColor:
+                    filterBy === 'shared'
+                      ? isDark
+                        ? '#FFFFFF'
+                        : '#000000'
+                      : isDark
+                        ? '#2C2C2E'
+                        : '#F8F8F8',
+                },
+              ]}
+              onPress={() => handleFilterChange('shared')}
+            >
+              <Ionicons
+                name="people"
+                size={14}
+                color={
                   filterBy === 'shared'
                     ? isDark
                       ? '#000000'
                       : '#FFFFFF'
                     : isDark
                       ? '#FFFFFF'
-                      : '#000000',
-              },
-            ]}
-          >
-            Shared
-          </Text>
-        </TouchableOpacity>
+                      : '#000000'
+                }
+              />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color:
+                      filterBy === 'shared'
+                        ? isDark
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : isDark
+                          ? '#FFFFFF'
+                          : '#000000',
+                  },
+                ]}
+              >
+                Shared
+              </Text>
+            </TouchableOpacity>
 
-        {/* Filter Button */}
-        <TouchableOpacity
-          style={[
-            styles.filterButtonRight,
-            { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
-            hasActiveFilters && styles.filterButtonActive,
-          ]}
-          onPress={() => setShowFilterMenu(true)}
-        >
-          <Ionicons
-            name="filter"
-            size={16}
-            color={hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000'}
-          />
-          <Text
-            style={[
-              styles.filterButtonRightText,
-              { color: hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000' },
-            ]}
-          >
-            Filter
-          </Text>
-        </TouchableOpacity>
+            {/* Filter Button */}
+            <TouchableOpacity
+              style={[
+                styles.filterButtonRight,
+                { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
+                hasActiveFilters && styles.filterButtonActive,
+              ]}
+              onPress={() => setShowFilterMenu(true)}
+            >
+              <Ionicons
+                name="filter"
+                size={16}
+                color={hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000'}
+              />
+              <Text
+                style={[
+                  styles.filterButtonRightText,
+                  { color: hasActiveFilters ? '#FFF' : isDark ? '#FFFFFF' : '#000000' },
+                ]}
+              >
+                Filter
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* Results Count */}
@@ -510,16 +629,20 @@ export default function OutfitsScreen() {
         onOutfitShare={handleShareOutfit}
         onFavoritePress={handleFavoritePress}
         EmptyComponent={() => <OutfitEmptyState onCreatePress={handleCreateOutfit} />}
+        isSelectable={isSelectionMode}
+        selectedOutfits={selectedOutfits}
       />
 
       {/* FAB - Create New Outfit */}
-      <FAB
-        icon="add"
-        onPress={handleCreateOutfit}
-        backgroundColor={isDark ? '#FFFFFF' : '#000000'}
-        iconColor={isDark ? '#000000' : '#FFFFFF'}
-        accessibilityLabel="Create new outfit"
-      />
+      {!isSelectionMode && (
+        <FAB
+          icon="add"
+          onPress={handleCreateOutfit}
+          backgroundColor={isDark ? '#FFFFFF' : '#000000'}
+          iconColor={isDark ? '#000000' : '#FFFFFF'}
+          accessibilityLabel="Create new outfit"
+        />
+      )}
 
       {/* Outfit Filter Modal */}
       <OutfitFilter
@@ -547,6 +670,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     // borderBottomColor set dynamically
   },
   headerTitle: {
@@ -624,5 +750,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#007AFF',
     fontWeight: '500',
+  },
+  selectButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  selectButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  selectionActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  selectionActionText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  deleteActionButton: {
+    // Specific styles for delete button
+  },
+  deleteActionText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    color: '#CCC',
   },
 });

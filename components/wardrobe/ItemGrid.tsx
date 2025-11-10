@@ -21,6 +21,8 @@ interface ItemGridProps {
   emptyMessage?: string;
   ListHeaderComponent?: React.ReactElement;
   ListFooterComponent?: React.ReactElement;
+  isSelectable?: boolean;
+  selectedItems?: Set<string>;
 }
 
 export const ItemGrid: React.FC<ItemGridProps> = ({
@@ -33,9 +35,17 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   emptyMessage = 'No items in your wardrobe yet',
   ListHeaderComponent,
   ListFooterComponent,
+  isSelectable = false,
+  selectedItems = new Set(),
 }) => {
   const renderItem = ({ item }: { item: WardrobeItem }) => (
-    <ItemCard item={item} onPress={onItemPress} onFavoritePress={onFavoritePress} />
+    <ItemCard
+      item={item}
+      onPress={onItemPress}
+      onFavoritePress={onFavoritePress}
+      isSelectable={isSelectable}
+      isSelected={selectedItems.has(item.id)}
+    />
   );
 
   const renderEmpty = () => {
