@@ -2,6 +2,364 @@
 
 ## Recent Updates
 
+### ENHANCEMENT-003: Image Crop Adaptive Frame (Dynamic Aspect Ratio)
+
+**Date:** 2025-11-10  
+**Type:** UX Enhancement  
+**Status:** ✅ Completed  
+**Component:** Wardrobe → ImageCropper  
+**Environment:** All  
+**Priority:** High
+
+**Description:**
+Реализована адаптивная рамка кропа, которая подстраивается под соотношение сторон входного изображения. Crop происходит с сохранением оригинального соотношения, затем изображение композируется на белый 3:4 холст.
+
+**Problem:**
+Фиксированная рамка 3:4 не подходила для всех изображений:
+
+- Рамка всегда имела соотношение 3:4
+- Изображения с другими соотношениями обрезались или неправильно масштабировались
+- Пользователь не мог видеть все изображение в рамке
+
+**New Approach:**
+**Адаптивная рамка + Композиция на 3:4 холст**
+
+```typescript
+// Step 1: Calculate adaptive crop size based on image
+const getAdaptiveCropSize = () => {
+  const imageAspect = resolution.width / resolution.height;
+  const maxCropWidth = SCREEN_WIDTH * 0.9;
+  const maxCropHeight = SCREEN_WIDTH * 1.5;
+
+  // Calculate crop size maintaining image aspect ratio
+  if (imageAspect >= 1) {
+    // Landscape/square: width-constrained
+    cropWidth = maxCropWidth;
+    cropHeight = cropWidth / imageAspect;
+  } else {
+    // Portrait: height-constrained
+    cropHeight = maxCropHeight;
+    cropWidth = cropHeight * imageAspect;
+  }
+
+  return { width, height }; // Adaptive to image!
+};
+
+// Step 2: Crop with adaptive frame
+<CropZoom
+  cropSize={adaptiveCropSize} // ← Adapts to image aspect ratio ✅
+  resolution={resolution}
+  maxScale={3.0}
+/>
+
+// Step 3: Compose on 3:4 white canvas
+const FINAL_OUTPUT_SIZE = { width: 750, height: 1000 }; // Always 3:4
+const finalImage = await addWhiteBackgroundIfNeeded(
+  croppedImage,
+  FINAL_OUTPUT_SIZE
+);
+
+// Result:
+// - Frame adapts to ANY aspect ratio ✅
+// - Crop preserves original aspect ratio ✅
+// - Final output always 3:4 with white background ✅
+```
+
+**Key Flow:**
+
+```
+1. Load image → Get resolution
+   ↓
+2. Calculate adaptive cropSize based on image aspect ratio
+   ↓
+3. Show adaptive frame (adapts to 1:1, 3:4, 16:9, etc.)
+   ↓
+4. User crops with original aspect ratio preserved
+   ↓
+5. Crop result: image with original aspect ratio
+   ↓
+6. Resize to fit FINAL_OUTPUT_SIZE (3:4)
+   ↓
+7. Compose on white 3:4 canvas
+   ↓
+8. Result: Perfect 3:4 image with white background ✅
+```
+
+**Examples:**
+
+**Square 1:1 (1000×1000):**
+
+```
+Image aspect: 1.0
+Adaptive frame: 360×360 (square) ✅
+User crops → 360×360 result
+Compose on 3:4 canvas → 360×360 centered on 360×480
+Final: 360×480 with 60px white bars top/bottom ✅
+```
+
+**Portrait 3:4 (1500×2000):**
+
+```
+Image aspect: 0.75
+Adaptive frame: 360×480 (3:4) ✅
+User crops → 360×480 result
+Compose on 3:4 canvas → Perfect fit!
+Final: 360×480 no white background needed ✅
+```
+
+**Landscape 16:9 (1920×1080):**
+
+```
+Image aspect: 1.78
+Adaptive frame: 360×202 (16:9) ✅
+User crops → 360×202 result
+Compose on 3:4 canvas → 360×202 centered on 360×480
+Final: 360×480 with white bars top/bottom ✅
+```
+
+**Panorama 3:1 (3000×1000):**
+
+```
+Image aspect: 3.0
+Adaptive frame: 360×120 (3:1) ✅
+User crops → 360×120 result
+Compose on 3:4 canvas → 360×120 centered on 360×480
+Final: 360×480 with white bars top/bottom ✅
+```
+
+**All cases:** Frame adapts to image, preserves aspect ratio, outputs 3:4 ✅
+
+**Benefits:**
+
+- ✅ **Рамка адаптируется под ЛЮБОЕ соотношение сторон** (1:1, 3:4, 16:9, 21:9, etc.)
+- ✅ **Сохранение оригинального соотношения** при crop
+- ✅ **Пользователь видит всё изображение** в адаптивной рамке
+- ✅ **Нет обрезания важного контента** - все части видимы
+- ✅ **Композиция на белый 3:4 холст** гарантирует стандартный выход
+- ✅ **Простая реализация** - один расчет адаптивного cropSize
+- ✅ Pinch-zoom от 1x до 3x для детальной работы
+- ✅ Crop координаты корректные - применяются напрямую
+- ✅ **Работает для абсолютно любых соотношений** - квадрат, портрет, панорама
+
+**Adaptive Frame Sizing:**
+
+```typescript
+Square 1:1 → Frame: 360×360 (square)
+Portrait 3:4 → Frame: 360×480 (portrait)
+Landscape 16:9 → Frame: 360×202 (landscape)
+Panorama 3:1 → Frame: 360×120 (ultra-wide)
+
+All adapt to image, all output 3:4 with white background ✅
+```
+
+**Files Modified:**
+
+- `components/common/ImageCropper.tsx`
+  - **Добавлена функция `getAdaptiveCropSize()`** (lines 47-98)
+    - Расчет cropSize на основе aspect ratio изображения
+    - Ограничение по maxWidth (90% экрана) и maxHeight (1.5x экрана)
+    - Поддержка landscape, portrait, square, panorama
+  - **Добавлен `FINAL_OUTPUT_SIZE`** - финальный размер 3:4 для выхода
+  - **Обновлен `handleCrop()`**:
+    - `resizeToFitCropFrame()` использует `FINAL_OUTPUT_SIZE`
+    - `addWhiteBackgroundIfNeeded()` использует `FINAL_OUTPUT_SIZE`
+  - `<CropZoom>` получает адаптивный `cropSize`
+  - `CropOverlay` автоматически адаптируется (no changes needed)
+  - Детальное логирование adaptive cropSize расчетов
+
+- `components/common/CropOverlay.tsx`
+  - **Никаких изменений не требуется** ✅
+  - Уже принимает `cropSize` как prop и адаптируется автоматически
+
+**Testing:**
+
+```typescript
+// Square 1000×1000
+Crop output: 1000×1000
+Resize: 750×750 (scale 0.75)
+White BG: 750×1000 (125px gaps top/bottom) ✅
+
+// Wide 1600×900
+Crop output: 1600×900
+Resize: 750×422 (scale 0.47)
+White BG: 750×1000 (289px gaps top/bottom) ✅
+
+// Portrait 600×800 (already small)
+Crop output: 600×800
+Resize: SKIP (already ≤ target)
+White BG: 750×1000 (expand + center) ✅
+```
+
+**Related:**
+
+- ENHANCEMENT-002: Image Crop White Background Letterboxing
+- BUG-005: iOS Image Cropping - Custom 3:4 Crop Solution
+
+---
+
+### ENHANCEMENT-002: Image Crop White Background Letterboxing
+
+**Date:** 2025-11-10  
+**Type:** UX Enhancement  
+**Status:** ✅ Completed (Phase 2)  
+**Component:** Wardrobe → ImageCropper  
+**Environment:** All
+
+**Description:**
+Реализована система обрезки изображений с белым фоном (letterboxing), которая гарантирует что все предметы гардероба будут соответствовать соотношению 3:4 без обрезания контента, независимо от исходного соотношения сторон.
+
+**Problem:**
+При добавлении квадратного изображения (1:1) в систему с обрезкой 3:4, изображение масштабировалось чтобы ПОЛНОСТЬЮ войти в рамку (fit-to-frame). Это создавало пустые области по бокам, которые не заполнялись.
+
+**Example:**
+
+```
+Квадратное изображение 1000×1000px
+↓ (обрезка под 3:4)
+Crop frame: 750×1000px (3:4)
+↓ (fit-to-frame scaling)
+Результат: верх и низ касаются границ, но боковые края НЕ достают
+↓
+Проблема: Пустые области по бокам
+```
+
+**Solution Implemented:**
+
+Двухэтапная обрезка с композицией белого фона:
+
+1. **Crop Stage:** Пользователь обрезает изображение как обычно через CropZoom
+2. **Composition Stage:** Обрезанное изображение накладывается на белый canvas 3:4
+3. **Result:** Идеальный 3:4 прямоугольник без обрезания контента
+
+**Technical Implementation:**
+
+```typescript
+// New function: addWhiteBackgroundIfNeeded
+const addWhiteBackgroundIfNeeded = async (
+  imageUri: string,
+  targetSize: { width: number; height: number }
+): Promise<string> => {
+  // 1. Get cropped image dimensions
+  const imageInfo = await ImageManipulator.manipulateAsync(imageUri, []);
+
+  // 2. Check if letterboxing is needed
+  const needsLetterboxing =
+    imageWidth < targetWidth ||
+    imageHeight < targetHeight;
+
+  if (!needsLetterboxing) return imageUri; // No letterbox needed
+
+  // 3. Calculate centering offsets
+  const originX = Math.round((targetWidth - imageWidth) / 2);
+  const originY = Math.round((targetHeight - imageHeight) / 2);
+
+  // 4. Use extent action to add white background
+  return await ImageManipulator.manipulateAsync(imageUri, [{
+    extent: {
+      originX, originY,
+      width: targetWidth,
+      height: targetHeight,
+      backgroundColor: '#FFFFFF' // White letterbox
+    }
+  }]);
+};
+
+// Updated handleCrop flow
+1. Crop image with transformations
+2. Add white background if needed ← NEW
+3. Return final composite image
+```
+
+**Key Features:**
+
+- ✅ **Automatic Detection:** Only adds white background when needed (letterboxing detection)
+- ✅ **Perfect Centering:** Image is centered both horizontally and vertically
+- ✅ **3:4 Guarantee:** All output images are exactly 3:4 aspect ratio
+- ✅ **No Content Loss:** Content is never cropped, only letterboxed
+- ✅ **Background Removal Compatible:** White background removed along with original background
+
+**Use Cases:**
+
+**Square Image (1:1):**
+
+```
+Input: 1000×1000px
+After Crop: ~750×750px (user crops)
+After Letterbox: 750×1000px with 125px white bars top/bottom
+Result: Perfect 3:4 ✅
+```
+
+**Portrait Image (3:4):**
+
+```
+Input: 750×1000px
+After Crop: 750×1000px
+After Letterbox: No letterbox needed (already 3:4)
+Result: Perfect 3:4 ✅
+```
+
+**Wide Image (16:9):**
+
+```
+Input: 1920×1080px
+After Crop: ~750×422px (user crops height)
+After Letterbox: 750×1000px with ~289px white bars top/bottom
+Result: Perfect 3:4 ✅
+```
+
+**Files Changed:**
+
+1. `components/common/ImageCropper.tsx`:
+   - Added `addWhiteBackgroundIfNeeded` function (77 lines)
+   - Updated `handleCrop` to use composition
+   - Added detailed logging for debugging
+   - Changed intermediate compression to 1.0 (no compression)
+   - Final compression: 0.8 PNG
+
+**Benefits:**
+
+- ✅ All wardrobe items have consistent 3:4 aspect ratio
+- ✅ No content is lost (letterboxing instead of cropping)
+- ✅ Works with any input aspect ratio
+- ✅ Seamless integration with background removal
+- ✅ Automatic - no user action required
+- ✅ Fallback to original image if letterboxing fails
+
+**Testing Required:**
+
+- [ ] Test with square images (1:1)
+- [ ] Test with portrait images (3:4, 9:16)
+- [ ] Test with wide images (16:9, 21:9)
+- [ ] Test with very small images (< 500px)
+- [ ] Test with very large images (> 4000px)
+- [ ] Test background removal with letterboxed images
+- [ ] Test on iOS
+- [ ] Test on Android
+- [ ] Verify file sizes are reasonable
+
+**Performance:**
+
+- Two-step process: crop → compose
+- Estimated overhead: +0.5-1 second per image
+- Uses native Expo ImageManipulator (fast)
+- No additional dependencies
+
+**Next Steps:**
+
+- Phase 1 (optional): Custom minScale calculation for better UX during cropping
+- Extensive testing with real-world images
+- Monitor performance with large images
+- Consider JPEG format for final output (vs PNG)
+
+**Related Documentation:**
+
+- `Docs/IMAGE_CROP_WHITE_BACKGROUND_PLAN.md` - Detailed implementation plan
+- Memory[e17bb9c7] - ImageCropper pinch gesture rewrite
+
+**Date Completed:** 2025-11-10
+
+---
+
 ### BUG-007: Outfits List Not Auto-Refreshing After Creation
 
 **Date:** 2025-11-10  

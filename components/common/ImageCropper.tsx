@@ -39,17 +39,252 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   // Use the library's hook to get image resolution
   const { isFetching, resolution } = useImageResolution({ uri: imageUri });
 
-  // Calculate crop size (3:4 aspect ratio, 90% of screen width)
-  const cropSize = {
+  /**
+   * Calculate adaptive crop size based on image aspect ratio
+   * Frame adapts to image, ensuring it fits within screen bounds
+   * This allows cropping with original aspect ratio preserved
+   */
+  const getAdaptiveCropSize = React.useCallback(() => {
+    if (!resolution) {
+      // Fallback to 3:4 while loading
+      return {
+        width: SCREEN_WIDTH * 0.9,
+        height: (SCREEN_WIDTH * 0.9) / CROP_ASPECT_RATIO,
+      };
+    }
+
+    const imageAspect = resolution.width / resolution.height;
+    const maxCropWidth = SCREEN_WIDTH * 0.9;
+    const maxCropHeight = SCREEN_WIDTH * 1.5; // Reasonable maximum height
+
+    let cropWidth: number;
+    let cropHeight: number;
+
+    if (imageAspect >= 1) {
+      // Landscape or square: constrain by width first
+      cropWidth = maxCropWidth;
+      cropHeight = cropWidth / imageAspect;
+
+      // If height exceeds max, recalculate from height
+      if (cropHeight > maxCropHeight) {
+        cropHeight = maxCropHeight;
+        cropWidth = cropHeight * imageAspect;
+      }
+    } else {
+      // Portrait: constrain by height first
+      cropHeight = maxCropHeight;
+      cropWidth = cropHeight * imageAspect;
+
+      // If width exceeds max, recalculate from width
+      if (cropWidth > maxCropWidth) {
+        cropWidth = maxCropWidth;
+        cropHeight = cropWidth / imageAspect;
+      }
+    }
+
+    const adaptiveCropSize = {
+      width: Math.round(cropWidth),
+      height: Math.round(cropHeight),
+    };
+
+    console.log('[ImageCropper] Calculated adaptive crop size:', {
+      imageResolution: resolution,
+      imageAspect: imageAspect.toFixed(3),
+      adaptiveCropSize,
+      explanation: 'Frame adapts to image aspect ratio',
+    });
+
+    return adaptiveCropSize;
+  }, [resolution]);
+
+  const cropSize = getAdaptiveCropSize();
+
+  // Final output size - always 3:4 for consistency
+  const FINAL_OUTPUT_SIZE = {
     width: SCREEN_WIDTH * 0.9,
     height: (SCREEN_WIDTH * 0.9) / CROP_ASPECT_RATIO,
   };
 
+  /**
+   * Calculate maxScale to allow sufficient zoom beyond COVER
+   * Library default maxScale prevents pixelation, but we want more freedom
+   */
+  const calculateMaxScale = React.useCallback(() => {
+    if (!resolution) return undefined;
+
+    // Allow zooming up to 3x from the minimum (CONTAIN) position
+    // This gives plenty of room for detail work while avoiding extreme pixelation
+    const maxScale = 3.0;
+
+    console.log('[ImageCropper] Calculated maxScale:', {
+      resolution,
+      maxScale,
+    });
+
+    return maxScale;
+  }, [resolution]);
+
+  const maxScale = calculateMaxScale();
+
   // Render overlay function
   const renderOverlay = () => <CropOverlay cropSize={cropSize} />;
 
+  /**
+   * Resize image to fit inside the crop frame using CONTAIN behavior
+   * This ensures the image is never larger than the target size
+   */
+  const resizeToFitCropFrame = async (
+    imageUri: string,
+    targetSize: { width: number; height: number },
+  ): Promise<string> => {
+    try {
+      console.log('[ImageCropper] Checking if resize is needed...');
+
+      // Get actual cropped image dimensions
+      const imageInfo = await ImageManipulator.manipulateAsync(imageUri, [], {
+        compress: 1.0,
+        format: ImageManipulator.SaveFormat.PNG,
+      });
+
+      const imageWidth = imageInfo.width;
+      const imageHeight = imageInfo.height;
+      const targetWidth = Math.round(targetSize.width);
+      const targetHeight = Math.round(targetSize.height);
+
+      console.log('[ImageCropper] Image dimensions:', { width: imageWidth, height: imageHeight });
+      console.log('[ImageCropper] Target dimensions:', {
+        width: targetWidth,
+        height: targetHeight,
+      });
+
+      // Check if image is larger than target (needs to be scaled down)
+      const needsResize = imageWidth > targetWidth || imageHeight > targetHeight;
+
+      if (!needsResize) {
+        console.log('[ImageCropper] No resize needed - image fits in target size');
+        return imageUri;
+      }
+
+      // Calculate scale to fit inside target (CONTAIN behavior)
+      const widthScale = targetWidth / imageWidth;
+      const heightScale = targetHeight / imageHeight;
+      const scale = Math.min(widthScale, heightScale); // Use min to ensure it fits
+
+      const newWidth = Math.round(imageWidth * scale);
+      const newHeight = Math.round(imageHeight * scale);
+
+      console.log('[ImageCropper] Resizing image:', {
+        originalSize: { width: imageWidth, height: imageHeight },
+        scale,
+        newSize: { width: newWidth, height: newHeight },
+      });
+
+      // Resize the image to fit inside target
+      const result = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [
+          {
+            resize: {
+              width: newWidth,
+              height: newHeight,
+            },
+          },
+        ],
+        {
+          compress: 1.0,
+          format: ImageManipulator.SaveFormat.PNG,
+        },
+      );
+
+      console.log('[ImageCropper] Image resized successfully:', result.uri);
+      return result.uri;
+    } catch (error) {
+      console.error('[ImageCropper] Error resizing image:', error);
+      console.warn('[ImageCropper] Falling back to original cropped image');
+      return imageUri;
+    }
+  };
+
+  /**
+   * Add white background to image if it doesn't fill the target size
+   * This ensures all wardrobe items are exactly 3:4 aspect ratio without cropping content
+   */
+  const addWhiteBackgroundIfNeeded = async (
+    imageUri: string,
+    targetSize: { width: number; height: number },
+  ): Promise<string> => {
+    try {
+      console.log('[ImageCropper] Checking if white background is needed...');
+
+      // Get actual cropped image dimensions
+      const imageInfo = await ImageManipulator.manipulateAsync(imageUri, [], {
+        compress: 1.0,
+        format: ImageManipulator.SaveFormat.PNG,
+      });
+
+      const imageWidth = imageInfo.width;
+      const imageHeight = imageInfo.height;
+
+      // Calculate target dimensions (3:4 aspect ratio)
+      const targetWidth = Math.round(targetSize.width);
+      const targetHeight = Math.round(targetSize.height);
+
+      console.log('[ImageCropper] Image dimensions:', { width: imageWidth, height: imageHeight });
+      console.log('[ImageCropper] Target dimensions:', {
+        width: targetWidth,
+        height: targetHeight,
+      });
+
+      // Check if letterboxing is needed
+      const needsLetterboxing = imageWidth < targetWidth || imageHeight < targetHeight;
+
+      if (!needsLetterboxing) {
+        console.log('[ImageCropper] No letterboxing needed - image fills target size');
+        return imageUri;
+      }
+
+      // Calculate centering offsets
+      const originX = Math.max(0, Math.round((targetWidth - imageWidth) / 2));
+      const originY = Math.max(0, Math.round((targetHeight - imageHeight) / 2));
+
+      console.log('[ImageCropper] Adding white background letterboxing:', {
+        imageSize: { width: imageWidth, height: imageHeight },
+        targetSize: { width: targetWidth, height: targetHeight },
+        offset: { x: originX, y: originY },
+      });
+
+      // Use extent action to add white background
+      const result = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [
+          {
+            extent: {
+              originX: originX,
+              originY: originY,
+              width: targetWidth,
+              height: targetHeight,
+              backgroundColor: '#FFFFFF', // White background for letterboxing
+            },
+          },
+        ],
+        {
+          compress: 0.8,
+          format: ImageManipulator.SaveFormat.PNG,
+        },
+      );
+
+      console.log('[ImageCropper] White background added successfully:', result.uri);
+      return result.uri;
+    } catch (error) {
+      console.error('[ImageCropper] Error adding white background:', error);
+      console.warn('[ImageCropper] Falling back to original cropped image');
+      // Return original image if letterboxing fails
+      return imageUri;
+    }
+  };
+
   const handleCrop = async () => {
-    if (!cropRef.current) return;
+    if (!cropRef.current || !resolution) return;
 
     try {
       setCropping(true);
@@ -61,6 +296,8 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
         setCropping(false);
         return;
       }
+
+      console.log('[ImageCropper] Crop result:', cropResult);
 
       // Build actions array following the required order
       const actions: ImageManipulator.Action[] = [];
@@ -88,14 +325,30 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
       // 5. Crop (always required)
       actions.push({ crop: cropResult.crop });
 
-      // Perform the crop with all transformations
-      const manipulatedImage = await ImageManipulator.manipulateAsync(imageUri, actions, {
-        compress: 0.8,
+      console.log('[ImageCropper] Performing crop with actions:', actions.length);
+
+      // Perform the crop with all transformations (use high quality for intermediate step)
+      const croppedImage = await ImageManipulator.manipulateAsync(imageUri, actions, {
+        compress: 1.0, // No compression for intermediate step
         format: ImageManipulator.SaveFormat.PNG,
       });
 
+      console.log('[ImageCropper] Crop completed, resizing to fit if needed...');
+
+      // Step 1: Resize image to fit inside final 3:4 frame (CONTAIN behavior)
+      // Cropped image has original aspect ratio, resize to fit 3:4 output
+      const resizedImage = await resizeToFitCropFrame(croppedImage.uri, FINAL_OUTPUT_SIZE);
+
+      console.log('[ImageCropper] Resize complete, adding white background if needed...');
+
+      // Step 2: Add white background letterboxing to achieve perfect 3:4
+      // Resized image (with original aspect) is centered on 3:4 white canvas
+      const finalImage = await addWhiteBackgroundIfNeeded(resizedImage, FINAL_OUTPUT_SIZE);
+
+      console.log('[ImageCropper] Final image ready:', finalImage);
+
       setCropping(false);
-      onCropComplete(manipulatedImage.uri);
+      onCropComplete(finalImage);
     } catch (error) {
       console.error('Error cropping image:', error);
       setCropping(false);
@@ -153,6 +406,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             ref={cropRef}
             cropSize={cropSize}
             resolution={resolution}
+            maxScale={maxScale}
             OverlayComponent={renderOverlay}
             panMode="clamp"
             scaleMode="bounce"
