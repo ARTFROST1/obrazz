@@ -18,8 +18,10 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Obrazz needs access to your camera to take photos of clothing items for your wardrobe.",
         "NSPhotoLibraryUsageDescription": "Obrazz needs access to your photo library to select clothing images for your wardrobe.",
-        "NSPhotoLibraryAddUsageDescription": "Obrazz needs permission to save processed images to your photo library."
-      }
+        "NSPhotoLibraryAddUsageDescription": "Obrazz needs permission to save processed images to your photo library.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.artfrost.obrazz"
     },
     "android": {
       "package": "com.artfrost.obrazz",
@@ -34,7 +36,6 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -52,6 +53,7 @@
       "eas": {
         "projectId": "9d046cfa-467c-49e4-9098-9c864d1295c6"
       }
-    }
+    },
+    "owner": "artfrost"
   }
 }
