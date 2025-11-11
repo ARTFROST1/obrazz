@@ -70,19 +70,22 @@
 
 ```json
 {
-  "expo-camera": "~16.0.0",
+  "expo-camera": "~17.0.8",
   "expo-media-library": "~17.0.0",
-  "expo-image-picker": "~16.0.0",
-  "expo-file-system": "~18.0.8",
+  "expo-image-picker": "~17.0.8",
+  "expo-file-system": "~19.0.17",
   "expo-image": "~2.0.0",
-  "expo-image-manipulator": "~13.0.0",
+  "expo-image-manipulator": "~14.0.7",
   "expo-localization": "~16.0.9",
   "expo-notifications": "~0.30.9",
   "expo-secure-store": "~14.0.9",
   "expo-updates": "~0.27.9",
   "expo-device": "~7.0.0",
   "expo-haptics": "~14.0.0",
-  "expo-blur": "~14.0.9"
+  "expo-blur": "~15.0.7",
+  "expo-linear-gradient": "~15.0.7",
+  "expo-symbols": "~1.0.7",
+  "expo-dev-client": "~6.0.17"
 }
 ```
 
@@ -282,7 +285,7 @@
 
 ```json
 {
-  "react-native-zoom-toolkit": "^1.2.6"
+  "react-native-zoom-toolkit": "^5.0.1"
 }
 ```
 
@@ -295,7 +298,10 @@
   "react-native-image-zoom-viewer": "^3.1.2",
   "react-native-super-grid": "^6.1.0",
   "react-native-masonry-list": "^2.16.2",
-  "react-native-fs": "^2.21.0"
+  "react-native-fs": "^2.21.0",
+  "react-native-draggable-flatlist": "^4.0.3",
+  "react-native-reanimated-carousel": "^4.0.3",
+  "react-native-haptic-feedback": "^2.3.3"
 }
 ```
 
@@ -723,7 +729,7 @@ module.exports = function (api) {
 
 ---
 
-_Последнее обновление: 10 ноября 2025 (Stage 4.10 завершён)_
+_Последнее обновление: 11 ноября 2025 (Документация синхронизирована с кодом)_
 
 ## 📊 Новые Зависимости (Stages 4.8-4.10)
 
@@ -735,8 +741,8 @@ _Последнее обновление: 10 ноября 2025 (Stage 4.10 за�
 
 **Stage 4.9 - ImageCropper:**
 
-- ✅ `react-native-zoom-toolkit@^1.2.6` - Pinch-to-zoom for crop
-- Components: `ImageCropper.tsx`, `CropOverlay.tsx`
+- ✅ `react-native-zoom-toolkit@^5.0.1` - Pinch-to-zoom for crop
+- Components: `ImageCropper.tsx`, `CropOverlay.tsx`, `ResizableCropOverlay.tsx`
 
 **Stage 4.10 - Data Persistence:**
 

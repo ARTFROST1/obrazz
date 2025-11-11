@@ -2,10 +2,11 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** November 10, 2025  
+**Latest Update:** November 11, 2025  
 **Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)  
 **Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED  
-**Last Scan:** Full codebase verification completed
+**Last Scan:** Full codebase verification completed  
+**Documentation Status:** 🔄 Synchronized with actual implementation
 
 ---
 
@@ -19,8 +20,8 @@
    - Authentication & Onboarding ✅
    - Main (Home / Community feed) 🚧
    - Wardrobe (library) ✅
-   - Item Add / Edit / Detail ✅
-   - Outfit Creator (manual) ✅
+   - Item Add / Edit / Detail ✅ (with ImageCropper)
+   - Outfit Creator (manual) ✅ (4-Tab System + SmoothCarousel)
    - Outfit Detail / View ✅
    - Saved Outfits (collection) ✅
    - AI Outfit Generator 🚧
@@ -156,8 +157,8 @@
 
 **Key Features:**
 
-- **OutfitTabBar.tsx** - Tab navigation component
-- **CustomTabManager.tsx** - Inline category editing
+- **OutfitTabBar.tsx** ✅ - Tab navigation component
+- **CustomTabManager.tsx** ✅ - Inline category editing
   - Add/remove categories
   - Duplicates allowed
   - AsyncStorage persistence
@@ -166,9 +167,11 @@
 
 **New Files:**
 
-- `types/components/OutfitCreator.ts` - OutfitTabType
-- `constants/outfitTabs.ts` - Tab configurations
-- `utils/storage/customTabStorage.ts` - Persistence logic
+- `types/components/OutfitCreator.ts` ✅ - OutfitTabType, CustomTabState
+- `constants/outfitTabs.ts` ✅ - Tab configurations (4 default tabs)
+- `utils/storage/customTabStorage.ts` ✅ - AsyncStorage persistence logic
+- `components/outfit/OutfitTabBar.tsx` ✅ - Tab navigation UI
+- `components/outfit/CustomTabManager.tsx` ✅ - Inline tab editing
 
 ---
 
@@ -186,9 +189,10 @@
 
 **Components:**
 
-- `components/common/ImageCropper.tsx` - Main component
-- `components/common/CropOverlay.tsx` - Visual overlay
-- Uses `react-native-zoom-toolkit`
+- `components/common/ImageCropper.tsx` ✅ - Main component with pinch gestures
+- `components/common/CropOverlay.tsx` ✅ - Visual overlay with darkened background
+- `components/common/ResizableCropOverlay.tsx` ✅ - Alternative resizable overlay
+- Uses `react-native-zoom-toolkit@^5.0.1`
 
 ---
 
@@ -678,22 +682,28 @@ Canvas Behaviors:
 
 #### Technical Implementation
 
-**Active Components:**
+**Active Components (15 total):**
 
-- `app/outfit/create.tsx` - Main screen coordinator
-- `components/outfit/ItemSelectionStepNew.tsx` - Step 1 with tabs
-- `components/outfit/OutfitTabBar.tsx` - Tab navigation (NEW)
-- `components/outfit/CustomTabManager.tsx` - Inline editing (NEW)
-- `components/outfit/CategorySelectorWithSmooth.tsx` - Carousel container
-- `components/outfit/SmoothCarousel.tsx` - Individual carousel
-- `components/outfit/CompositionStep.tsx` - Step 2
-- `components/outfit/OutfitCanvas.tsx` - Canvas with gestures
-- `components/outfit/ItemMiniPreviewBar.tsx` - Preview bar
-- `components/outfit/BackgroundPicker.tsx` - Background selector
+- `app/outfit/create.tsx` ✅ - Main screen coordinator
+- `app/outfit/[id].tsx` ✅ - Outfit detail/view screen
+- `components/outfit/ItemSelectionStepNew.tsx` ✅ - Step 1 with 4-tab system
+- `components/outfit/OutfitTabBar.tsx` ✅ - Tab navigation (Stage 4.8)
+- `components/outfit/CustomTabManager.tsx` ✅ - Inline editing (Stage 4.8)
+- `components/outfit/CategorySelectorWithSmooth.tsx` ✅ - Carousel container
+- `components/outfit/SmoothCarousel.tsx` ✅ - Physics-based carousel (Stage 4.7)
+- `components/outfit/CompositionStep.tsx` ✅ - Step 2 composition
+- `components/outfit/OutfitCanvas.tsx` ✅ - Canvas with gestures
+- `components/outfit/ItemMiniPreviewBar.tsx` ✅ - Preview bar
+- `components/outfit/BackgroundPicker.tsx` ✅ - Background selector
+- `components/outfit/OutfitCard.tsx` ✅ - Outfit preview cards
+- `components/outfit/OutfitGrid.tsx` ✅ - Grid layout
+- `components/outfit/OutfitEmptyState.tsx` ✅ - Empty state
+- `components/outfit/OutfitFilter.tsx` ✅ - Filter component
+- `components/outfit/OutfitPreview.tsx` ✅ - Detail preview
 
 **State Management:**
 
-- `store/outfit/outfitStore.ts` - Enhanced outfit state
+- `store/outfit/outfitStore.ts` ✅ - Enhanced outfit state (Stage 4.8-4.10)
   - creationStep (1 | 2)
   - activeTab ('basic' | 'dress' | 'all' | 'custom')
   - customTabCategories (configurable)
@@ -702,14 +712,24 @@ Canvas Behaviors:
   - currentItems (with transforms)
   - currentBackground
   - canvasSettings
+  - Data persistence architecture (Stage 4.10)
 
 **Storage:**
 
-- `utils/storage/customTabStorage.ts` - AsyncStorage persistence
+- `utils/storage/customTabStorage.ts` ✅ - AsyncStorage persistence for custom tabs
+- Conditional loading logic (edit mode vs create mode)
 
 **Services:**
 
-- `services/outfit/outfitService.ts` - CRUD with canvasSettings
+- `services/outfit/outfitService.ts` ✅ - CRUD with canvasSettings
+- Full item data loading for edit mode (Stage 4.10)
+- Priority-based data restoration
+
+**Types:**
+
+- `types/components/OutfitCreator.ts` ✅ - OutfitTabType, CustomTabState
+- `types/components/OutfitCard.ts` ✅ - Card component types
+- `types/components/FAB.ts` ✅ - FAB component types
 
 ---
 

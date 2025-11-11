@@ -1,7 +1,8 @@
 # Project Structure - Obrazz
 
-**Last Updated:** November 10, 2025  
-**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
+**Last Updated:** November 11, 2025  
+**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)  
+**Documentation Status:** 🔄 Synchronized with codebase
 
 ## Overview
 
@@ -30,22 +31,22 @@ obrazz/
 │   ├── +html.tsx ✅         # Web HTML root
 │   ├── +not-found.tsx ✅    # 404 screen
 │   └── modal.tsx ✅         # Example modal
-├── assets/ ✅                 # Static assets
 │   ├── fonts/ ✅
 │   ├── images/ ✅
 │   ├── icons/ 🚧
 │   └── animations/ 🚧       # Lottie animations
 ├── components/ ✅             # Reusable components
-│   ├── common/ 🚧           # Generic components
+│   ├── common/ ✅           # Generic components (ImageCropper system)
 │   ├── wardrobe/ ✅         # Wardrobe-specific components (Stage 3)
-│   ├── outfit/ ✅           # Outfit creator components (Stage 4.7 - Smooth Carousel)
-│   ├── community/ 🚧        # Community feed components
-│   └── ui/ ✅              # Base UI components (Button, Input, FAB)
+│   ├── outfit/ ✅           # Outfit creator components (Stage 4.7-4.8 - SmoothCarousel + Tabs)
+│   ├── ui/ ✅              # Base UI components (Button, Input, FAB, Loader)
+│   └── Other components  # EditScreenInfo, ExternalLink, StyledText, Themed
 ├── config/ ✅                 # Configuration files
 │   └── env.ts ✅            # Environment config
 ├── constants/ ✅              # Constants
 │   ├── Colors.ts ✅
 │   ├── categories.ts ✅     # 8 unified categories
+{{ ... }}
 │   └── outfitTabs.ts ✅     # Tab configurations (Stage 4.8 - NEW)
 ├── contexts/ 📋               # React contexts (готова структура)
 ├── Docs/ ✅                  # Documentation
@@ -158,17 +159,15 @@ components/
 ├── common/ ✅                # Common components (Stage 4.9)
 │   ├── ImageCropper.tsx ✅   # Custom 3:4 crop with pinch-to-zoom (NEW)
 │   ├── CropOverlay.tsx ✅    # Visual crop overlay (NEW)
-│   ├── Card.tsx 🚧
-│   ├── Modal.tsx 🚧
-│   └── ErrorBoundary.tsx 🚧
+│   └── ResizableCropOverlay.tsx ✅ # Resizable crop overlay (ACTIVE)
 ├── wardrobe/ ✅              # Wardrobe components (Stage 3)
 │   ├── ItemCard.tsx ✅        # Item preview card
 │   ├── ItemGrid.tsx ✅        # Grid display for items
 │   ├── ItemFilter.tsx ✅      # Filtering component
 │   ├── CategoryPicker.tsx ✅  # Category selection
-│   ├── ColorPicker.tsx ✅     # Color selection
-│   └── ItemEmptyState.tsx ✅  # Empty wardrobe state
-├── outfit/ ✅                # Outfit components (Stages 4.7-4.10)
+│   ├── CategoryGridPicker.tsx ✅ # Grid-based category picker
+│   └── ColorPicker.tsx ✅     # Color selection
+├── outfit/ ✅                # Outfit components (Stages 4.7-4.10) - 15 components
 │   ├── SmoothCarousel.tsx ✅  # Physics-based carousel (Stage 4.7)
 │   ├── CategorySelectorWithSmooth.tsx ✅ # Carousel container
 │   ├── ItemSelectionStepNew.tsx ✅ # Step 1 with tab system (Stage 4.8)
@@ -184,11 +183,20 @@ components/
 │   ├── OutfitFilter.tsx ✅    # Filter component
 │   ├── OutfitPreview.tsx ✅   # Outfit detail preview
 │   └── index.ts ✅           # Barrel export
-└── community/ 🚧
-    ├── PostCard.tsx
-    ├── FeedList.tsx
-    ├── ReactionButton.tsx
-    └── ShareButton.tsx
+├── Other components ✅      # Expo template & utility components
+│   ├── EditScreenInfo.tsx ✅  # Development info component
+│   ├── ExternalLink.tsx ✅    # External link handler
+│   ├── StyledText.tsx ✅      # Themed text component
+│   ├── Themed.tsx ✅          # Theme-aware components
+│   ├── useClientOnlyValue.ts ✅ # Client-side value hook
+│   ├── useClientOnlyValue.web.ts ✅ # Web version
+│   ├── useColorScheme.ts ✅   # Color scheme hook
+│   └── useColorScheme.web.ts ✅ # Web color scheme
+└── community/ 🚧            # Future community components
+    ├── PostCard.tsx 🚧
+    ├── FeedList.tsx 🚧
+    ├── ReactionButton.tsx 🚧
+    └── ShareButton.tsx 🚧
 ```
 
 ### `/services` - Business Logic
@@ -197,17 +205,16 @@ components/
 services/
 ├── auth/ ✅                   # Authentication (Stage 2)
 │   └── authService.ts ✅      # Complete auth logic (signUp, signIn, signOut, reset)
-├── wardrobe/
-│   ├── itemService.ts        # Item CRUD operations
-│   ├── imageProcessor.ts     # Image manipulation
-│   └── backgroundRemover.ts  # Pixian.ai integration
-├── outfit/
-│   ├── outfitService.ts      # Outfit management
-│   ├── aiGenerator.ts        # AI outfit generation
-│   └── canvasManager.ts      # Canvas state management
-└── subscription/
-    ├── purchaseManager.ts     # RevenueCat integration
-    └── quotaManager.ts        # Feature limits
+├── wardrobe/ ✅             # Wardrobe services (Stage 3)
+│   ├── itemService.ts ✅      # Item CRUD operations
+│   └── backgroundRemover.ts ✅ # Remove.bg API integration
+├── outfit/ ✅               # Outfit services (Stage 4)
+│   └── outfitService.ts ✅    # Outfit CRUD with canvasSettings
+└── Future services 🚧      # Planned services
+    ├── aiGenerator.ts 🚧      # AI outfit generation
+    ├── canvasManager.ts 🚧     # Canvas state management
+    ├── purchaseManager.ts 🚧   # RevenueCat integration
+    └── quotaManager.ts 🚧       # Feature limits
 ```
 
 ### `/store` - State Management
@@ -216,13 +223,14 @@ services/
 store/
 ├── auth/ ✅
 │   └── authStore.ts ✅        # User auth state with persistence
-├── wardrobe/
-│   └── wardrobeStore.ts      # Items and categories
-├── outfit/
-│   └── outfitStore.ts        # Current outfit state
-└── ui/
-    ├── themeStore.ts         # Theme preferences
-    └── navigationStore.ts    # Navigation state
+├── wardrobe/ ✅
+│   └── wardrobeStore.ts ✅  # Items and categories state
+├── outfit/ ✅
+│   └── outfitStore.ts ✅      # Outfit state with tab system (Stage 4.8-4.10)
+├── storage.ts ✅            # Storage utilities
+└── Future stores 🚧       # Planned stores
+    ├── themeStore.ts 🚧       # Theme preferences
+    └── navigationStore.ts 🚧  # Navigation state
 ```
 
 ### `/types` - TypeScript Definitions ✅
