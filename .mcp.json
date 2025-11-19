@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "c:\\Users\\moroz"],
+      "env": {},
+      "disabled": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": ""
+      },
+      "disabled": false
+    },
+    "context7": {
+      "serverUrl": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-536dbe21-8ad0-43ac-893f-95185592d666"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.supabase.com/mcp?project_ref=oyyzncjezesrdxxowdrx"]
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"],
+      "disabled": true
+    },
+    "GitKraken": {
+      "args": ["mcp", "--host=windsurf", "--source=gitlens", "--scheme=windsurf"],
+      "command": "c:\\Users\\moroz\\AppData\\Roaming\\Windsurf\\User\\globalStorage\\eamodio.gitlens\\gk.exe",
+      "type": "stdio",
+      "disabled": true
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "disabled": true
+    }
+  }
+}

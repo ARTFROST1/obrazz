@@ -8,9 +8,25 @@ const supabaseUrl =
 const supabaseAnonKey =
   Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
+// Validate Supabase configuration
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase credentials are missing. Please check your .env file.');
+  console.error(
+    '[Supabase] Configuration Error:\n' +
+      '  - Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY\n' +
+      '  - Please check your .env file\n' +
+      '  - Run: npx expo start --clear to reload environment variables',
+  );
 }
+
+// Validate URL format
+if (supabaseUrl && !supabaseUrl.includes('supabase.co')) {
+  console.warn('[Supabase] Warning: URL does not appear to be a valid Supabase URL:', supabaseUrl);
+}
+
+console.log(
+  '[Supabase] Initializing with URL:',
+  supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'MISSING',
+);
 
 // Storage adapter with error handling for corrupted sessions
 const createSafeStorage = (baseStorage: typeof AsyncStorage) => {

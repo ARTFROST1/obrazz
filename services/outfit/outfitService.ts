@@ -7,6 +7,40 @@ import {
 } from '../../types/models/outfit';
 import { WardrobeItem } from '../../types/models/item';
 
+/**
+ * Parse Supabase error to get a user-friendly message
+ */
+const parseSupabaseError = (error: any): string => {
+  if (!error) return 'Unknown error';
+
+  const message = error.message || error.toString();
+
+  // Check if the error message is HTML (Cloudflare error page, etc.)
+  if (message.includes('<!DOCTYPE') || message.includes('<html')) {
+    // This typically means the Supabase URL is incorrect or the service is down
+    console.error('[OutfitService] Received HTML error response. This usually means:');
+    console.error('  - Supabase URL is incorrect');
+    console.error('  - Supabase project is paused or deleted');
+    console.error('  - Network/firewall issue blocking the request');
+    return 'Unable to connect to database. Please check your internet connection and try again.';
+  }
+
+  // Handle specific error codes
+  if (error.code === 'PGRST116') {
+    return 'Item not found';
+  }
+
+  if (error.code === '23505') {
+    return 'A duplicate item already exists';
+  }
+
+  if (error.code === '42501' || message.includes('permission denied')) {
+    return 'Access denied. Please log in again.';
+  }
+
+  return message;
+};
+
 class OutfitService {
   private tableName = 'outfits';
 
@@ -43,7 +77,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error creating outfit:', error);
-      throw new Error(`Failed to create outfit: ${error.message}`);
+      throw new Error(`Failed to create outfit: ${parseSupabaseError(error)}`);
     }
 
     return this.mapDatabaseToOutfit(data);
@@ -101,7 +135,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error fetching outfits:', error);
-      throw new Error(`Failed to fetch outfits: ${error.message}`);
+      throw new Error(`Failed to fetch outfits: ${parseSupabaseError(error)}`);
     }
 
     // Map outfits and populate items with full data
@@ -191,7 +225,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error fetching outfit:', error);
-      throw new Error(`Failed to fetch outfit: ${error.message}`);
+      throw new Error(`Failed to fetch outfit: ${parseSupabaseError(error)}`);
     }
 
     const outfit = this.mapDatabaseToOutfit(data);
@@ -238,7 +272,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error updating outfit:', error);
-      throw new Error(`Failed to update outfit: ${error.message}`);
+      throw new Error(`Failed to update outfit: ${parseSupabaseError(error)}`);
     }
 
     return this.mapDatabaseToOutfit(data);
@@ -252,7 +286,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error deleting outfit:', error);
-      throw new Error(`Failed to delete outfit: ${error.message}`);
+      throw new Error(`Failed to delete outfit: ${parseSupabaseError(error)}`);
     }
   }
 
@@ -267,7 +301,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error toggling favorite:', error);
-      throw new Error(`Failed to toggle favorite: ${error.message}`);
+      throw new Error(`Failed to toggle favorite: ${parseSupabaseError(error)}`);
     }
   }
 
@@ -383,7 +417,7 @@ class OutfitService {
 
     if (error) {
       console.error('Error searching outfits:', error);
-      throw new Error(`Failed to search outfits: ${error.message}`);
+      throw new Error(`Failed to search outfits: ${parseSupabaseError(error)}`);
     }
 
     return (data || []).map(this.mapDatabaseToOutfit);
