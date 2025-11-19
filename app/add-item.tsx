@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { KeyboardAwareScrollView } from '@components/common/KeyboardAwareScrollView';
 import { Ionicons } from '@expo/vector-icons';
