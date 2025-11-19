@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["Bash(claude mcp add:*)"],
+    "allow": ["Bash(claude mcp add:*)", "Bash(find:*)"],
     "deny": [],
     "ask": []
   }

@@ -13,11 +13,6 @@ import {
   LayoutAnimation,
   UIManager,
 } from 'react-native';
-
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -28,6 +23,11 @@ import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { ItemFilter, FilterState } from '@components/wardrobe/ItemFilter';
 import { FAB } from '@components/ui';
 import type { WardrobeItem } from '../../types/models';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function WardrobeScreen() {
   const { user } = useAuthStore();
@@ -305,9 +305,20 @@ export default function WardrobeScreen() {
                   </View>
                 )}
               </TouchableOpacity>
+            </View>
 
-              {/* Grid Mode Toggle - only show when no filters applied */}
-              {!hasActiveFilters && (
+            <View style={styles.filterBarCenter}>
+              <Text style={styles.itemCount}>
+                {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+              </Text>
+            </View>
+
+            <View style={styles.filterBarRight}>
+              {hasActiveFilters ? (
+                <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
+                  <Text style={styles.clearFilterText}>Clear All</Text>
+                </TouchableOpacity>
+              ) : (
                 <TouchableOpacity
                   style={styles.gridToggleButton}
                   onPress={handleToggleGridColumns}
@@ -318,20 +329,6 @@ export default function WardrobeScreen() {
                     size={20}
                     color="#000"
                   />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.filterBarCenter}>
-              <Text style={styles.itemCount}>
-                {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
-              </Text>
-            </View>
-
-            <View style={styles.filterBarRight}>
-              {hasActiveFilters && (
-                <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
-                  <Text style={styles.clearFilterText}>Clear All</Text>
                 </TouchableOpacity>
               )}
             </View>
