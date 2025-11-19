@@ -201,7 +201,7 @@ export default function AddItemScreen() {
         <View style={[styles.section, styles.firstSection]}>
           {imageUri ? (
             <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUri }} style={styles.image} />
+              <Image source={{ uri: imageUri }} style={styles.image} resizeMode="contain" />
               <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageUri(null)}>
                 <Ionicons name="close-circle" size={32} color="#FF3B30" />
               </TouchableOpacity>
