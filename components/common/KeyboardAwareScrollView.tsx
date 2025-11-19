@@ -82,33 +82,47 @@ export function KeyboardAwareScrollView({
 
       // Small delay to ensure keyboard height is updated
       setTimeout(() => {
-        UIManager.measureLayout(
-          reactNode,
-          scrollViewHandle,
-          () => {
-            // Error callback
-          },
-          (_x, y, _width, height) => {
-            const screenHeight = Dimensions.get('window').height;
-            const currentKeyboardHeight = keyboardHeight;
+        // First measure input position relative to screen
+        UIManager.measure(reactNode, (_x, _y, _width, height, _pageX, pageY) => {
+          const screenHeight = Dimensions.get('window').height;
+          const currentKeyboardHeight = keyboardHeight;
 
-            // Calculate visible area above keyboard
-            const visibleAreaHeight = screenHeight - currentKeyboardHeight;
+          // Calculate visible area above keyboard
+          const visibleAreaHeight = screenHeight - currentKeyboardHeight;
 
-            // Position input at ~35% from top of visible area (above center)
-            const targetPositionRatio = 0.35;
-            const targetY = visibleAreaHeight * targetPositionRatio;
+          // Threshold: only scroll if input is below 50% of visible area
+          // This means if input is already in upper half, don't scroll
+          const scrollThreshold = visibleAreaHeight * 0.5;
+          const inputBottom = pageY + height;
 
-            // Calculate scroll offset
-            const inputCenter = y + height / 2;
-            const scrollOffset = inputCenter - targetY + extraScrollHeight;
+          // If input is already above the threshold (in upper portion of screen), don't scroll
+          if (inputBottom < scrollThreshold) {
+            return;
+          }
 
-            scrollViewRef.current?.scrollTo({
-              y: Math.max(0, scrollOffset),
-              animated: true,
-            });
-          },
-        );
+          // Now measure relative to ScrollView to calculate scroll offset
+          UIManager.measureLayout(
+            reactNode,
+            scrollViewHandle,
+            () => {
+              // Error callback
+            },
+            (_layoutX, layoutY, _layoutWidth, layoutHeight) => {
+              // Position input at ~35% from top of visible area (above center)
+              const targetPositionRatio = 0.35;
+              const targetY = visibleAreaHeight * targetPositionRatio;
+
+              // Calculate scroll offset
+              const inputCenter = layoutY + layoutHeight / 2;
+              const scrollOffset = inputCenter - targetY + extraScrollHeight;
+
+              scrollViewRef.current?.scrollTo({
+                y: Math.max(0, scrollOffset),
+                animated: true,
+              });
+            },
+          );
+        });
       }, 100);
     },
     [keyboardHeight, extraScrollHeight],
