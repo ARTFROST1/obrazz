@@ -9,7 +9,9 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Keyboard,
 } from 'react-native';
+import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
@@ -187,7 +189,7 @@ export default function WardrobeScreen() {
     filter.searchQuery;
 
   return (
-    <View style={styles.container}>
+    <DismissKeyboardView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
       {/* Header */}
       <SafeAreaView style={styles.safeArea}>
@@ -340,7 +342,7 @@ export default function WardrobeScreen() {
           accessibilityLabel="Add new item"
         />
       )}
-    </View>
+    </DismissKeyboardView>
   );
 }
 

@@ -12,6 +12,9 @@ import {
   TextInput,
   Keyboard,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -365,40 +368,49 @@ export default function ItemDetailScreen() {
 
       {/* Update Item Modal */}
       {showUpdateModal && (
-        <View style={styles.modalOverlay}>
-          <ScrollView
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.updateModal}>
-              <Text style={styles.modalTitle}>Update Item</Text>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.updateModal}>
+                <Text style={styles.modalTitle}>Update Item</Text>
 
-              {/* Title Input */}
-              <TextInput
-                style={styles.input}
-                placeholder="Item name"
-                value={editTitle}
-                onChangeText={setEditTitle}
-                placeholderTextColor="#999"
-              />
+                {/* Title Input */}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Item name"
+                  value={editTitle}
+                  onChangeText={setEditTitle}
+                  placeholderTextColor="#999"
+                  returnKeyType="next"
+                />
 
-              {/* Brand Input */}
-              <TextInput
-                style={styles.input}
-                placeholder="Brand (optional)"
-                value={editBrand}
-                onChangeText={setEditBrand}
-                placeholderTextColor="#999"
-              />
+                {/* Brand Input */}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Brand (optional)"
+                  value={editBrand}
+                  onChangeText={setEditBrand}
+                  placeholderTextColor="#999"
+                  returnKeyType="next"
+                />
 
-              {/* Size Input */}
-              <TextInput
-                style={styles.input}
-                placeholder="Size (optional)"
-                value={editSize}
-                onChangeText={setEditSize}
-                placeholderTextColor="#999"
-              />
+                {/* Size Input */}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Size (optional)"
+                  value={editSize}
+                  onChangeText={setEditSize}
+                  placeholderTextColor="#999"
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
 
               {/* Category */}
               <View style={styles.modalSection}>
@@ -478,7 +490,8 @@ export default function ItemDetailScreen() {
               </View>
             </View>
           </ScrollView>
-        </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
       )}
 
       {/* Category Picker Modal */}

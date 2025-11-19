@@ -1,0 +1,227 @@
+import React, { useRef, useCallback, useEffect, useState } from 'react';
+import {
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  View,
+  StyleSheet,
+  ViewStyle,
+  StyleProp,
+  TextInput,
+  findNodeHandle,
+  UIManager,
+  Dimensions,
+  KeyboardEvent,
+  TouchableWithoutFeedback,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
+
+interface KeyboardAwareScrollViewProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  extraScrollHeight?: number;
+  enableOnAndroid?: boolean;
+  keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
+  showsVerticalScrollIndicator?: boolean;
+  bounces?: boolean;
+  scrollEnabled?: boolean;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}
+
+/**
+ * A ScrollView that automatically scrolls to the focused input field,
+ * positioning it in the center of the visible area above the keyboard.
+ * Also dismisses keyboard when tapping outside inputs.
+ */
+export function KeyboardAwareScrollView({
+  children,
+  style,
+  contentContainerStyle,
+  extraScrollHeight = 75,
+  enableOnAndroid = true,
+  keyboardShouldPersistTaps = 'handled',
+  showsVerticalScrollIndicator = false,
+  bounces = true,
+  scrollEnabled = true,
+  onScroll,
+}: KeyboardAwareScrollViewProps) {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const currentlyFocusedInput = useRef<number | null>(null);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const handleKeyboardShow = (event: KeyboardEvent) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    };
+
+    const handleKeyboardHide = () => {
+      setKeyboardHeight(0);
+    };
+
+    const showSubscription = Keyboard.addListener(showEvent, handleKeyboardShow);
+    const hideSubscription = Keyboard.addListener(hideEvent, handleKeyboardHide);
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  const scrollToInput = useCallback(
+    (reactNode: number) => {
+      if (!scrollViewRef.current) return;
+
+      const scrollViewHandle = findNodeHandle(scrollViewRef.current);
+      if (!scrollViewHandle) return;
+
+      // Small delay to ensure keyboard height is updated
+      setTimeout(() => {
+        UIManager.measureLayout(
+          reactNode,
+          scrollViewHandle,
+          () => {
+            // Error callback
+          },
+          (_x, y, _width, height) => {
+            const screenHeight = Dimensions.get('window').height;
+            const currentKeyboardHeight = keyboardHeight;
+
+            // Calculate visible area above keyboard
+            const visibleAreaHeight = screenHeight - currentKeyboardHeight;
+
+            // Position input at ~35% from top of visible area (above center)
+            const targetPositionRatio = 0.35;
+            const targetY = visibleAreaHeight * targetPositionRatio;
+
+            // Calculate scroll offset
+            const inputCenter = y + height / 2;
+            const scrollOffset = inputCenter - targetY + extraScrollHeight;
+
+            scrollViewRef.current?.scrollTo({
+              y: Math.max(0, scrollOffset),
+              animated: true,
+            });
+          },
+        );
+      }, 100);
+    },
+    [keyboardHeight, extraScrollHeight],
+  );
+
+  // Handle text input focus
+  const handleTextInputFocus = useCallback(
+    (event: { target: number }) => {
+      currentlyFocusedInput.current = event.target;
+      scrollToInput(event.target);
+    },
+    [scrollToInput],
+  );
+
+  // Add listener for text input focus events
+  useEffect(() => {
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      // Re-scroll when keyboard appears if we have a focused input
+      if (currentlyFocusedInput.current) {
+        scrollToInput(currentlyFocusedInput.current);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [scrollToInput]);
+
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+    currentlyFocusedInput.current = null;
+  };
+
+  const behavior = Platform.OS === 'ios' ? 'padding' : enableOnAndroid ? 'height' : undefined;
+
+  return (
+    <KeyboardAvoidingView style={[styles.container, style]} behavior={behavior}>
+      <TouchableWithoutFeedback onPress={handleDismissKeyboard} accessible={false}>
+        <View style={styles.container}>
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={contentContainerStyle}
+            keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+            bounces={bounces}
+            scrollEnabled={scrollEnabled}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            onTouchStart={(e) => {
+              // Track focused input for auto-scroll
+              const target = e.nativeEvent.target;
+              if (target && (target as unknown as TextInput)?.focus) {
+                // This is a TextInput
+              }
+            }}
+          >
+            <TouchableWithoutFeedback onPress={handleDismissKeyboard} accessible={false}>
+              <View
+                onStartShouldSetResponder={() => false}
+                onStartShouldSetResponderCapture={() => false}
+              >
+                {React.Children.map(children, (child) => {
+                  if (!React.isValidElement(child)) return child;
+
+                  // Recursively enhance TextInput components
+                  return enhanceTextInputs(child, handleTextInputFocus);
+                })}
+              </View>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+}
+
+// Helper function to recursively find and enhance TextInput components
+function enhanceTextInputs(
+  element: React.ReactElement,
+  onFocus: (event: { target: number }) => void,
+): React.ReactElement {
+  // Check if this is a TextInput or has TextInput-like behavior
+  const isTextInput =
+    element.type === TextInput ||
+    (element.props && element.props.onChangeText !== undefined);
+
+  if (isTextInput) {
+    const originalOnFocus = element.props.onFocus;
+    return React.cloneElement(element, {
+      onFocus: (e: { nativeEvent: { target: number } }) => {
+        onFocus({ target: e.nativeEvent.target });
+        if (originalOnFocus) {
+          originalOnFocus(e);
+        }
+      },
+    });
+  }
+
+  // Recursively process children
+  if (element.props && element.props.children) {
+    const children = React.Children.map(element.props.children, (child) => {
+      if (React.isValidElement(child)) {
+        return enhanceTextInputs(child, onFocus);
+      }
+      return child;
+    });
+
+    return React.cloneElement(element, {}, children);
+  }
+
+  return element;
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
