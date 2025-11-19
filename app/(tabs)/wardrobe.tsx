@@ -10,7 +10,14 @@ import {
   StatusBar,
   Platform,
   Keyboard,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -42,6 +49,7 @@ export default function WardrobeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [gridColumns, setGridColumns] = useState<2 | 3>(3); // Default to 3 columns
 
   useEffect(() => {
     loadItems();
@@ -134,6 +142,17 @@ export default function WardrobeScreen() {
   const handleToggleSelectionMode = () => {
     setIsSelectionMode(!isSelectionMode);
     setSelectedItems(new Set());
+  };
+
+  const handleToggleGridColumns = () => {
+    LayoutAnimation.configureNext({
+      duration: 300,
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.scaleXY,
+      },
+    });
+    setGridColumns(gridColumns === 2 ? 3 : 2);
   };
 
   const handleSelectAll = () => {
@@ -266,25 +285,42 @@ export default function WardrobeScreen() {
         ) : (
           // Normal Filter Mode
           <>
-            <TouchableOpacity
-              style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
-              onPress={() => setShowFilter(true)}
-            >
-              <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  hasActiveFilters ? styles.filterButtonTextActive : null,
-                ]}
+            <View style={styles.filterBarLeft}>
+              <TouchableOpacity
+                style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
+                onPress={() => setShowFilter(true)}
               >
-                Filter
-              </Text>
-              {hasActiveFilters && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>•</Text>
-                </View>
+                <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
+                <Text
+                  style={[
+                    styles.filterButtonText,
+                    hasActiveFilters ? styles.filterButtonTextActive : null,
+                  ]}
+                >
+                  Filter
+                </Text>
+                {hasActiveFilters && (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>•</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Grid Mode Toggle - only show when no filters applied */}
+              {!hasActiveFilters && (
+                <TouchableOpacity
+                  style={styles.gridToggleButton}
+                  onPress={handleToggleGridColumns}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons
+                    name={gridColumns === 2 ? 'grid-outline' : 'grid'}
+                    size={20}
+                    color="#000"
+                  />
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </View>
 
             <View style={styles.filterBarCenter}>
               <Text style={styles.itemCount}>
@@ -316,6 +352,7 @@ export default function WardrobeScreen() {
         }
         isSelectable={isSelectionMode}
         selectedItems={selectedItems}
+        numColumns={gridColumns}
       />
 
       {/* Filter Modal */}
@@ -396,6 +433,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 8,
   },
+  filterBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   filterBarCenter: {
     flex: 1,
     alignItems: 'center',
@@ -404,6 +446,16 @@ const styles = StyleSheet.create({
   filterBarRight: {
     minWidth: 80,
     alignItems: 'flex-end',
+  },
+  gridToggleButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F8F8F8',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   filterButton: {
     alignItems: 'center',

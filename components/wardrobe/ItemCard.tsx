@@ -18,10 +18,18 @@ interface ItemCardProps {
   onFavoritePress?: (item: WardrobeItem) => void;
   isSelectable?: boolean;
   isSelected?: boolean;
+  numColumns?: number;
 }
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 2; // 2 columns with margins
+
+// Calculate card width based on number of columns
+const getCardWidth = (numColumns: number) => {
+  const horizontalPadding = 32; // 16px on each side
+  const gap = 8; // gap between cards
+  const totalGaps = (numColumns - 1) * gap;
+  return (width - horizontalPadding - totalGaps) / numColumns;
+};
 
 export const ItemCard: React.FC<ItemCardProps> = ({
   item,
@@ -29,8 +37,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   onFavoritePress,
   isSelectable = false,
   isSelected = false,
+  numColumns = 2,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const cardWidth = getCardWidth(numColumns);
 
   const handleFavoritePress = () => {
     Animated.sequence([
@@ -53,7 +63,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress(item)} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.container, { width: cardWidth }]}
+      onPress={() => onPress(item)}
+      activeOpacity={0.7}
+    >
       <View
         style={[
           styles.imageContainer,
@@ -117,7 +131,6 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     marginBottom: 12,
     overflow: 'hidden',
-    width: CARD_WIDTH,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
