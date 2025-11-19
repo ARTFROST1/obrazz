@@ -215,13 +215,29 @@ export default function WardrobeScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>My Wardrobe</Text>
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={handleToggleSelectionMode}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={styles.selectButtonText}>{isSelectionMode ? 'Cancel' : 'Select'}</Text>
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              {/* Grid Mode Toggle - only show when no selection mode and no filters */}
+              {!isSelectionMode && !hasActiveFilters && (
+                <TouchableOpacity
+                  style={styles.gridToggleButton}
+                  onPress={handleToggleGridColumns}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons
+                    name={gridColumns === 2 ? 'grid-outline' : 'grid'}
+                    size={20}
+                    color="#000"
+                  />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={handleToggleSelectionMode}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.selectButtonText}>{isSelectionMode ? 'Cancel' : 'Select'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -285,42 +301,25 @@ export default function WardrobeScreen() {
         ) : (
           // Normal Filter Mode
           <>
-            <View style={styles.filterBarLeft}>
-              <TouchableOpacity
-                style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
-                onPress={() => setShowFilter(true)}
+            <TouchableOpacity
+              style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
+              onPress={() => setShowFilter(true)}
+            >
+              <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  hasActiveFilters ? styles.filterButtonTextActive : null,
+                ]}
               >
-                <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
-                <Text
-                  style={[
-                    styles.filterButtonText,
-                    hasActiveFilters ? styles.filterButtonTextActive : null,
-                  ]}
-                >
-                  Filter
-                </Text>
-                {hasActiveFilters && (
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>•</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Grid Mode Toggle - only show when no filters applied */}
-              {!hasActiveFilters && (
-                <TouchableOpacity
-                  style={styles.gridToggleButton}
-                  onPress={handleToggleGridColumns}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons
-                    name={gridColumns === 2 ? 'grid-outline' : 'grid'}
-                    size={20}
-                    color="#000"
-                  />
-                </TouchableOpacity>
+                Filter
+              </Text>
+              {hasActiveFilters && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>•</Text>
+                </View>
               )}
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.filterBarCenter}>
               <Text style={styles.itemCount}>
@@ -416,6 +415,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   filterBadge: {
     marginLeft: 4,
   },
@@ -431,11 +435,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 8,
-  },
-  filterBarLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   filterBarCenter: {
