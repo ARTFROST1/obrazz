@@ -9,6 +9,9 @@ import {
   Keyboard,
   Modal,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOutfitStore } from '@store/outfit/outfitStore';
@@ -250,21 +253,28 @@ export default function CreateScreen() {
 
       {/* Save Modal */}
       {showSaveModal && (
-        <View style={styles.modalOverlay}>
-          <ScrollView
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.saveModal}>
-              <Text style={styles.modalTitle}>{isEditMode ? 'Update Outfit' : 'Save Outfit'}</Text>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.saveModal}>
+                <Text style={styles.modalTitle}>{isEditMode ? 'Update Outfit' : 'Save Outfit'}</Text>
 
-              <TextInput
-                style={styles.titleInput}
-                placeholder="Outfit name (optional)"
-                value={outfitTitle}
-                onChangeText={setOutfitTitle}
-                placeholderTextColor="#999"
-              />
+                <TextInput
+                  style={styles.titleInput}
+                  placeholder="Outfit name (optional)"
+                  value={outfitTitle}
+                  onChangeText={setOutfitTitle}
+                  placeholderTextColor="#999"
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
 
               {/* Occasion Dropdown */}
               <View style={styles.selectorSection}>
@@ -324,7 +334,8 @@ export default function CreateScreen() {
               </View>
             </View>
           </ScrollView>
-        </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
       )}
 
       {/* Occasion Picker Modal */}

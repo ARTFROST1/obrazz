@@ -8,6 +8,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Input, Loader } from '@components/ui';
@@ -92,12 +94,13 @@ export default function ForgotPasswordScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color="#000000" />
-        </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color="#000000" />
+          </TouchableOpacity>
 
-        <View style={styles.header}>
+          <View style={styles.header}>
           <Text style={styles.title}>Forgot Password?</Text>
           <Text style={styles.subtitle}>
             Enter your email address and we'll send you a link to reset your password.
@@ -137,6 +140,7 @@ export default function ForgotPasswordScreen() {
           </View>
         </View>
       </ScrollView>
+    </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

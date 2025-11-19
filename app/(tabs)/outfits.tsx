@@ -19,7 +19,9 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Keyboard,
 } from 'react-native';
+import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { Outfit } from '../../types/models/outfit';
 
 /**
@@ -339,7 +341,7 @@ export default function OutfitsScreen() {
     outfitFilters.isFavorite;
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+    <DismissKeyboardView style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={isDark ? '#000000' : '#FFFFFF'}
@@ -651,7 +653,7 @@ export default function OutfitsScreen() {
         onApply={handleApplyFilters}
         initialFilters={outfitFilters}
       />
-    </View>
+    </DismissKeyboardView>
   );
 }
 

@@ -11,6 +11,9 @@ import {
   Modal,
   TextInput,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -284,21 +287,28 @@ export default function OutfitDetailScreen() {
 
       {/* Update Outfit Modal */}
       {showUpdateModal && (
-        <View style={styles.modalOverlay}>
-          <ScrollView
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.updateModal}>
-              <Text style={styles.modalTitle}>Update Outfit</Text>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.updateModal}>
+                <Text style={styles.modalTitle}>Update Outfit</Text>
 
-              <TextInput
-                style={styles.titleInput}
-                placeholder="Outfit name (optional)"
-                value={outfitTitle}
-                onChangeText={setOutfitTitle}
-                placeholderTextColor="#999"
-              />
+                <TextInput
+                  style={styles.titleInput}
+                  placeholder="Outfit name (optional)"
+                  value={outfitTitle}
+                  onChangeText={setOutfitTitle}
+                  placeholderTextColor="#999"
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
 
               {/* Occasion Dropdown */}
               <View style={styles.selectorSection}>
@@ -358,7 +368,8 @@ export default function OutfitDetailScreen() {
               </View>
             </View>
           </ScrollView>
-        </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
       )}
 
       {/* Occasion Picker Modal */}

@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { KeyboardAwareScrollView } from '@components/common/KeyboardAwareScrollView';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -196,7 +196,11 @@ export default function AddItemScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        extraScrollHeight={100}
+      >
         {/* Image Section */}
         <View style={[styles.section, styles.firstSection]}>
           {imageUri ? (
@@ -320,7 +324,7 @@ export default function AddItemScreen() {
             })}
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
         <Button onPress={handleSave} loading={loading} disabled={loading || !imageUri}>
