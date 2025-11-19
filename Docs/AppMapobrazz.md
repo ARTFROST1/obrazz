@@ -2,11 +2,11 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** November 11, 2025  
-**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)  
-**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED  
-**Last Scan:** Full codebase verification completed  
-**Documentation Status:** 🔄 Synchronized with actual implementation
+**Latest Update:** November 20, 2025
+**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
+**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED
+**Last Scan:** Full codebase verification completed (November 20, 2025)
+**Documentation Status:** ✅ Synchronized with actual implementation
 
 ---
 
@@ -254,23 +254,25 @@
 
 ### 3.1 Architecture overview
 
-**Current Implementation (Verified November 2025):**
+**Current Implementation (Verified November 20, 2025):**
 
-- **Frontend**: React Native 0.81.4 with Expo SDK 54, TypeScript 5.9.2
+- **Frontend**: React Native 0.81.4 with Expo SDK 54.0.13, TypeScript 5.9.2
 - **State Management**: Zustand 5.0.3 with AsyncStorage 2.1.0 persistence
 - **Navigation**: Expo Router 6.0.11 (file-based routing)
 - **Gestures & Animations**:
   - React Native Gesture Handler 2.28.0
   - React Native Reanimated 4.1.1
   - React Native Worklets 0.5.1
+  - React Native Zoom Toolkit 5.0.1
 - **Backend**: Supabase 2.51.0 (PostgreSQL, Auth, Storage)
 - **Image Processing**:
   - Expo Camera 17.0.8
   - Expo Image Picker 17.0.8
   - Expo Image Manipulator 14.0.7
-  - Remove.bg API for background removal
+  - Pixian.ai API for background removal
 - **File Storage**: Local device storage using expo-file-system 19.0.17
 - **Data Fetching**: TanStack Query 5.71.0 ✅ (implemented)
+- **Forms & Validation**: React Hook Form 7.56.0, Zod 3.24.0, Yup 1.6.0
 
 **Planned:**
 
@@ -682,15 +684,13 @@ Canvas Behaviors:
 
 #### Technical Implementation
 
-**Active Components (15 total):**
+**Outfit Components (14 total):**
 
-- `app/outfit/create.tsx` ✅ - Main screen coordinator
-- `app/outfit/[id].tsx` ✅ - Outfit detail/view screen
+- `components/outfit/SmoothCarousel.tsx` ✅ - Physics-based carousel (Stage 4.7)
+- `components/outfit/CategorySelectorWithSmooth.tsx` ✅ - Carousel container
 - `components/outfit/ItemSelectionStepNew.tsx` ✅ - Step 1 with 4-tab system
 - `components/outfit/OutfitTabBar.tsx` ✅ - Tab navigation (Stage 4.8)
 - `components/outfit/CustomTabManager.tsx` ✅ - Inline editing (Stage 4.8)
-- `components/outfit/CategorySelectorWithSmooth.tsx` ✅ - Carousel container
-- `components/outfit/SmoothCarousel.tsx` ✅ - Physics-based carousel (Stage 4.7)
 - `components/outfit/CompositionStep.tsx` ✅ - Step 2 composition
 - `components/outfit/OutfitCanvas.tsx` ✅ - Canvas with gestures
 - `components/outfit/ItemMiniPreviewBar.tsx` ✅ - Preview bar
@@ -700,6 +700,11 @@ Canvas Behaviors:
 - `components/outfit/OutfitEmptyState.tsx` ✅ - Empty state
 - `components/outfit/OutfitFilter.tsx` ✅ - Filter component
 - `components/outfit/OutfitPreview.tsx` ✅ - Detail preview
+
+**Screen Files:**
+
+- `app/outfit/create.tsx` ✅ - Main screen coordinator
+- `app/outfit/[id].tsx` ✅ - Outfit detail/view screen
 
 **State Management:**
 

@@ -1,8 +1,8 @@
 # Project Structure - Obrazz
 
-**Last Updated:** November 11, 2025  
-**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)  
-**Documentation Status:** 🔄 Synchronized with codebase
+**Last Updated:** November 20, 2025
+**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
+**Documentation Status:** ✅ Synchronized with codebase
 
 ## Overview
 
@@ -124,55 +124,56 @@ app/
 │   └── forgot-password.tsx ✅ # Password recovery flow
 ├── (tabs)/ ✅               # Tab-based navigation (4 tabs)
 │   ├── _layout.tsx ✅       # Tab navigator layout
-│   ├── index.tsx ✅         # Home/Community feed (Stage 6)
-│   ├── wardrobe.tsx ✅      # Wardrobe screen (IMPLEMENTED - Stage 3)
-│   ├── outfits.tsx 🚧       # Saved outfits collection (Stage 4.5 - IN PROGRESS)
-│   └── profile.tsx ✅       # User profile with logout (IMPLEMENTED - Stage 2)
+│   ├── index.tsx 🚧         # Home/Community feed (Stage 6 - placeholder)
+│   ├── wardrobe.tsx ✅      # Wardrobe screen (Stage 3)
+│   ├── outfits.tsx ✅       # Saved outfits collection (Stage 4.5)
+│   └── profile.tsx ✅       # User profile with logout (Stage 2)
 ├── (modals)/ 🚧            # Modal screens (Stage 2+)
 │   ├── add-item.tsx 🚧     # Add wardrobe item modal
 │   ├── outfit-ai.tsx 🚧    # AI outfit generation
 │   ├── subscription.tsx 🚧 # Subscription management
 │   └── settings.tsx 🚧     # App settings
 ├── outfit/ ✅              # Outfit screens (Stage 4 + 4.5)
-│   ├── create.tsx ✅        # Create outfit screen (moved from tabs, Stage 4)
-│   ├── [id].tsx 🚧         # Outfit detail/view screen (Stage 4.5)
-│   └── edit.tsx 🚧         # Outfit editor (Stage 4.5)
-├── item/
-│   └── [id].tsx              # Item detail screen
-├── onboarding/
-│   └── index.tsx             # Onboarding flow
-├── +html.tsx                 # HTML template for web
-├── +not-found.tsx           # 404 screen
-└── _layout.tsx              # Root layout with providers
+│   ├── create.tsx ✅        # Create/edit outfit screen (Stage 4)
+│   └── [id].tsx ✅          # Outfit detail/view screen (Stage 4.5)
+├── item/ ✅                # Item screens
+│   └── [id].tsx ✅          # Item detail screen (Stage 3)
+├── add-item.tsx ✅          # Add wardrobe item screen (Stage 3)
+├── modal.tsx ✅             # Example modal
+├── +html.tsx ✅             # HTML template for web
+├── +not-found.tsx ✅        # 404 screen
+└── _layout.tsx ✅           # Root layout with providers
 ```
 
-### `/components` - Reusable Components
+### `/components` - Reusable Components (33 total)
 
 ```
 components/
-├── ui/ ✅                     # Base UI components (Stage 2)
+├── ui/ ✅                     # Base UI components (Stage 2) - 4 components
 │   ├── Button.tsx ✅          # Primary/secondary button with loading
 │   ├── Input.tsx ✅           # Form input with validation
 │   ├── Loader.tsx ✅          # Loading spinner
-│   ├── FAB.tsx ✅            # Floating Action Button
-│   └── index.ts ✅           # Barrel export
-├── common/ ✅                # Common components (Stage 4.9)
-│   ├── ImageCropper.tsx ✅   # Custom 3:4 crop with pinch-to-zoom (NEW)
-│   ├── CropOverlay.tsx ✅    # Visual crop overlay (NEW)
-│   └── ResizableCropOverlay.tsx ✅ # Resizable crop overlay (ACTIVE)
-├── wardrobe/ ✅              # Wardrobe components (Stage 3)
+│   ├── FAB.tsx ✅             # Floating Action Button
+│   └── index.ts ✅            # Barrel export
+├── common/ ✅                 # Common components (Stage 4.9) - 5 components
+│   ├── ImageCropper.tsx ✅    # Custom 3:4 crop with pinch-to-zoom
+│   ├── CropOverlay.tsx ✅     # Visual crop overlay
+│   ├── ResizableCropOverlay.tsx ✅ # Resizable crop overlay
+│   ├── DismissKeyboardView.tsx ✅ # Dismiss keyboard on tap
+│   └── KeyboardAwareScrollView.tsx ✅ # Keyboard-aware scroll
+├── wardrobe/ ✅               # Wardrobe components (Stage 3) - 6 components
 │   ├── ItemCard.tsx ✅        # Item preview card
 │   ├── ItemGrid.tsx ✅        # Grid display for items
 │   ├── ItemFilter.tsx ✅      # Filtering component
 │   ├── CategoryPicker.tsx ✅  # Category selection
 │   ├── CategoryGridPicker.tsx ✅ # Grid-based category picker
 │   └── ColorPicker.tsx ✅     # Color selection
-├── outfit/ ✅                # Outfit components (Stages 4.7-4.10) - 15 components
+├── outfit/ ✅                 # Outfit components (Stages 4.7-4.10) - 14 components
 │   ├── SmoothCarousel.tsx ✅  # Physics-based carousel (Stage 4.7)
 │   ├── CategorySelectorWithSmooth.tsx ✅ # Carousel container
 │   ├── ItemSelectionStepNew.tsx ✅ # Step 1 with tab system (Stage 4.8)
-│   ├── OutfitTabBar.tsx ✅    # Tab navigation (Stage 4.8 - NEW)
-│   ├── CustomTabManager.tsx ✅ # Inline category editing (Stage 4.8 - NEW)
+│   ├── OutfitTabBar.tsx ✅    # Tab navigation (Stage 4.8)
+│   ├── CustomTabManager.tsx ✅ # Inline category editing (Stage 4.8)
 │   ├── CompositionStep.tsx ✅ # Step 2: Canvas composition
 │   ├── OutfitCanvas.tsx ✅    # Drag & drop canvas with gestures
 │   ├── BackgroundPicker.tsx ✅ # Background selector
@@ -181,18 +182,18 @@ components/
 │   ├── OutfitGrid.tsx ✅      # Grid of outfit cards
 │   ├── OutfitEmptyState.tsx ✅ # Empty outfit state
 │   ├── OutfitFilter.tsx ✅    # Filter component
-│   ├── OutfitPreview.tsx ✅   # Outfit detail preview
-│   └── index.ts ✅           # Barrel export
-├── Other components ✅      # Expo template & utility components
+│   └── OutfitPreview.tsx ✅   # Outfit detail preview
+├── Root components ✅         # Expo template & utility components - 4 components
 │   ├── EditScreenInfo.tsx ✅  # Development info component
 │   ├── ExternalLink.tsx ✅    # External link handler
 │   ├── StyledText.tsx ✅      # Themed text component
-│   ├── Themed.tsx ✅          # Theme-aware components
+│   └── Themed.tsx ✅          # Theme-aware components
+├── Hooks ✅                   # Custom hooks
 │   ├── useClientOnlyValue.ts ✅ # Client-side value hook
 │   ├── useClientOnlyValue.web.ts ✅ # Web version
 │   ├── useColorScheme.ts ✅   # Color scheme hook
 │   └── useColorScheme.web.ts ✅ # Web color scheme
-└── community/ 🚧            # Future community components
+└── community/ 🚧              # Future community components (Stage 6)
     ├── PostCard.tsx 🚧
     ├── FeedList.tsx 🚧
     ├── ReactionButton.tsx 🚧

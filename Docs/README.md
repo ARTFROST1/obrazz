@@ -184,6 +184,7 @@ Complete documentation audit report:
 
 - **[Extra/RUN_MIGRATION_INSTRUCTIONS.md](Extra/RUN_MIGRATION_INSTRUCTIONS.md)** - Database setup
 - **[Extra/REMOVE_BG_SETUP.md](Extra/REMOVE_BG_SETUP.md)** - Background removal setup
+- **[Extra/DEFAULT_ITEMS_GUIDE.md](Extra/DEFAULT_ITEMS_GUIDE.md)** - Managing default/builtin items
 
 #### Planning
 

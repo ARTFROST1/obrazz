@@ -42,6 +42,8 @@ export default function WardrobeScreen() {
     isLoading,
     setLoading,
     setError,
+    removeItemLocally,
+    addHiddenDefaultItemId,
   } = useWardrobeStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -164,38 +166,68 @@ export default function WardrobeScreen() {
   };
 
   const handleDeleteSelected = async () => {
-    if (selectedItems.size === 0) return;
+    if (selectedItems.size === 0 || !user?.id) return;
 
-    Alert.alert(
-      'Delete Items',
-      `Are you sure you want to delete ${selectedItems.size} ${selectedItems.size === 1 ? 'item' : 'items'}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              // Delete all selected items
-              await Promise.all(
-                Array.from(selectedItems).map((itemId) => itemService.deleteItem(itemId)),
-              );
-              // Reload items
-              await loadItems();
-              // Exit selection mode
-              setIsSelectionMode(false);
-              setSelectedItems(new Set());
-            } catch (error) {
-              console.error('Error deleting items:', error);
-              Alert.alert('Error', 'Failed to delete some items');
-            } finally {
-              setLoading(false);
+    // Separate builtin items from user's own items
+    const selectedItemsList = items.filter((item) => selectedItems.has(item.id));
+    const builtinItems = selectedItemsList.filter((item) => item.isBuiltin);
+    const userItems = selectedItemsList.filter((item) => !item.isBuiltin);
+
+    const hasBuiltinItems = builtinItems.length > 0;
+    const hasUserItems = userItems.length > 0;
+
+    // Determine alert message
+    let alertMessage = '';
+    if (hasBuiltinItems && hasUserItems) {
+      alertMessage = `This will delete ${userItems.length} ${userItems.length === 1 ? 'item' : 'items'} and hide ${builtinItems.length} default ${builtinItems.length === 1 ? 'item' : 'items'} from your wardrobe.`;
+    } else if (hasBuiltinItems) {
+      alertMessage = `This will hide ${builtinItems.length} default ${builtinItems.length === 1 ? 'item' : 'items'} from your wardrobe. You can restore them later.`;
+    } else {
+      alertMessage = `Are you sure you want to delete ${userItems.length} ${userItems.length === 1 ? 'item' : 'items'}?`;
+    }
+
+    Alert.alert(hasBuiltinItems && !hasUserItems ? 'Hide Items' : 'Delete Items', alertMessage, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: hasBuiltinItems && !hasUserItems ? 'Hide' : 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setLoading(true);
+
+            // Delete user's own items
+            if (hasUserItems) {
+              await Promise.all(userItems.map((item) => itemService.deleteItem(item.id)));
             }
-          },
+
+            // Hide builtin items (instead of deleting)
+            if (hasBuiltinItems) {
+              await Promise.all(
+                builtinItems.map(async (item) => {
+                  await itemService.hideDefaultItem(user.id, item.id);
+                  addHiddenDefaultItemId(item.id);
+                  removeItemLocally(item.id);
+                }),
+              );
+            }
+
+            // Reload items if we deleted any user items
+            if (hasUserItems) {
+              await loadItems();
+            }
+
+            // Exit selection mode
+            setIsSelectionMode(false);
+            setSelectedItems(new Set());
+          } catch (error) {
+            console.error('Error deleting/hiding items:', error);
+            Alert.alert('Error', 'Failed to process some items');
+          } finally {
+            setLoading(false);
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const filteredItems = getFilteredItems();

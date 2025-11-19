@@ -1,0 +1,242 @@
+[
+  {
+    "name": "Футболка чёрная",
+    "category": "tops",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_1_2025-11-20_00-15-55.png",
+    "brand": "Nike"
+  },
+  {
+    "name": "Iphone",
+    "category": "accessories",
+    "color": "#0000FF",
+    "colors": [{ "hex": "#0000FF", "name": "Blue" }],
+    "styles": ["formal", "casual", "sporty", "elegant"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_10_2025-11-20_00-15-55.png",
+    "brand": "Apple"
+  },
+  {
+    "name": "Кроссовки",
+    "category": "footwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["fall", "winter", "spring", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_11_2025-11-20_00-15-55.png",
+    "brand": "Adidas"
+  },
+  {
+    "name": "Браслет",
+    "category": "accessories",
+    "color": "#C0C0C0",
+    "colors": [{ "hex": "#C0C0C0", "name": "Silver" }],
+    "styles": ["casual", "elegant"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_12_2025-11-20_00-15-55.png",
+    "brand": "Nomination"
+  },
+  {
+    "name": "Ремень",
+    "category": "accessories",
+    "color": "#2F2F2F",
+    "colors": [{ "hex": "#2F2F2F", "name": "Black" }],
+    "styles": ["formal", "casual"],
+    "seasons": ["spring", "fall", "winter", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_13_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Шарф",
+    "category": "accessories",
+    "color": "#F5F5DC",
+    "colors": [{ "hex": "#F5F5DC", "name": "Beige" }],
+    "styles": ["casual", "formal"],
+    "seasons": ["fall", "winter", "spring"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_14_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Бомбер",
+    "category": "outerwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_16_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Худи",
+    "category": "outerwear",
+    "color": "#A52A2A",
+    "colors": [{ "hex": "#A52A2A", "name": "Brown" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_17_2025-11-20_00-15-55.png",
+    "brand": "GAP"
+  },
+  {
+    "name": "Пиджак",
+    "category": "outerwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "formal"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_18_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Кожанная куртка",
+    "category": "outerwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_19_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Брюки",
+    "category": "bottoms",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "formal"],
+    "seasons": ["spring", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_2_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Шапка",
+    "category": "headwear",
+    "color": "#FFFFFF",
+    "colors": [{ "hex": "#FFFFFF", "name": "White" }],
+    "styles": ["formal", "casual"],
+    "seasons": ["fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_20_2025-11-20_00-15-55.png",
+    "brand": "The North Face"
+  },
+  {
+    "name": "Кофта",
+    "category": "tops",
+    "color": "#A52A2A",
+    "colors": [{ "hex": "#A52A2A", "name": "Brown" }],
+    "styles": ["casual", "elegant", "formal"],
+    "seasons": ["fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_20_2025-11-20_00-15-551.png",
+    "brand": ""
+  },
+  {
+    "name": "Кеды",
+    "category": "footwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "formal", "elegant"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_21_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Дублёнка",
+    "category": "outerwear",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["formal", "casual", "elegant"],
+    "seasons": ["fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_22_2025-11-20_00-15-55.png",
+    "brand": "Zara"
+  },
+  {
+    "name": "Тренч",
+    "category": "outerwear",
+    "color": "#FFFFFF",
+    "colors": [{ "hex": "#FFFFFF", "name": "White" }],
+    "styles": ["casual", "formal", "elegant"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_23_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Сумка",
+    "category": "accessories",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "formal"],
+    "seasons": ["spring", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_24_2025-11-20_00-15-55.png",
+    "brand": "Coach"
+  },
+  {
+    "name": "Лонгслив",
+    "category": "tops",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["spring", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_3_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Джинсы Багги",
+    "category": "bottoms",
+    "color": "#0000FF",
+    "colors": [{ "hex": "#0000FF", "name": "Blue" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["fall", "winter", "spring", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_4_2025-11-20_00-15-55.png",
+    "brand": ""
+  },
+  {
+    "name": "Кроссовки",
+    "category": "footwear",
+    "color": "#FFFFFF",
+    "colors": [{ "hex": "#FFFFFF", "name": "White" }],
+    "styles": ["casual", "sporty"],
+    "seasons": ["spring", "summer", "fall"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_5_2025-11-20_00-15-55.png",
+    "brand": "New Balance"
+  },
+  {
+    "name": "Кроссовки",
+    "category": "footwear",
+    "color": "#FFFFFF",
+    "colors": [{ "hex": "#FFFFFF", "name": "White" }],
+    "styles": ["casual", "formal", "elegant"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_6_2025-11-20_00-15-55.png",
+    "brand": "Nike"
+  },
+  {
+    "name": "Сумка",
+    "category": "accessories",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["formal", "casual"],
+    "seasons": ["spring", "summer", "fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_7_2025-11-20_00-15-55.png",
+    "brand": "Yves Saint Laurent"
+  },
+  {
+    "name": "Ремень",
+    "category": "accessories",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual", "formal"],
+    "seasons": ["fall", "winter"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_8_2025-11-20_00-15-55.png",
+    "brand": "Diesel"
+  },
+  {
+    "name": "Часы",
+    "category": "accessories",
+    "color": "#000000",
+    "colors": [{ "hex": "#000000", "name": "Black" }],
+    "styles": ["casual"],
+    "seasons": ["spring", "summer"],
+    "photoFileName": "https://oyyzncjezesrdxxowdrx.supabase.co/storage/v1/object/public/default-items/photo_9_2025-11-20_00-15-55.png",
+    "brand": "Apple"
+  }
+]

@@ -105,22 +105,132 @@ class ItemService {
   }
 
   /**
-   * Get all items for a user
+   * Get all items for a user (including default items, excluding hidden ones)
    */
   async getUserItems(userId: string): Promise<WardrobeItem[]> {
+    try {
+      // Get hidden default item IDs for this user
+      const hiddenIds = await this.getHiddenDefaultItemIds(userId);
+
+      // Get user's own items
+      const { data: userItems, error: userError } = await supabase
+        .from('items')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_default', false)
+        .order('created_at', { ascending: false });
+
+      if (userError) throw userError;
+
+      // Get default items (not hidden by this user)
+      let defaultItemsQuery = supabase
+        .from('items')
+        .select('*')
+        .eq('is_default', true)
+        .order('created_at', { ascending: false });
+
+      // Exclude hidden items
+      if (hiddenIds.length > 0) {
+        defaultItemsQuery = defaultItemsQuery.not('id', 'in', `(${hiddenIds.join(',')})`);
+      }
+
+      const { data: defaultItems, error: defaultError } = await defaultItemsQuery;
+
+      if (defaultError) throw defaultError;
+
+      // Combine and return
+      const allItems = [...(userItems || []), ...(defaultItems || [])];
+      return allItems.map(this.mapSupabaseItemToWardrobeItem);
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      throw new Error('Failed to fetch wardrobe items');
+    }
+  }
+
+  /**
+   * Get only default/builtin items
+   */
+  async getDefaultItems(): Promise<WardrobeItem[]> {
     try {
       const { data, error } = await supabase
         .from('items')
         .select('*')
-        .eq('user_id', userId)
+        .eq('is_default', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       return (data || []).map(this.mapSupabaseItemToWardrobeItem);
     } catch (error) {
-      console.error('Error fetching items:', error);
-      throw new Error('Failed to fetch wardrobe items');
+      console.error('Error fetching default items:', error);
+      throw new Error('Failed to fetch default items');
+    }
+  }
+
+  /**
+   * Get IDs of default items hidden by this user
+   */
+  async getHiddenDefaultItemIds(userId: string): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('hidden_default_items')
+        .select('item_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      return (data || []).map((row) => row.item_id);
+    } catch (error) {
+      console.error('Error fetching hidden default items:', error);
+      return []; // Return empty array on error to not block the main flow
+    }
+  }
+
+  /**
+   * Hide a default item for a user
+   */
+  async hideDefaultItem(userId: string, itemId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('hidden_default_items')
+        .insert({ user_id: userId, item_id: itemId });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error hiding default item:', error);
+      throw new Error('Failed to hide default item');
+    }
+  }
+
+  /**
+   * Unhide a default item for a user
+   */
+  async unhideDefaultItem(userId: string, itemId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('hidden_default_items')
+        .delete()
+        .eq('user_id', userId)
+        .eq('item_id', itemId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error unhiding default item:', error);
+      throw new Error('Failed to unhide default item');
+    }
+  }
+
+  /**
+   * Restore all hidden default items for a user
+   */
+  async unhideAllDefaultItems(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase.from('hidden_default_items').delete().eq('user_id', userId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error unhiding all default items:', error);
+      throw new Error('Failed to unhide all default items');
     }
   }
 

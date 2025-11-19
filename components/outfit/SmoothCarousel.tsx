@@ -21,6 +21,9 @@ const PHYSICS_CONFIG = {
   snapVelocityThreshold: 0.5, // Velocity below which snapping occurs
   snapDuration: 250, // Smooth snap animation duration
   friction: 0.02, // Friction coefficient
+  maxAdjustmentDelay: 500, // Maximum time to wait for adjustment before force reset
+  adjustmentAnimationDuration: 300, // Snap animation duration before adjustment
+  postAdjustmentDelay: 100, // Delay after adjustment completes
 };
 
 interface CarouselItemProps {
@@ -76,6 +79,13 @@ interface SmoothCarouselProps {
 /**
  * SmoothCarousel - Ultra-smooth carousel with realistic physics
  * Edge-to-edge design with center focus (no flag buttons)
+ *
+ * Fixes:
+ * - Proper state management with AbortController to prevent race conditions
+ * - Try-catch blocks for error handling
+ * - Safe timeout guards to prevent deadlock
+ * - Improved flag reset logic
+ * - Better cleanup on unmount/props change
  */
 export function SmoothCarousel({
   category,
@@ -94,6 +104,9 @@ export function SmoothCarousel({
   const isAdjustingRef = useRef(false);
   const lastNotifiedIndexRef = useRef(-1);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const adjustmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const adjustmentAbortControllerRef = useRef<AbortController | null>(null);
+  const watchdogTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Use state for center index to trigger re-renders
   const [centerIndex, setCenterIndex] = useState(initialScrollIndex);
@@ -144,131 +157,245 @@ export function SmoothCarousel({
     (index: number) => {
       if (items.length === 0) return;
 
-      // Map to original item index
-      const originalIndex = (((index - indexOffset) % items.length) + items.length) % items.length;
+      try {
+        // Map to original item index
+        const originalIndex =
+          (((index - indexOffset) % items.length) + items.length) % items.length;
 
-      if (lastNotifiedIndexRef.current !== originalIndex) {
-        lastNotifiedIndexRef.current = originalIndex;
-        onScrollIndexChange?.(originalIndex);
+        if (lastNotifiedIndexRef.current !== originalIndex) {
+          lastNotifiedIndexRef.current = originalIndex;
+          onScrollIndexChange?.(originalIndex);
 
-        const item = items[originalIndex];
-        if (item) {
-          onItemSelect(item);
+          const item = items[originalIndex];
+          if (item) {
+            onItemSelect(item);
+          }
         }
+      } catch (error) {
+        console.error('[SmoothCarousel] Error in notifyItemSelection:', error);
       }
     },
     [items, onItemSelect, onScrollIndexChange, indexOffset],
   );
 
+  // Force reset adjustment state (safety valve against deadlock)
+  const forceResetAdjustment = useCallback(() => {
+    try {
+      if (isAdjustingRef.current) {
+        console.warn(
+          '[SmoothCarousel] Force resetting adjustment state (possible deadlock prevented)',
+        );
+        isAdjustingRef.current = false;
+        isScrollingRef.current = false;
+
+        // Clear all pending timeouts
+        if (adjustmentTimeoutRef.current) {
+          clearTimeout(adjustmentTimeoutRef.current);
+          adjustmentTimeoutRef.current = null;
+        }
+
+        if (watchdogTimeoutRef.current) {
+          clearTimeout(watchdogTimeoutRef.current);
+          watchdogTimeoutRef.current = null;
+        }
+
+        // Abort any pending adjustment operations
+        if (adjustmentAbortControllerRef.current) {
+          adjustmentAbortControllerRef.current.abort();
+          adjustmentAbortControllerRef.current = null;
+        }
+      }
+    } catch (error) {
+      console.error('[SmoothCarousel] Error in forceResetAdjustment:', error);
+    }
+  }, []);
+
   // Handle scroll with anti-flickering protection
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      // Skip if adjusting for infinite loop
-      if (isAdjustingRef.current) return;
+      try {
+        // Skip if adjusting for infinite loop
+        if (isAdjustingRef.current) return;
 
-      const { contentOffset, velocity } = event.nativeEvent;
-      scrollOffsetRef.current = contentOffset.x;
-      velocityRef.current = velocity?.x || 0;
+        const { contentOffset, velocity } = event.nativeEvent;
+        scrollOffsetRef.current = contentOffset.x;
+        velocityRef.current = velocity?.x || 0;
 
-      // Clear any pending scroll timeout
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
+        // Clear any pending scroll timeout
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+          scrollTimeoutRef.current = null;
+        }
 
-      // Update center index only if significantly changed (anti-flickering)
-      const newCenterIndex = getCenterIndex(contentOffset.x);
-      const indexDiff = Math.abs(newCenterIndex - centerIndex);
+        // Update center index only if significantly changed (anti-flickering)
+        const newCenterIndex = getCenterIndex(contentOffset.x);
+        const indexDiff = Math.abs(newCenterIndex - centerIndex);
 
-      if (indexDiff >= 1) {
-        setCenterIndex(newCenterIndex);
+        if (indexDiff >= 1) {
+          setCenterIndex(newCenterIndex);
+        }
+      } catch (error) {
+        console.error('[SmoothCarousel] Error in handleScroll:', error);
+        forceResetAdjustment();
       }
     },
-    [getCenterIndex, centerIndex],
+    [getCenterIndex, centerIndex, forceResetAdjustment],
   );
 
   // Handle scroll end with smooth snapping and anti-flickering
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isAdjustingRef.current) return;
+      try {
+        if (isAdjustingRef.current) return;
 
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const centerIndex = getCenterIndex(offsetX);
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const centerIndex = getCenterIndex(offsetX);
 
-      // Smooth snap to center
-      const targetOffset = centerIndex * (itemWidth + spacing);
-      const offsetDiff = Math.abs(offsetX - targetOffset);
+        // Smooth snap to center
+        const targetOffset = centerIndex * (itemWidth + spacing);
+        const offsetDiff = Math.abs(offsetX - targetOffset);
 
-      if (offsetDiff > 1) {
-        flatListRef.current?.scrollToOffset({
-          offset: targetOffset,
-          animated: true,
-        });
-      }
+        if (offsetDiff > 1) {
+          flatListRef.current?.scrollToOffset({
+            offset: targetOffset,
+            animated: true,
+          });
+        }
 
-      // Notify selection
-      notifyItemSelection(centerIndex);
+        // Notify selection
+        notifyItemSelection(centerIndex);
 
-      // Check for infinite loop adjustment - keep in center zone
-      // Safe zone is the middle section (original items)
-      const safeZoneStart = indexOffset;
-      const safeZoneEnd = indexOffset + items.length;
-      const needsAdjustment = centerIndex < safeZoneStart || centerIndex >= safeZoneEnd;
+        // Check for infinite loop adjustment - keep in center zone
+        // Safe zone is the middle section (original items)
+        const safeZoneStart = indexOffset;
+        const safeZoneEnd = indexOffset + items.length;
+        const needsAdjustment = centerIndex < safeZoneStart || centerIndex >= safeZoneEnd;
 
-      if (needsAdjustment && items.length > 0) {
-        isAdjustingRef.current = true;
+        if (needsAdjustment && items.length > 0) {
+          // Prevent nested adjustments
+          if (isAdjustingRef.current) {
+            return;
+          }
 
-        // Map current position to equivalent position in safe zone
-        const relativeIndex = ((centerIndex % items.length) + items.length) % items.length;
-        const adjustedIndex = indexOffset + relativeIndex;
+          isAdjustingRef.current = true;
 
-        // Wait for snap animation to complete before adjusting
-        setTimeout(
-          () => {
-            if (flatListRef.current) {
-              flatListRef.current?.scrollToOffset({
+          // Create abort controller for this adjustment operation
+          adjustmentAbortControllerRef.current = new AbortController();
+          const signal = adjustmentAbortControllerRef.current.signal;
+
+          // Map current position to equivalent position in safe zone
+          const relativeIndex = ((centerIndex % items.length) + items.length) % items.length;
+          const adjustedIndex = indexOffset + relativeIndex;
+
+          // Calculate animation duration before adjustment
+          const animationDuration =
+            offsetDiff > 1 ? PHYSICS_CONFIG.adjustmentAnimationDuration : 50;
+
+          // Clear any existing adjustment timeout
+          if (adjustmentTimeoutRef.current) {
+            clearTimeout(adjustmentTimeoutRef.current);
+          }
+
+          // Clear watchdog timeout
+          if (watchdogTimeoutRef.current) {
+            clearTimeout(watchdogTimeoutRef.current);
+          }
+
+          // Set watchdog timeout to force reset if adjustment takes too long
+          watchdogTimeoutRef.current = setTimeout(() => {
+            console.warn('[SmoothCarousel] Adjustment watchdog triggered - forcing reset');
+            forceResetAdjustment();
+          }, animationDuration + PHYSICS_CONFIG.maxAdjustmentDelay);
+
+          // Wait for snap animation to complete before adjusting
+          adjustmentTimeoutRef.current = setTimeout(() => {
+            try {
+              // Check if abort was requested
+              if (signal.aborted) {
+                isAdjustingRef.current = false;
+                return;
+              }
+
+              // Check if FlatList still exists
+              if (!flatListRef.current) {
+                isAdjustingRef.current = false;
+                return;
+              }
+
+              // Perform the adjustment
+              flatListRef.current.scrollToOffset({
                 offset: adjustedIndex * (itemWidth + spacing),
                 animated: false,
               });
               setCenterIndex(adjustedIndex);
-            }
 
-            // Re-enable scrolling after adjustment
-            setTimeout(() => {
+              // Re-enable scrolling after adjustment with safety guard
+              const postAdjustmentTimeout = setTimeout(() => {
+                try {
+                  if (!signal.aborted) {
+                    isAdjustingRef.current = false;
+                    isScrollingRef.current = false;
+                  }
+                } catch (error) {
+                  console.error('[SmoothCarousel] Error in post-adjustment reset:', error);
+                  forceResetAdjustment();
+                }
+              }, PHYSICS_CONFIG.postAdjustmentDelay);
+
+              // Store for cleanup
+              adjustmentTimeoutRef.current = postAdjustmentTimeout as any;
+            } catch (error) {
+              console.error('[SmoothCarousel] Error during adjustment execution:', error);
               isAdjustingRef.current = false;
               isScrollingRef.current = false;
-            }, 50);
-          },
-          offsetDiff > 1 ? 300 : 100,
-        );
-      }
+            }
+          }, animationDuration);
+        }
 
-      isScrollingRef.current = false;
+        isScrollingRef.current = false;
+      } catch (error) {
+        console.error('[SmoothCarousel] Error in handleMomentumScrollEnd:', error);
+        forceResetAdjustment();
+      }
     },
-    [getCenterIndex, itemWidth, spacing, notifyItemSelection, indexOffset, items.length],
+    [
+      getCenterIndex,
+      itemWidth,
+      spacing,
+      notifyItemSelection,
+      indexOffset,
+      items.length,
+      forceResetAdjustment,
+    ],
   );
 
   // Handle drag end with velocity check
   const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isAdjustingRef.current) return;
+      try {
+        if (isAdjustingRef.current) return;
 
-      const { contentOffset, velocity } = event.nativeEvent;
-      const velocityX = velocity?.x || 0;
+        const { contentOffset, velocity } = event.nativeEvent;
+        const velocityX = velocity?.x || 0;
 
-      // If velocity is low, snap immediately
-      if (Math.abs(velocityX) < PHYSICS_CONFIG.snapVelocityThreshold) {
-        const centerIndex = getCenterIndex(contentOffset.x);
-        const targetOffset = centerIndex * (itemWidth + spacing);
+        // If velocity is low, snap immediately
+        if (Math.abs(velocityX) < PHYSICS_CONFIG.snapVelocityThreshold) {
+          const centerIndex = getCenterIndex(contentOffset.x);
+          const targetOffset = centerIndex * (itemWidth + spacing);
 
-        flatListRef.current?.scrollToOffset({
-          offset: targetOffset,
-          animated: true,
-        });
+          flatListRef.current?.scrollToOffset({
+            offset: targetOffset,
+            animated: true,
+          });
 
-        notifyItemSelection(centerIndex);
+          notifyItemSelection(centerIndex);
+        }
+      } catch (error) {
+        console.error('[SmoothCarousel] Error in handleScrollEndDrag:', error);
+        forceResetAdjustment();
       }
     },
-    [getCenterIndex, itemWidth, spacing, notifyItemSelection],
+    [getCenterIndex, itemWidth, spacing, notifyItemSelection, forceResetAdjustment],
   );
 
   // Render item with memoization for performance
@@ -291,31 +418,71 @@ export function SmoothCarousel({
 
   // Initialize scroll position
   useEffect(() => {
-    if (flatListRef.current && carouselItems.length > 0) {
-      const initialIndex = indexOffset + (initialScrollIndex % items.length);
+    try {
+      if (flatListRef.current && carouselItems.length > 0) {
+        const initialIndex = indexOffset + (initialScrollIndex % items.length);
 
-      // Debug: Log carousel initialization
-      console.log(`🔍 [SmoothCarousel] Initializing ${category}:`, {
-        initialScrollIndex,
-        calculatedIndex: initialIndex,
-        itemsCount: items.length,
-        selectedItemId,
-      });
-
-      scrollTimeoutRef.current = setTimeout(() => {
-        flatListRef.current?.scrollToOffset({
-          offset: initialIndex * (itemWidth + spacing),
-          animated: false,
+        // Debug: Log carousel initialization
+        console.log(`🔍 [SmoothCarousel] Initializing ${category}:`, {
+          initialScrollIndex,
+          calculatedIndex: initialIndex,
+          itemsCount: items.length,
+          selectedItemId,
         });
-        setCenterIndex(initialIndex);
-      }, 50);
+
+        // Clear any existing scroll timeout
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+        }
+
+        scrollTimeoutRef.current = setTimeout(() => {
+          try {
+            flatListRef.current?.scrollToOffset({
+              offset: initialIndex * (itemWidth + spacing),
+              animated: false,
+            });
+            setCenterIndex(initialIndex);
+          } catch (error) {
+            console.error('[SmoothCarousel] Error during initialization scroll:', error);
+          }
+        }, 50);
+      }
+    } catch (error) {
+      console.error('[SmoothCarousel] Error in initialization effect:', error);
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount or prop change
     return () => {
-      const timeout = scrollTimeoutRef.current;
-      if (timeout) {
-        clearTimeout(timeout);
+      try {
+        // Clear scroll timeout
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current);
+          scrollTimeoutRef.current = null;
+        }
+
+        // Clear adjustment timeout
+        if (adjustmentTimeoutRef.current) {
+          clearTimeout(adjustmentTimeoutRef.current);
+          adjustmentTimeoutRef.current = null;
+        }
+
+        // Clear watchdog timeout
+        if (watchdogTimeoutRef.current) {
+          clearTimeout(watchdogTimeoutRef.current);
+          watchdogTimeoutRef.current = null;
+        }
+
+        // Abort adjustment operation
+        if (adjustmentAbortControllerRef.current) {
+          adjustmentAbortControllerRef.current.abort();
+          adjustmentAbortControllerRef.current = null;
+        }
+
+        // Reset flags
+        isAdjustingRef.current = false;
+        isScrollingRef.current = false;
+      } catch (error) {
+        console.error('[SmoothCarousel] Error during cleanup:', error);
       }
     };
   }, [

@@ -652,19 +652,33 @@ setCurrentOutfit: (outfit) => {
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Pixian.ai API Documentation](https://ru.pixian.ai/api)
 
-## **Current Project Statistics (November 11, 2025)**
+## **Current Project Statistics (November 20, 2025)**
 
 **Code Metrics:**
 
 - Total Screens: 18
-- Total Components: 29 (active)
-  - 5 wardrobe components
-  - 5 common components (включая ImageCropper + CropOverlay)
-  - 5 UI components
+- Total Components: 33 (active)
+  - 4 UI components (Button, Input, Loader, FAB)
+  - 5 common components (ImageCropper, CropOverlay, ResizableCropOverlay, DismissKeyboardView, KeyboardAwareScrollView)
+  - 6 wardrobe components
+  - 14 outfit components
+  - 4 root/utility components
 - Total Services: 4
 - Total Stores: 4 (with advanced state management)
 - Total Type Definitions: 12 files
 - Categories: 8 (unified system)
+
+**Tech Stack Versions:**
+
+- React Native: 0.81.4
+- Expo SDK: 54.0.13
+- React: 19.1.0
+- TypeScript: 5.9.2
+- Zustand: 5.0.3
+- Supabase: 2.51.0
+- TanStack Query: 5.71.0
+- React Native Reanimated: 4.1.1
+- React Native Gesture Handler: 2.28.0
 
 **Implementation Status:**
 

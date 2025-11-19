@@ -15,6 +15,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Background selection
 - Outfit saving and management
 
+### Default Items System (November 2025)
+
+#### Added
+
+- **Default Items Feature** - Pre-configured wardrobe items for all users
+  - 24 builtin items with images in Supabase Storage
+  - Items visible to all users automatically
+  - Users can hide (not delete) default items
+  - Per-user hiding stored in `hidden_default_items` table
+
+- **Database Migrations**
+  - `001_create_hidden_default_items.sql` - Hidden items tracking table
+  - `002_insert_default_items.sql` - Insert 24 default items
+
+- **Service Methods** (`itemService.ts`)
+  - `getUserItems()` - Load items including visible defaults
+  - `getDefaultItems()` - Get all default items
+  - `getHiddenDefaultItemIds()` - Get user's hidden item IDs
+  - `hideDefaultItem()` - Hide a default item
+  - `unhideDefaultItem()` - Restore a hidden item
+  - `unhideAllDefaultItems()` - Restore all hidden items
+
+- **State Management** (`wardrobeStore.ts`)
+  - `hiddenDefaultItemIds` state
+  - `removeItemLocally()` action
+  - `setHiddenDefaultItemIds()`, `addHiddenDefaultItemId()`, `removeHiddenDefaultItemId()` actions
+  - `getDefaultItems()`, `getUserOwnItems()` getters
+
+- **UI Updates** (`wardrobe.tsx`)
+  - Different delete behavior for default vs user items
+  - "Hide Items" vs "Delete Items" confirmation messages
+  - Combined message when both types selected
+
+- **Documentation**
+  - `DEFAULT_ITEMS_GUIDE.md` - Complete guide for managing default items
+
 ## [0.3.0] - 2025-01-14
 
 ### Stage 3: Wardrobe Management Core ✅
