@@ -23,6 +23,7 @@ interface ItemGridProps {
   ListFooterComponent?: React.ReactElement;
   isSelectable?: boolean;
   selectedItems?: Set<string>;
+  numColumns?: number;
 }
 
 export const ItemGrid: React.FC<ItemGridProps> = ({
@@ -37,6 +38,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   ListFooterComponent,
   isSelectable = false,
   selectedItems = new Set(),
+  numColumns = 3,
 }) => {
   const renderItem = ({ item }: { item: WardrobeItem }) => (
     <ItemCard
@@ -45,6 +47,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
       onFavoritePress={onFavoritePress}
       isSelectable={isSelectable}
       isSelected={selectedItems.has(item.id)}
+      numColumns={numColumns}
     />
   );
 
@@ -68,10 +71,11 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
 
   return (
     <FlatList
+      key={`grid-${numColumns}`}
       data={items}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
-      numColumns={2}
+      numColumns={numColumns}
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
