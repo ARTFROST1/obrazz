@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Keyboard,
-  Platform,
   Dimensions,
+  findNodeHandle,
+  Keyboard,
   KeyboardEvent,
+  Platform,
   ScrollView,
   TextInput,
-  findNodeHandle,
   UIManager,
 } from 'react-native';
 
@@ -16,7 +16,7 @@ interface KeyboardAwareScrollState {
 }
 
 interface UseKeyboardAwareScrollReturn {
-  scrollViewRef: React.RefObject<ScrollView>;
+  scrollViewRef: React.RefObject<ScrollView | null>;
   keyboardHeight: number;
   keyboardVisible: boolean;
   scrollToInput: (inputRef: React.RefObject<TextInput>) => void;
@@ -28,7 +28,7 @@ interface UseKeyboardAwareScrollReturn {
  * Automatically scrolls to center the focused input above the keyboard
  */
 export function useKeyboardAwareScroll(): UseKeyboardAwareScrollReturn {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
   const [state, setState] = useState<KeyboardAwareScrollState>({
     keyboardHeight: 0,
     keyboardVisible: false,

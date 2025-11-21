@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { zustandStorage } from '../storage';
-import { Outfit, OutfitItem, OutfitBackground, CanvasSettings } from '../../types/models/outfit';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { OutfitTabType } from '../../types/components/OutfitCreator';
 import { CATEGORIES } from '@constants/categories';
 import { DEFAULT_CUSTOM_CATEGORIES } from '@constants/outfitTabs';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { OutfitTabType } from '../../types/components/OutfitCreator';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
+import { CanvasSettings, Outfit, OutfitBackground, OutfitItem } from '../../types/models/outfit';
+import { zustandStorage } from '../storage';
 
 interface HistoryState {
   items: OutfitItem[];
@@ -119,12 +119,6 @@ const createEmptySelection = (size: number): (WardrobeItem | null)[] => {
 
 // ✅ HELPER FUNCTIONS for tab detection and synchronization
 
-// Helper to compare arrays
-function arraysEqual<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) return false;
-  return a.every((val, index) => val === b[index]);
-}
-
 // Check if categories match Basic tab
 function isBasicTab(categories: ItemCategory[]): boolean {
   return (
@@ -149,14 +143,6 @@ function isDressTab(categories: ItemCategory[]): boolean {
 function isAllTab(categories: ItemCategory[]): boolean {
   if (categories.length !== CATEGORIES.length) return false;
   return categories.every((cat, index) => cat === CATEGORIES[index]);
-}
-
-// Detect tab type from categories (for smart tab restoration)
-function detectTabType(categories: ItemCategory[]): OutfitTabType {
-  if (isBasicTab(categories)) return 'basic';
-  if (isDressTab(categories)) return 'dress';
-  if (isAllTab(categories)) return 'all';
-  return 'custom';
 }
 
 // ✅ NEW: Compute selectedItemsForCreation based on active tab

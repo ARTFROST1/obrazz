@@ -310,66 +310,68 @@ export default function OutfitDetailScreen() {
                   onSubmitEditing={Keyboard.dismiss}
                 />
 
-              {/* Occasion Dropdown */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Occasion</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('occasion')}>
-                  <Text style={styles.dropdownText}>
-                    {selectedOccasion
-                      ? selectedOccasion.charAt(0).toUpperCase() + selectedOccasion.slice(1)
-                      : 'Not selected'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
+                {/* Occasion Dropdown */}
+                <View style={styles.selectorSection}>
+                  <Text style={styles.selectorLabel}>Occasion</Text>
+                  <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('occasion')}>
+                    <Text style={styles.dropdownText}>
+                      {selectedOccasion
+                        ? selectedOccasion.charAt(0).toUpperCase() + selectedOccasion.slice(1)
+                        : 'Not selected'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* Style Dropdown */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Style (multiple)</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('style')}>
-                  <Text style={styles.dropdownText} numberOfLines={1}>
-                    {selectedStyles.length > 0
-                      ? selectedStyles.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')
-                      : 'Not selected'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
+                {/* Style Dropdown */}
+                <View style={styles.selectorSection}>
+                  <Text style={styles.selectorLabel}>Style (multiple)</Text>
+                  <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('style')}>
+                    <Text style={styles.dropdownText} numberOfLines={1}>
+                      {selectedStyles.length > 0
+                        ? selectedStyles
+                            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                            .join(', ')
+                        : 'Not selected'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* Season Dropdown */}
-              <View style={styles.selectorSection}>
-                <Text style={styles.selectorLabel}>Season</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('season')}>
-                  <Text style={styles.dropdownText}>
-                    {selectedSeason
-                      ? selectedSeason.charAt(0).toUpperCase() + selectedSeason.slice(1)
-                      : 'Not selected'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
+                {/* Season Dropdown */}
+                <View style={styles.selectorSection}>
+                  <Text style={styles.selectorLabel}>Season</Text>
+                  <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('season')}>
+                    <Text style={styles.dropdownText}>
+                      {selectedSeason
+                        ? selectedSeason.charAt(0).toUpperCase() + selectedSeason.slice(1)
+                        : 'Not selected'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
 
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  onPress={() => setShowUpdateModal(false)}
-                  style={styles.modalButton}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleUpdateMetadata}
-                  style={[styles.modalButton, styles.modalButtonPrimary]}
-                  disabled={isUpdating}
-                >
-                  <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
-                    {isUpdating ? 'Updating...' : 'Update'}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    onPress={() => setShowUpdateModal(false)}
+                    style={styles.modalButton}
+                  >
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleUpdateMetadata}
+                    style={[styles.modalButton, styles.modalButtonPrimary]}
+                    disabled={isUpdating}
+                  >
+                    <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
+                      {isUpdating ? 'Updating...' : 'Update'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       )}
 
       {/* Occasion Picker Modal */}

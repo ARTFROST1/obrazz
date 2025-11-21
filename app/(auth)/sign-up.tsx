@@ -91,102 +91,105 @@ export default function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Sign up to get started</Text>
           </View>
 
-        <View style={styles.form}>
-          <Input
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={fullName}
-            onChangeText={(text) => {
-              setFullName(text);
-              setErrors((prev) => ({ ...prev, fullName: undefined }));
-            }}
-            error={errors.fullName}
-            leftIcon="person-outline"
-            autoCapitalize="words"
-            autoComplete="name"
-            textContentType="name"
-          />
+          <View style={styles.form}>
+            <Input
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={fullName}
+              onChangeText={(text) => {
+                setFullName(text);
+                setErrors((prev) => ({ ...prev, fullName: undefined }));
+              }}
+              error={errors.fullName}
+              leftIcon="person-outline"
+              autoCapitalize="words"
+              autoComplete="name"
+              textContentType="name"
+            />
 
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setErrors((prev) => ({ ...prev, email: undefined }));
-            }}
-            error={errors.email}
-            leftIcon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-          />
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
+              error={errors.email}
+              leftIcon="mail-outline"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+            />
 
-          <Input
-            label="Password"
-            placeholder="Create a password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setErrors((prev) => ({ ...prev, password: undefined }));
-            }}
-            error={errors.password}
-            leftIcon="lock-closed-outline"
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoComplete="password-new"
-            textContentType="newPassword"
-          />
+            <Input
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setErrors((prev) => ({ ...prev, password: undefined }));
+              }}
+              error={errors.password}
+              leftIcon="lock-closed-outline"
+              rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password-new"
+              textContentType="newPassword"
+            />
 
-          <Input
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChangeText={(text) => {
-              setConfirmPassword(text);
-              setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-            }}
-            error={errors.confirmPassword}
-            leftIcon="lock-closed-outline"
-            rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize="none"
-            autoComplete="password-new"
-            textContentType="newPassword"
-          />
+            <Input
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+              }}
+              error={errors.confirmPassword}
+              leftIcon="lock-closed-outline"
+              rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+              onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              secureTextEntry={!showConfirmPassword}
+              autoCapitalize="none"
+              autoComplete="password-new"
+              textContentType="newPassword"
+            />
 
-          <Button
-            title="Create Account"
-            onPress={handleSignUp}
-            loading={loading}
-            style={styles.signUpButton}
-          />
+            <Button
+              title="Create Account"
+              onPress={handleSignUp}
+              loading={loading}
+              style={styles.signUpButton}
+            />
 
-          <View style={styles.signInPrompt}>
-            <Text style={styles.signInPromptText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
+            <View style={styles.signInPrompt}>
+              <Text style={styles.signInPromptText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+                <Text style={styles.signInLink}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.termsText}>
+              By creating an account, you agree to our{'\n'}
+              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text>
           </View>
-
-          <Text style={styles.termsText}>
-            By creating an account, you agree to our{'\n'}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
-        </View>
-      </ScrollView>
-    </TouchableWithoutFeedback>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

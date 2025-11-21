@@ -1,5 +1,5 @@
-import * as FileSystem from 'expo-file-system/legacy';
 import { PIXIAN_API_ID, PIXIAN_API_SECRET, PIXIAN_TEST_MODE } from '@config/env';
+import * as FileSystem from 'expo-file-system/legacy';
 
 interface PixianOptions {
   // Test mode - free but with watermark

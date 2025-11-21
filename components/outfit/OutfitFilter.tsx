@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { OccasionTag, Season, StyleTag } from '../../types/models';
 
 interface OutfitFilterProps {
@@ -33,15 +33,17 @@ const OCCASIONS: OccasionTag[] = [
 
 const STYLES: StyleTag[] = [
   'casual',
-  'formal',
-  'sporty',
-  'elegant',
-  'vintage',
-  'minimalist',
-  'bohemian',
-  'streetwear',
-  'preppy',
-  'romantic',
+  'classic',
+  'sport',
+  'minimalism',
+  'old_money',
+  'scandi',
+  'indie',
+  'y2k',
+  'star',
+  'alt',
+  'cottagecore',
+  'downtown',
 ];
 
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter'];

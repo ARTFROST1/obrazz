@@ -1,4 +1,4 @@
-import { supabase, clearAuthStorage } from '@lib/supabase/client';
+import { clearAuthStorage, supabase } from '@lib/supabase/client';
 import { useAuthStore } from '@store/auth/authStore';
 
 export interface SignUpData {
@@ -56,7 +56,7 @@ class AuthService {
         success: true,
         message: 'Please check your email to confirm your account.',
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',
@@ -95,7 +95,7 @@ class AuthService {
         success: false,
         error: 'Failed to sign in. Please try again.',
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',
@@ -122,7 +122,7 @@ class AuthService {
         success: true,
         message: 'Signed out successfully!',
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',
@@ -150,7 +150,7 @@ class AuthService {
         success: true,
         message: 'Password reset email sent. Please check your inbox.',
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',
@@ -178,7 +178,7 @@ class AuthService {
         success: true,
         message: 'Password updated successfully!',
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',

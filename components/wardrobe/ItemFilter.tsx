@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ItemCategory } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
 import { CategoryGridPicker } from './CategoryGridPicker';
@@ -23,15 +23,17 @@ export interface FilterState {
 
 const STYLES: StyleTag[] = [
   'casual',
-  'formal',
-  'sporty',
-  'elegant',
-  'vintage',
-  'minimalist',
-  'bohemian',
-  'streetwear',
-  'preppy',
-  'romantic',
+  'classic',
+  'sport',
+  'minimalism',
+  'old_money',
+  'scandi',
+  'indie',
+  'y2k',
+  'star',
+  'alt',
+  'cottagecore',
+  'downtown',
 ];
 
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter'];

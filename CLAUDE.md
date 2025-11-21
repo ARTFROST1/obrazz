@@ -11,6 +11,7 @@ Obrazz is a React Native/Expo mobile application for personal wardrobe managemen
 ## Tech Stack
 
 ### Frontend
+
 - **React Native** 0.81.4 with **Expo SDK** 54
 - **TypeScript** 5.9.2 (strict mode enabled)
 - **Expo Router** 6.x for file-based routing
@@ -20,10 +21,12 @@ Obrazz is a React Native/Expo mobile application for personal wardrobe managemen
 - **React Hook Form** + **Yup/Zod** for form validation
 
 ### Backend
+
 - **Supabase** for PostgreSQL database, authentication, and storage
 - Environment variables prefixed with `EXPO_PUBLIC_`
 
 ### Development Tools
+
 - **ESLint** with Expo config
 - **Prettier** for code formatting
 - **Husky** for pre-commit hooks
@@ -88,6 +91,7 @@ obrazz/
 ## Key Conventions
 
 ### File Naming
+
 - Components: PascalCase (e.g., `ItemCard.tsx`)
 - Hooks: camelCase with `use` prefix (e.g., `useKeyboardAwareScroll.ts`)
 - Services: camelCase with `Service` suffix (e.g., `itemService.ts`)
@@ -95,7 +99,9 @@ obrazz/
 - Types: PascalCase (e.g., `WardrobeItem`)
 
 ### Import Aliases
+
 Use path aliases defined in `tsconfig.json`:
+
 ```typescript
 import { supabase } from '@lib/supabase/client';
 import { useAuthStore } from '@store/auth/authStore';
@@ -108,6 +114,7 @@ Available aliases: `@app`, `@components`, `@services`, `@store`, `@hooks`, `@uti
 ### State Management Pattern
 
 **Zustand Store Structure:**
+
 ```typescript
 interface StoreState {
   // State
@@ -131,16 +138,19 @@ export const useStore = create<StoreState>()(
     {
       name: 'store-name',
       storage: createJSONStorage(() => zustandStorage),
-      partialize: (state) => ({ /* persisted fields */ }),
+      partialize: (state) => ({
+        /* persisted fields */
+      }),
       skipHydration: true, // For SSR compatibility
-    }
-  )
+    },
+  ),
 );
 ```
 
 ### Service Layer Pattern
 
 Services handle API calls and business logic:
+
 ```typescript
 class ServiceName {
   async createItem(input: CreateInput): Promise<Item> {
@@ -159,6 +169,7 @@ export const serviceName = new ServiceName();
 ```
 
 ### Component Structure
+
 ```typescript
 import React from 'react';
 import { View, Text } from 'react-native';
@@ -188,6 +199,7 @@ export const Component: React.FC<ComponentProps> = ({ prop }) => {
 - Auth flow handled in root `_layout.tsx`
 
 Navigation:
+
 ```typescript
 import { useRouter } from 'expo-router';
 
@@ -200,6 +212,7 @@ router.back();
 ## Database Schema
 
 Uses Supabase PostgreSQL. Key tables:
+
 - `items` - Wardrobe items
 - `outfits` - User outfits
 - `hidden_default_items` - User-hidden default items
@@ -231,6 +244,7 @@ eas build --platform android
 ## Environment Variables
 
 Create `.env` from `.env.example`:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key
@@ -243,22 +257,26 @@ Access via `process.env.EXPO_PUBLIC_*` or `Constants.expoConfig.extra.*`.
 ## Key Implementation Details
 
 ### Authentication Flow
+
 1. Root layout (`app/_layout.tsx`) initializes auth listener
 2. Auth state managed by `authStore` with persistence
 3. Navigation protected based on `isAuthenticated`
 4. Session stored in AsyncStorage (mobile) or localStorage (web)
 
 ### Image Handling
+
 - Images saved locally using `expo-file-system`
 - Thumbnails generated with `expo-image-manipulator`
 - Path format: `${documentDirectory}wardrobe/${userId}_${timestamp}.jpg`
 
 ### Platform-Specific Code
+
 - iOS uses SF Symbols and native tabs
 - Android uses FontAwesome icons and custom tab styling
 - Web uses localStorage instead of AsyncStorage
 
 ### Error Handling
+
 - Services throw descriptive errors
 - Stores manage error state
 - Console logging with prefixes: `[ServiceName]`, `[StoreName]`
@@ -266,12 +284,14 @@ Access via `process.env.EXPO_PUBLIC_*` or `Constants.expoConfig.extra.*`.
 ## Common Tasks
 
 ### Adding a New Screen
+
 1. Create file in `app/` directory
 2. Add any shared components to `components/`
 3. Create types in `types/`
 4. Add navigation if needed
 
 ### Adding a New Feature
+
 1. Define types in `types/models/`
 2. Create service in `services/`
 3. Create store in `store/`
@@ -279,21 +299,15 @@ Access via `process.env.EXPO_PUBLIC_*` or `Constants.expoConfig.extra.*`.
 5. Create screens in `app/`
 
 ### Working with Supabase
+
 ```typescript
 import { supabase } from '@lib/supabase/client';
 
 // Query
-const { data, error } = await supabase
-  .from('items')
-  .select('*')
-  .eq('user_id', userId);
+const { data, error } = await supabase.from('items').select('*').eq('user_id', userId);
 
 // Insert
-const { data, error } = await supabase
-  .from('items')
-  .insert(itemData)
-  .select()
-  .single();
+const { data, error } = await supabase.from('items').insert(itemData).select().single();
 ```
 
 ## Code Quality Guidelines
@@ -308,6 +322,7 @@ const { data, error } = await supabase
 ## Documentation
 
 Existing documentation in `Docs/`:
+
 - `Implementation.md` - Development roadmap
 - `project_structure.md` - Detailed folder organization
 - `UI_UX_doc.md` - Design specifications
@@ -319,6 +334,7 @@ Existing documentation in `Docs/`:
 ## Testing
 
 Tests located in `__tests__` directories. Run with:
+
 ```bash
 npm test
 ```
@@ -326,13 +342,16 @@ npm test
 ## Troubleshooting
 
 ### Auth Issues
+
 - Clear auth storage: `clearAuthStorage()` from `@lib/supabase/client`
 - Check console logs with `[AuthStore]` or `[Supabase]` prefixes
 
 ### Image Issues
+
 - Check file paths use `FileSystem.documentDirectory`
 - Verify file exists before operations
 
 ### Build Issues
+
 - Clear cache: `npx expo start --clear`
 - Check environment variables in app.config.js

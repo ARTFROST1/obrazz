@@ -1,21 +1,21 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  View,
-  StyleSheet,
-  ViewStyle,
-  StyleProp,
-  TextInput,
-  findNodeHandle,
-  UIManager,
   Dimensions,
+  findNodeHandle,
+  Keyboard,
+  KeyboardAvoidingView,
   KeyboardEvent,
-  TouchableWithoutFeedback,
-  NativeSyntheticEvent,
   NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  TouchableWithoutFeedback,
+  UIManager,
+  View,
+  ViewStyle,
 } from 'react-native';
 
 interface KeyboardAwareScrollViewProps {
@@ -205,10 +205,12 @@ function enhanceTextInputs(
   // Check if this is a TextInput or has TextInput-like behavior
   const isTextInput =
     element.type === TextInput ||
-    (element.props && element.props.onChangeText !== undefined);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (element.props && (element.props as any).onChangeText !== undefined);
 
   if (isTextInput) {
-    const originalOnFocus = element.props.onFocus;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const originalOnFocus = (element.props as any).onFocus;
     return React.cloneElement(element, {
       onFocus: (e: { nativeEvent: { target: number } }) => {
         onFocus({ target: e.nativeEvent.target });
@@ -216,12 +218,14 @@ function enhanceTextInputs(
           originalOnFocus(e);
         }
       },
-    });
+    } as Partial<typeof element.props>);
   }
 
   // Recursively process children
-  if (element.props && element.props.children) {
-    const children = React.Children.map(element.props.children, (child) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (element.props && (element.props as any).children) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const children = React.Children.map((element.props as any).children, (child) => {
       if (React.isValidElement(child)) {
         return enhanceTextInputs(child, onFocus);
       }

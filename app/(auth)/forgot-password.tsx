@@ -95,52 +95,55 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color="#000000" />
           </TouchableOpacity>
 
           <View style={styles.header}>
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.subtitle}>
-            Enter your email address and we'll send you a link to reset your password.
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setError(undefined);
-            }}
-            error={error}
-            leftIcon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            autoFocus
-          />
-
-          <Button
-            title="Send Reset Link"
-            onPress={handleResetPassword}
-            loading={loading}
-            style={styles.resetButton}
-          />
-
-          <View style={styles.signInPrompt}>
-            <Text style={styles.signInPromptText}>Remember your password? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
+            <Text style={styles.title}>Forgot Password?</Text>
+            <Text style={styles.subtitle}>
+              Enter your email address and we'll send you a link to reset your password.
+            </Text>
           </View>
-        </View>
-      </ScrollView>
-    </TouchableWithoutFeedback>
+
+          <View style={styles.form}>
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError(undefined);
+              }}
+              error={error}
+              leftIcon="mail-outline"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              autoFocus
+            />
+
+            <Button
+              title="Send Reset Link"
+              onPress={handleResetPassword}
+              loading={loading}
+              style={styles.resetButton}
+            />
+
+            <View style={styles.signInPrompt}>
+              <Text style={styles.signInPromptText}>Remember your password? </Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+                <Text style={styles.signInLink}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
