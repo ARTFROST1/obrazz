@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import React, { useCallback } from 'react';
+import { Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 export default function FeedScreen() {
   // Update StatusBar when screen is focused
@@ -8,14 +8,15 @@ export default function FeedScreen() {
     useCallback(() => {
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor('#FFFFFF', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
       }
     }, []),
   );
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       {/* Header */}
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
@@ -40,6 +41,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     backgroundColor: '#FFFFFF',

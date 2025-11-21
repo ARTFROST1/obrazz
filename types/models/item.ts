@@ -17,6 +17,7 @@ export interface WardrobeItem {
   isBuiltin: boolean;
   brand?: string;
   size?: string;
+  price?: number;
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +37,7 @@ export interface ItemMetadata {
   aiTags?: string[];
   source?: 'camera' | 'gallery' | 'web' | 'builtin';
   sourceUrl?: string;
+  price?: number;
 }
 
 export type ItemCategory =

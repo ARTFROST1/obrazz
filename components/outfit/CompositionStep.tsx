@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useOutfitStore } from '@store/outfit/outfitStore';
-import { OutfitCanvas } from './OutfitCanvas';
+import React, { useState } from 'react';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BackgroundPicker } from './BackgroundPicker';
 import { ItemMiniPreviewBar } from './ItemMiniPreviewBar';
+import { OutfitCanvas } from './OutfitCanvas';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CANVAS_WIDTH = SCREEN_WIDTH - 32;
+// Android optimization: slightly smaller canvas to prevent UI crowding
+const CANVAS_PADDING = Platform.OS === 'android' ? 24 : 32;
+const CANVAS_WIDTH = SCREEN_WIDTH - CANVAS_PADDING;
 const CANVAS_HEIGHT = (CANVAS_WIDTH / 3) * 4;
 
 interface CompositionStepProps {
@@ -168,23 +170,27 @@ const styles = StyleSheet.create({
   canvasSection: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: 24,
+    // Android optimization: reduce vertical padding to prevent crowding
+    paddingVertical: Platform.OS === 'android' ? 16 : 24,
   },
   canvasContainer: {
     alignItems: 'center',
-    paddingHorizontal: 16,
+    // Android optimization: less horizontal padding
+    paddingHorizontal: Platform.OS === 'android' ? 12 : 16,
   },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
+    // Android optimization: reduce margin to save space
+    marginTop: Platform.OS === 'android' ? 16 : 24,
     gap: 8,
   },
   toolButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    // Android optimization: slightly smaller buttons
+    width: Platform.OS === 'android' ? 40 : 44,
+    height: Platform.OS === 'android' ? 40 : 44,
+    borderRadius: Platform.OS === 'android' ? 20 : 22,
     backgroundColor: '#F8F8F8',
     alignItems: 'center',
     justifyContent: 'center',

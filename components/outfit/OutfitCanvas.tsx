@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { OutfitItem, OutfitBackground } from '../../types/models/outfit';
+import React from 'react';
+import { Image, Platform, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { OutfitBackground, OutfitItem } from '../../types/models/outfit';
 
 interface OutfitCanvasProps {
   items: OutfitItem[];
@@ -22,7 +22,10 @@ interface OutfitCanvasProps {
 
 // const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MIN_SCALE = 0.5;
-const MAX_SCALE = 3;
+// Android optimization: smaller max scale to prevent overlapping
+const MAX_SCALE = Platform.OS === 'android' ? 2.5 : 3;
+// Android optimization: smaller base item size
+const ITEM_BASE_SIZE = Platform.OS === 'android' ? 75 : 100;
 
 export function OutfitCanvas({
   items,
@@ -176,7 +179,7 @@ function CanvasItem({
   // Initialize ALL hooks BEFORE any conditional returns
   // Clamp initial position to keep item within canvas bounds
   const currentScale = transform.scale;
-  const halfBase = 50;
+  const halfBase = ITEM_BASE_SIZE / 2;
   const minX = halfBase * (currentScale - 1);
   const maxX = canvasWidth - halfBase * (1 + currentScale);
   const minY = halfBase * (currentScale - 1);
@@ -234,10 +237,10 @@ function CanvasItem({
     })
     .onUpdate((event) => {
       const currentScale = scale.value;
-      const baseSize = 100;
-      const halfBase = 50;
+      const baseSize = ITEM_BASE_SIZE;
+      const halfBase = ITEM_BASE_SIZE / 2;
 
-      // Element is 100x100, positioned by top-left corner, scaled from center
+      // Element is sized based on ITEM_BASE_SIZE, positioned by top-left corner, scaled from center
       // After scale, actual bounds are:
       // left: translateX + halfBase - halfBase*scale
       // right: translateX + halfBase + halfBase*scale
@@ -319,9 +322,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   canvasItem: {
-    height: 100,
+    height: ITEM_BASE_SIZE,
     position: 'absolute',
-    width: 100,
+    width: ITEM_BASE_SIZE,
   },
   gridContainer: {
     ...StyleSheet.absoluteFillObject,

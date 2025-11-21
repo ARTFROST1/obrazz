@@ -1,7 +1,7 @@
 import { supabase } from '@lib/supabase/client';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
 
 export interface CreateItemInput {
@@ -17,6 +17,7 @@ export interface CreateItemInput {
   imageUri: string;
   brand?: string;
   size?: string;
+  price?: number;
   tags?: string[];
   isBuiltin?: boolean;
 }
@@ -32,6 +33,7 @@ export interface UpdateItemInput {
   seasons?: Season[];
   brand?: string;
   size?: string;
+  price?: number;
   tags?: string[];
   isFavorite?: boolean;
 }
@@ -74,6 +76,7 @@ class ItemService {
           material: input.material,
           brand: input.brand,
           size: input.size,
+          price: input.price,
           imageLocalPath: localImagePath,
           backgroundRemoved: false,
           source: 'gallery',
@@ -273,6 +276,7 @@ class ItemService {
       if (updates.material !== undefined) metadataUpdates.material = updates.material;
       if (updates.brand !== undefined) metadataUpdates.brand = updates.brand;
       if (updates.size !== undefined) metadataUpdates.size = updates.size;
+      if (updates.price !== undefined) metadataUpdates.price = updates.price;
 
       if (Object.keys(metadataUpdates).length > 0) {
         // Fetch current metadata and merge
@@ -549,6 +553,7 @@ class ItemService {
       isBuiltin: data.is_default,
       brand: metadata.brand,
       size: metadata.size,
+      price: metadata.price,
       tags: data.tags || [],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),

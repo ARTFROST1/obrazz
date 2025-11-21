@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Animated, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface ColorPickerProps {
   selectedColors: string[];
@@ -12,18 +12,19 @@ const COLORS = [
   { hex: '#000000', name: 'Black' },
   { hex: '#FFFFFF', name: 'White' },
   { hex: '#808080', name: 'Gray' },
-  { hex: '#C0C0C0', name: 'Silver' },
-  { hex: '#FF0000', name: 'Red' },
-  { hex: '#FFA500', name: 'Orange' },
-  { hex: '#FFFF00', name: 'Yellow' },
-  { hex: '#00FF00', name: 'Green' },
-  { hex: '#0000FF', name: 'Blue' },
-  { hex: '#800080', name: 'Purple' },
-  { hex: '#FFC0CB', name: 'Pink' },
-  { hex: '#A52A2A', name: 'Brown' },
+  { hex: '#8B4513', name: 'Brown' },
   { hex: '#F5F5DC', name: 'Beige' },
-  { hex: '#FFD700', name: 'Gold' },
-  { hex: '#00CED1', name: 'Turquoise' },
+  { hex: '#FF6B6B', name: 'Red' },
+  { hex: '#FFB347', name: 'Orange' },
+  { hex: '#FDFD96', name: 'Yellow' },
+  { hex: '#77DD77', name: 'Green' },
+  { hex: '#006400', name: 'Dark Green' },
+  { hex: '#AFEEEE', name: 'Turquoise' },
+  { hex: '#AEC6CF', name: 'Light Blue' },
+  { hex: '#0000FF', name: 'Blue' },
+  { hex: '#B39EB5', name: 'Purple' },
+  { hex: '#FFB7B2', name: 'Pink' },
+  { hex: '#800020', name: 'Burgundy' },
 ];
 
 const ColorButton: React.FC<{
@@ -31,11 +32,11 @@ const ColorButton: React.FC<{
   selected: boolean;
   onPress: () => void;
 }> = ({ color, selected, onPress }) => {
-  const scaleAnim = React.useRef(new Animated.Value(selected ? 1.15 : 1)).current;
+  const scaleAnim = React.useRef(new Animated.Value(selected ? 1.1 : 1)).current;
 
   React.useEffect(() => {
     Animated.spring(scaleAnim, {
-      toValue: selected ? 1.15 : 1,
+      toValue: selected ? 1.1 : 1,
       useNativeDriver: true,
       friction: 6,
       tension: 100,
@@ -50,12 +51,15 @@ const ColorButton: React.FC<{
             <Ionicons
               name="checkmark"
               size={20}
-              color={color.hex === '#FFFFFF' ? '#000' : '#FFF'}
+              color={
+                ['#FFFFFF', '#FDFD96', '#F5F5DC', '#AFEEEE', '#AEC6CF'].includes(color.hex)
+                  ? '#000'
+                  : '#FFF'
+              }
             />
           )}
         </View>
       </Animated.View>
-      <Text style={styles.colorName}>{color.name}</Text>
     </TouchableOpacity>
   );
 };
@@ -68,11 +72,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   const isSelected = (color: string) => selectedColors.includes(color);
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
+    <View style={styles.container}>
       {COLORS.map((color) => (
         <ColorButton
           key={color.hex}
@@ -81,31 +81,35 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           onPress={() => onColorSelect(color.hex)}
         />
       ))}
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   colorButton: {
+    width: '23%',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: Platform.OS === 'android' ? 8 : 12,
   },
   colorCircle: {
     alignItems: 'center',
     borderColor: '#E5E5E5',
-    borderRadius: 20,
-    borderWidth: 2,
-    height: 40,
+    borderRadius: Platform.OS === 'android' ? 24 : 28,
+    borderWidth: 1,
+    height: Platform.OS === 'android' ? 48 : 56,
     justifyContent: 'center',
-    marginBottom: 4,
-    width: 40,
-  },
-  colorName: {
-    color: '#666',
-    fontSize: 11,
+    width: Platform.OS === 'android' ? 48 : 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingVertical: Platform.OS === 'android' ? 4 : 8,
+    gap: Platform.OS === 'android' ? 6 : 8,
+    justifyContent: 'flex-start',
   },
 });

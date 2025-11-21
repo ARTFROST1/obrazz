@@ -1,27 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
+import { FAB } from '@components/ui';
+import { FilterState, ItemFilter } from '@components/wardrobe/ItemFilter';
+import { ItemGrid } from '@components/wardrobe/ItemGrid';
+import { Ionicons } from '@expo/vector-icons';
+import { itemService } from '@services/wardrobe/itemService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
   Alert,
+  LayoutAnimation,
+  Platform,
   SafeAreaView,
   StatusBar,
-  Platform,
-  Keyboard,
-  LayoutAnimation,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   UIManager,
+  View,
 } from 'react-native';
-import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
-import { useAuthStore } from '@store/auth/authStore';
-import { itemService } from '@services/wardrobe/itemService';
-import { ItemGrid } from '@components/wardrobe/ItemGrid';
-import { ItemFilter, FilterState } from '@components/wardrobe/ItemFilter';
-import { FAB } from '@components/ui';
 import type { WardrobeItem } from '../../types/models';
 
 // Enable LayoutAnimation on Android
@@ -62,7 +61,8 @@ export default function WardrobeScreen() {
     useCallback(() => {
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor('#FFFFFF', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
       }
     }, []),
   );
@@ -241,7 +241,7 @@ export default function WardrobeScreen() {
 
   return (
     <DismissKeyboardView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       {/* Header */}
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
@@ -425,6 +425,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     backgroundColor: '#FFFFFF',

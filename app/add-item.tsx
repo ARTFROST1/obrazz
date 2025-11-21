@@ -1,34 +1,41 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
-import { KeyboardAwareScrollView } from '@components/common/KeyboardAwareScrollView';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { ImageCropper } from '@components/common/ImageCropper';
-import { useAuthStore } from '@store/auth/authStore';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
-import { itemService } from '@services/wardrobe/itemService';
-import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
-import { Input } from '@components/ui/Input';
+import { KeyboardAwareScrollView } from '@components/common/KeyboardAwareScrollView';
 import { Button } from '@components/ui/Button';
+import { Input } from '@components/ui/Input';
 import { CategoryGridPicker } from '@components/wardrobe/CategoryGridPicker';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
+import { SelectionGrid } from '@components/wardrobe/SelectionGrid';
+import { Ionicons } from '@expo/vector-icons';
+import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
+import { itemService } from '@services/wardrobe/itemService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ItemCategory } from '../types/models/item';
 import { Season, StyleTag } from '../types/models/user';
 
 export default function AddItemScreen() {
+  const { id: itemId } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuthStore();
-  const { addItem } = useWardrobeStore();
+  const { addItem, updateItem } = useWardrobeStore();
+  const isEditMode = !!itemId;
 
+  // State
+  const [step, setStep] = useState<1 | 2>(1);
+  const [loadingItem, setLoadingItem] = useState(isEditMode);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [tempImageUri, setTempImageUri] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
@@ -39,8 +46,62 @@ export default function AddItemScreen() {
   const [selectedSeasons, setSelectedSeasons] = useState<Season[]>([]);
   const [brand, setBrand] = useState('');
   const [size, setSize] = useState('');
+  const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
   const [removingBg, setRemovingBg] = useState(false);
+
+  const STYLES: { label: string; value: StyleTag }[] = [
+    { label: 'Casual', value: 'casual' },
+    { label: 'Classic', value: 'classic' },
+    { label: 'Sport', value: 'sport' },
+    { label: 'Minimalism', value: 'minimalism' },
+    { label: 'Old Money', value: 'old_money' },
+    { label: 'Scandi', value: 'scandi' },
+    { label: 'Indie', value: 'indie' },
+    { label: 'Y2K', value: 'y2k' },
+    { label: 'Star', value: 'star' },
+    { label: 'Alt', value: 'alt' },
+    { label: 'Cottagecore', value: 'cottagecore' },
+    { label: 'Downtown', value: 'downtown' },
+  ];
+
+  const SEASONS: { label: string; value: Season }[] = [
+    { label: 'Spring 🌱', value: 'spring' },
+    { label: 'Summer ☀️', value: 'summer' },
+    { label: 'Fall 🍂', value: 'fall' },
+    { label: 'Winter ❄️', value: 'winter' },
+  ];
+
+  // Load item data if in edit mode
+  useEffect(() => {
+    if (isEditMode && itemId) {
+      loadItemData();
+    }
+  }, [itemId]);
+
+  const loadItemData = async () => {
+    try {
+      setLoadingItem(true);
+      const item = await itemService.getItemById(itemId!);
+
+      // Pre-fill form with existing data
+      setImageUri(item.imageLocalPath || item.imageUrl || null);
+      setTitle(item.title || '');
+      setCategory(item.category);
+      setSelectedColors(item.colors?.map((c) => c.hex) || []);
+      setSelectedStyles(item.styles || []);
+      setSelectedSeasons(item.seasons || []);
+      setBrand(item.brand || '');
+      setSize(item.size || '');
+      setPrice(item.price ? String(item.price) : '');
+    } catch (error) {
+      console.error('Error loading item:', error);
+      Alert.alert('Error', 'Failed to load item data');
+      router.back();
+    } finally {
+      setLoadingItem(false);
+    }
+  };
 
   const requestPermissions = async () => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
@@ -98,6 +159,19 @@ export default function AddItemScreen() {
     }
   };
 
+  const handleImageAction = () => {
+    Alert.alert(
+      'Add Photo',
+      'Choose an option',
+      [
+        { text: 'Take Photo', onPress: handleTakePhoto },
+        { text: 'Choose from Gallery', onPress: handlePickImage },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+      { cancelable: true },
+    );
+  };
+
   const handleCropComplete = (croppedUri: string) => {
     setImageUri(croppedUri);
     setShowCropper(false);
@@ -123,6 +197,7 @@ export default function AddItemScreen() {
     try {
       setRemovingBg(true);
       const processedUri = await backgroundRemoverService.removeBackground(imageUri);
+      console.log('Background removed, updating URI:', processedUri);
       setImageUri(processedUri);
     } catch (error) {
       console.error('Error removing background:', error);
@@ -142,58 +217,213 @@ export default function AddItemScreen() {
     );
   };
 
-  const handleSave = async () => {
+  const handleStyleSelect = (style: StyleTag) => {
+    setSelectedStyles((prev) =>
+      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style],
+    );
+  };
+
+  const handleSeasonSelect = (season: Season) => {
+    setSelectedSeasons((prev) =>
+      prev.includes(season) ? prev.filter((s) => s !== season) : [...prev, season],
+    );
+  };
+
+  const handleNext = () => {
     if (!imageUri) {
       Alert.alert('Missing Image', 'Please add an image for your item');
       return;
     }
-
-    if (!user?.id) {
-      Alert.alert('Error', 'User not found');
-      return;
-    }
-
     if (selectedColors.length === 0) {
       Alert.alert('Missing Color', 'Please select at least one color');
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleSave = async () => {
+    if (!user?.id && !isEditMode) {
+      Alert.alert('Error', 'User not found');
       return;
     }
 
     try {
       setLoading(true);
 
-      const newItem = await itemService.createItem({
-        userId: user.id,
-        title: title || undefined,
-        category,
-        colors: selectedColors.map((hex) => ({ hex })),
-        primaryColor: { hex: selectedColors[0] },
-        styles: selectedStyles,
-        seasons: selectedSeasons,
-        imageUri,
-        brand: brand || undefined,
-        size: size || undefined,
-      });
+      if (isEditMode) {
+        // Update existing item
+        const updatedItem = await itemService.updateItem(itemId!, {
+          title: title || undefined,
+          category,
+          colors: selectedColors.map((hex) => ({ hex })),
+          primaryColor: { hex: selectedColors[0] },
+          styles: selectedStyles,
+          seasons: selectedSeasons,
+          brand: brand || undefined,
+          size: size || undefined,
+          price: price ? parseFloat(price) : undefined,
+        });
 
-      addItem(newItem);
+        updateItem(itemId!, updatedItem);
+      } else {
+        // Create new item
+        if (!user?.id) {
+          Alert.alert('Error', 'User not found');
+          return;
+        }
+
+        const newItem = await itemService.createItem({
+          userId: user.id,
+          title: title || undefined,
+          category,
+          colors: selectedColors.map((hex) => ({ hex })),
+          primaryColor: { hex: selectedColors[0] },
+          styles: selectedStyles,
+          seasons: selectedSeasons,
+          imageUri: imageUri!,
+          brand: brand || undefined,
+          size: size || undefined,
+          price: price ? parseFloat(price) : undefined,
+        });
+
+        addItem(newItem);
+      }
+
       router.back();
     } catch (error) {
       console.error('Error saving item:', error);
-      Alert.alert('Error', 'Failed to save item');
+      Alert.alert('Error', `Failed to ${isEditMode ? 'update' : 'save'} item`);
     } finally {
       setLoading(false);
     }
   };
 
-  const STYLES: StyleTag[] = ['casual', 'formal', 'sporty', 'elegant', 'vintage'];
-  const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter'];
+  const renderStep1 = () => (
+    <>
+      {/* Image Section */}
+      <View style={styles.imageSection}>
+        <View style={styles.imageContainer}>
+          {imageUri ? (
+            <Image
+              key={imageUri}
+              source={{ uri: imageUri }}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={40} color="#CCC" />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.addPhotoButton} onPress={handleImageAction}>
+            <Ionicons name={imageUri ? 'camera-reverse' : 'camera'} size={20} color="#FFF" />
+            <Text style={styles.addPhotoButtonText}>{imageUri ? 'Change' : 'Add Photo'}</Text>
+          </TouchableOpacity>
+
+          {imageUri && backgroundRemoverService.isConfigured() && (
+            <TouchableOpacity
+              style={[styles.addPhotoButton, removingBg && styles.disabledButton]}
+              onPress={handleRemoveBackground}
+              disabled={removingBg}
+            >
+              {removingBg ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <Ionicons name="sparkles" size={18} color="#FFF" />
+                  <Text style={styles.addPhotoButtonText}>Remove BG</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Category */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Category</Text>
+        <CategoryGridPicker
+          selectedCategories={[category]}
+          onCategorySelect={handleCategorySelect}
+          multiSelect={false}
+        />
+      </View>
+
+      {/* Colors */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Colors</Text>
+        <ColorPicker
+          selectedColors={selectedColors}
+          onColorSelect={handleColorSelect}
+          multiSelect={true}
+        />
+      </View>
+    </>
+  );
+
+  const renderStep2 = () => (
+    <>
+      {/* Details */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Details</Text>
+        <Input placeholder="Item Name" value={title} onChangeText={setTitle} />
+        <Input placeholder="Brand" value={brand} onChangeText={setBrand} />
+        <Input placeholder="Price" value={price} onChangeText={setPrice} keyboardType="numeric" />
+      </View>
+
+      {/* Styles */}
+      <View style={[styles.section, styles.sectionTight]}>
+        <Text style={styles.sectionTitle}>Style</Text>
+        <SelectionGrid
+          items={STYLES}
+          selectedItems={selectedStyles}
+          onSelect={handleStyleSelect}
+          multiSelect={true}
+        />
+      </View>
+
+      {/* Seasons */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Season</Text>
+        <SelectionGrid
+          items={SEASONS}
+          selectedItems={selectedSeasons}
+          onSelect={handleSeasonSelect}
+          multiSelect={true}
+        />
+      </View>
+    </>
+  );
+
+  if (loadingItem) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="close" size={28} color="#000" />
+        <TouchableOpacity
+          onPress={() => (step === 1 ? router.back() : setStep(1))}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.title}>Add Item</Text>
+        <Text style={styles.title}>
+          {isEditMode
+            ? step === 1
+              ? 'Edit Item'
+              : 'Edit Details'
+            : step === 1
+              ? 'Add Item'
+              : 'Details'}
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -202,134 +432,12 @@ export default function AddItemScreen() {
         showsVerticalScrollIndicator={false}
         extraScrollHeight={100}
       >
-        {/* Image Section */}
-        <View style={[styles.section, styles.firstSection]}>
-          {imageUri ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUri }} style={styles.image} resizeMode="contain" />
-              <TouchableOpacity style={styles.removeImageButton} onPress={() => setImageUri(null)}>
-                <Ionicons name="close-circle" size={32} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={64} color="#CCC" />
-              <Text style={styles.placeholderText}>Add a photo of your item</Text>
-            </View>
-          )}
-
-          <View style={styles.imageButtons}>
-            <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
-              <Ionicons name="camera" size={24} color="#000" />
-              <Text style={styles.imageButtonText}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
-              <Ionicons name="images" size={24} color="#000" />
-              <Text style={styles.imageButtonText}>Gallery</Text>
-            </TouchableOpacity>
-            {imageUri && backgroundRemoverService.isConfigured() && (
-              <TouchableOpacity
-                style={[styles.imageButton, removingBg && styles.imageButtonDisabled]}
-                onPress={handleRemoveBackground}
-                disabled={removingBg}
-              >
-                {removingBg ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <Ionicons name="cut" size={24} color="#000" />
-                )}
-                <Text style={styles.imageButtonText}>Remove BG</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Basic Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Item Details</Text>
-          <Input placeholder="Item name (optional)" value={title} onChangeText={setTitle} />
-          <Input placeholder="Brand (optional)" value={brand} onChangeText={setBrand} />
-          <Input placeholder="Size (optional)" value={size} onChangeText={setSize} />
-        </View>
-
-        {/* Category */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Category *</Text>
-          <CategoryGridPicker
-            selectedCategories={[category]}
-            onCategorySelect={handleCategorySelect}
-            multiSelect={false}
-          />
-        </View>
-
-        {/* Colors */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Colors *</Text>
-          <ColorPicker
-            selectedColors={selectedColors}
-            onColorSelect={handleColorSelect}
-            multiSelect={true}
-          />
-        </View>
-
-        {/* Styles */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Style (optional)</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipScrollContainer}
-          >
-            {STYLES.map((style) => {
-              const selected = selectedStyles.includes(style);
-              return (
-                <TouchableOpacity
-                  key={style}
-                  style={[styles.chip, selected && styles.chipSelected]}
-                  onPress={() =>
-                    setSelectedStyles((prev) =>
-                      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style],
-                    )
-                  }
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {style}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* Seasons */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Seasons (optional)</Text>
-          <View style={styles.chipContainer}>
-            {SEASONS.map((season) => {
-              const selected = selectedSeasons.includes(season);
-              return (
-                <TouchableOpacity
-                  key={season}
-                  style={[styles.chip, selected && styles.chipSelected]}
-                  onPress={() =>
-                    setSelectedSeasons((prev) =>
-                      prev.includes(season) ? prev.filter((s) => s !== season) : [...prev, season],
-                    )
-                  }
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {season}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        {step === 1 ? renderStep1() : renderStep2()}
       </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
-        <Button onPress={handleSave} loading={loading} disabled={loading || !imageUri}>
-          Save to Wardrobe
+        <Button onPress={step === 1 ? handleNext : handleSave} loading={loading} disabled={loading}>
+          {step === 1 ? 'Next' : isEditMode ? 'Update Item' : 'Save to Wardrobe'}
         </Button>
       </View>
 
@@ -347,52 +455,9 @@ export default function AddItemScreen() {
 }
 
 const styles = StyleSheet.create({
-  backButton: {
-    padding: 8,
-  },
-  chip: {
-    backgroundColor: '#F8F8F8',
-    borderColor: '#E5E5E5',
-    borderRadius: 18,
-    borderWidth: 1,
-    marginRight: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  chipScrollContainer: {
-    paddingRight: 16,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chipSelected: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  chipText: {
-    color: '#000',
-    fontSize: 14,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  chipTextSelected: {
-    color: '#FFF',
-  },
   container: {
     backgroundColor: '#FFF',
     flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-  firstSection: {
-    marginTop: 16,
-  },
-  footer: {
-    borderTopColor: '#E5E5E5',
-    borderTopWidth: 1,
-    padding: 16,
   },
   header: {
     alignItems: 'center',
@@ -400,75 +465,95 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingTop: 60,
-    paddingVertical: 12,
-  },
-  image: {
-    height: '100%',
-    width: '100%',
-  },
-  imageButton: {
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    flex: 1,
-    paddingVertical: 16,
-  },
-  imageButtonDisabled: {
-    opacity: 0.5,
-  },
-  imageButtonText: {
-    color: '#000',
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  imageButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  imageContainer: {
-    aspectRatio: 3 / 4,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-    aspectRatio: 3 / 4,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    justifyContent: 'center',
-  },
-  placeholder: {
-    width: 40,
-  },
-  placeholderText: {
-    color: '#999',
-    fontSize: 14,
-    marginTop: 8,
-  },
-  removeImageButton: {
-    position: 'absolute',
-    right: 8,
-    top: 8,
-  },
-  section: {
-    marginBottom: 24,
     paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 12 : 60,
+    paddingBottom: Platform.OS === 'android' ? 10 : 12,
   },
-  sectionTitle: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+  backButton: {
+    padding: 4,
   },
   title: {
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
+  },
+  placeholder: {
+    width: 32,
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: Platform.OS === 'android' ? 18 : 24,
+    paddingHorizontal: 16,
+  },
+  sectionTight: {
+    marginBottom: Platform.OS === 'android' ? 8 : 12,
+  },
+  sectionTitle: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  imageSection: {
+    alignItems: 'center',
+    paddingVertical: Platform.OS === 'android' ? 16 : 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    marginBottom: Platform.OS === 'android' ? 12 : 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  imageContainer: {
+    width: Platform.OS === 'android' ? 130 : 150,
+    aspectRatio: 3 / 4,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: Platform.OS === 'android' ? 12 : 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addPhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
+  },
+  addPhotoButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  footer: {
+    borderTopColor: '#E5E5E5',
+    borderTopWidth: 1,
+    padding: 16,
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

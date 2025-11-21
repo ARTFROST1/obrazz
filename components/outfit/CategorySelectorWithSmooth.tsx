@@ -1,8 +1,8 @@
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, LayoutChangeEvent, ScrollView } from 'react-native';
-import { SmoothCarousel } from './SmoothCarousel';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
 import { OutfitTabType } from '../../types/components/OutfitCreator';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
+import { SmoothCarousel } from './SmoothCarousel';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -269,10 +269,10 @@ const styles = StyleSheet.create({
   },
   carouselsContainer: {
     width: SCREEN_WIDTH,
-    overflow: 'hidden',
+    // Removed overflow: 'hidden' - conflicts with Android rendering
   },
   carouselWrapper: {
     width: SCREEN_WIDTH,
-    overflow: 'hidden',
+    // Removed overflow: 'hidden' - not needed, SmoothCarousel handles its own overflow
   },
 });

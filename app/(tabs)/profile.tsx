@@ -1,20 +1,20 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  SafeAreaView,
-  StatusBar,
-  Platform,
-} from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Button, Loader } from '@components/ui';
-import { useAuthStore } from '@store/auth/authStore';
+import { Ionicons } from '@expo/vector-icons';
 import { authService } from '@services/auth/authService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+  Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -26,7 +26,8 @@ export default function ProfileScreen() {
     useCallback(() => {
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor('#FFFFFF', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
       }
     }, []),
   );
@@ -61,7 +62,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       {/* Header */}
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerTop}>
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headerTop: {
     backgroundColor: '#FFFFFF',

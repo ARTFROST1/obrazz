@@ -1,17 +1,17 @@
-import React, { useRef, useCallback, useEffect, useMemo, useState, memo } from 'react';
+import { getCategoryLabel } from '@constants/categories';
+import { Ionicons } from '@expo/vector-icons';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
+  Dimensions,
   FlatList,
   Image,
-  StyleSheet,
-  Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  StyleSheet,
   Text,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { getCategoryLabel } from '@constants/categories';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -423,7 +423,7 @@ export function SmoothCarousel({
           offset: itemWidth * index,
           index,
         })}
-        removeClippedSubviews={true}
+        removeClippedSubviews={false} // Disabled for Android - was hiding visible items
         initialNumToRender={7}
         maxToRenderPerBatch={5}
         windowSize={11}
@@ -448,7 +448,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 8,
     overflow: 'hidden',
-    elevation: 2,
+    // Removed elevation - it conflicts with parent overflow:hidden on Android
+    // Using border for subtle depth on all platforms
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,

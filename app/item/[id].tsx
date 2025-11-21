@@ -1,47 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { itemService } from '@services/wardrobe/itemService';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
-  Alert,
-  ActivityIndicator,
-  Modal,
-  TextInput,
-  Keyboard,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
-import { itemService } from '@services/wardrobe/itemService';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { Season, StyleTag } from '../../types/models/user';
-import { getAllCategoriesInfo } from '@constants/categories';
-import { ColorPicker } from '@components/wardrobe/ColorPicker';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const STYLES: StyleTag[] = [
-  'casual',
-  'formal',
-  'sporty',
-  'elegant',
-  'vintage',
-  'minimalist',
-  'bohemian',
-  'streetwear',
-  'preppy',
-  'romantic',
-];
-
-const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter'];
-const CATEGORIES = getAllCategoriesInfo('en');
+import { WardrobeItem } from '../../types/models/item';
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -50,35 +22,10 @@ export default function ItemDetailScreen() {
   const [item, setItem] = useState<WardrobeItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  // Edit form state
-  const [editTitle, setEditTitle] = useState('');
-  const [editBrand, setEditBrand] = useState('');
-  const [editSize, setEditSize] = useState('');
-  const [editCategory, setEditCategory] = useState<ItemCategory>('tops');
-  const [editColors, setEditColors] = useState<string[]>([]);
-  const [editStyles, setEditStyles] = useState<StyleTag[]>([]);
-  const [editSeasons, setEditSeasons] = useState<Season[]>([]);
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showStylePicker, setShowStylePicker] = useState(false);
 
   useEffect(() => {
     loadItem();
   }, [id]);
-
-  useEffect(() => {
-    if (item) {
-      setEditTitle(item.title || '');
-      setEditBrand(item.brand || '');
-      setEditSize(item.size || '');
-      setEditCategory(item.category);
-      setEditColors(item.colors?.map((c) => c.hex) || []);
-      setEditStyles(item.styles || []);
-      setEditSeasons(item.seasons || []);
-    }
-  }, [item]);
 
   const loadItem = async () => {
     if (!id) return;
@@ -254,7 +201,10 @@ export default function ItemDetailScreen() {
         <View style={styles.section}>
           <View style={styles.titleRow}>
             <Text style={styles.itemTitle}>{item.title || 'Untitled Item'}</Text>
-            <TouchableOpacity onPress={() => setShowUpdateModal(true)} style={styles.editButton}>
+            <TouchableOpacity
+              onPress={() => router.push(`/add-item?id=${item.id}`)}
+              style={styles.editButton}
+            >
               <Ionicons name="create-outline" size={24} color="#000" />
             </TouchableOpacity>
           </View>
@@ -365,213 +315,6 @@ export default function ItemDetailScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Update Item Modal */}
-      {showUpdateModal && (
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <ScrollView
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.updateModal}>
-                <Text style={styles.modalTitle}>Update Item</Text>
-
-                {/* Title Input */}
-                <TextInput
-                  style={styles.input}
-                  placeholder="Item name"
-                  value={editTitle}
-                  onChangeText={setEditTitle}
-                  placeholderTextColor="#999"
-                  returnKeyType="next"
-                />
-
-                {/* Brand Input */}
-                <TextInput
-                  style={styles.input}
-                  placeholder="Brand (optional)"
-                  value={editBrand}
-                  onChangeText={setEditBrand}
-                  placeholderTextColor="#999"
-                  returnKeyType="next"
-                />
-
-                {/* Size Input */}
-                <TextInput
-                  style={styles.input}
-                  placeholder="Size (optional)"
-                  value={editSize}
-                  onChangeText={setEditSize}
-                  placeholderTextColor="#999"
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-
-              {/* Category */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Category</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('category')}>
-                  <Text style={styles.dropdownText}>
-                    {CATEGORIES.find((c) => c.value === editCategory)?.label || editCategory}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Colors */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Colors (optional)</Text>
-                <ColorPicker
-                  selectedColors={editColors}
-                  onColorSelect={handleColorSelect}
-                  multiSelect={true}
-                />
-              </View>
-
-              {/* Styles */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Style (optional)</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => openPicker('style')}>
-                  <Text style={styles.dropdownText} numberOfLines={1}>
-                    {editStyles.length > 0
-                      ? editStyles.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')
-                      : 'Not selected'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Seasons */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Seasons (optional)</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.chipScrollContainer}
-                >
-                  {SEASONS.map((season) => {
-                    const selected = editSeasons.includes(season);
-                    return (
-                      <TouchableOpacity
-                        key={season}
-                        style={[styles.chip, selected && styles.chipSelected]}
-                        onPress={() => handleSeasonToggle(season)}
-                      >
-                        <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                          {season}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  onPress={() => setShowUpdateModal(false)}
-                  style={styles.modalButton}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleUpdateItem}
-                  style={[styles.modalButton, styles.modalButtonPrimary]}
-                  disabled={isUpdating}
-                >
-                  <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
-                    {isUpdating ? 'Updating...' : 'Update'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-      )}
-
-      {/* Category Picker Modal */}
-      <Modal visible={showCategoryPicker} transparent animationType="fade">
-        <TouchableOpacity
-          style={styles.pickerOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCategoryPicker(false)}
-        >
-          <View style={styles.pickerModal}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Category</Text>
-            </View>
-            <ScrollView style={styles.pickerScroll}>
-              {CATEGORIES.map((categoryInfo) => (
-                <TouchableOpacity
-                  key={categoryInfo.value}
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setEditCategory(categoryInfo.value);
-                    setShowCategoryPicker(false);
-                  }}
-                >
-                  <View style={styles.pickerItemContent}>
-                    <Text style={styles.pickerItemIcon}>{categoryInfo.icon}</Text>
-                    <Text style={styles.pickerItemText}>{categoryInfo.label}</Text>
-                  </View>
-                  {editCategory === categoryInfo.value && (
-                    <Ionicons name="checkmark" size={24} color="#000" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Style Picker Modal */}
-      <Modal visible={showStylePicker} transparent animationType="fade">
-        <TouchableOpacity
-          style={styles.pickerOverlay}
-          activeOpacity={1}
-          onPress={() => setShowStylePicker(false)}
-        >
-          <View style={styles.pickerModal}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Styles (Multiple)</Text>
-            </View>
-            <ScrollView style={styles.pickerScroll}>
-              {STYLES.map((style) => (
-                <TouchableOpacity
-                  key={style}
-                  style={[
-                    styles.pickerItem,
-                    editStyles.includes(style) && styles.pickerItemSelected,
-                  ]}
-                  onPress={() => handleStyleToggle(style)}
-                >
-                  <Text style={styles.pickerItemText}>
-                    {style.charAt(0).toUpperCase() + style.slice(1)}
-                  </Text>
-                  <View style={styles.checkmarkContainer}>
-                    {editStyles.includes(style) && (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View style={styles.pickerFooter}>
-              <TouchableOpacity
-                style={styles.pickerDoneButton}
-                onPress={() => setShowStylePicker(false)}
-              >
-                <Text style={styles.pickerDoneText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }
@@ -790,176 +533,6 @@ const styles = StyleSheet.create({
   title: {
     color: '#000',
     fontSize: 18,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
-  modalScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  updateModal: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 24,
-    width: SCREEN_WIDTH * 0.9,
-    maxWidth: 500,
-    alignSelf: 'center',
-  },
-  modalTitle: {
-    color: '#000',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    color: '#000',
-    fontSize: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  modalSection: {
-    marginBottom: 16,
-  },
-  modalSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  modalButton: {
-    alignItems: 'center',
-    borderRadius: 12,
-    flex: 1,
-    paddingVertical: 14,
-    borderWidth: 1.5,
-    borderColor: '#E5E5E5',
-  },
-  modalButtonPrimary: {
-    backgroundColor: '#000',
-  },
-  modalButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalButtonTextPrimary: {
-    color: '#FFF',
-  },
-  dropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 48,
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#000',
-    flex: 1,
-    textTransform: 'capitalize',
-  },
-  pickerOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pickerModal: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    width: SCREEN_WIDTH * 0.8,
-    maxWidth: 500,
-    maxHeight: 500,
-    overflow: 'hidden',
-  },
-  pickerHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  pickerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
-  },
-  pickerScroll: {
-    maxHeight: 320,
-  },
-  pickerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    minHeight: 56,
-    backgroundColor: '#FFF',
-  },
-  pickerItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  pickerItemIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  pickerItemText: {
-    fontSize: 16,
-    color: '#000',
-    flex: 1,
-    textTransform: 'capitalize',
-  },
-  pickerItemSelected: {
-    backgroundColor: '#F0F0F0',
-  },
-  checkmarkContainer: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pickerFooter: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-  },
-  pickerDoneButton: {
-    backgroundColor: '#000',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  pickerDoneText: {
-    color: '#FFF',
-    fontSize: 16,
     fontWeight: '600',
   },
 });

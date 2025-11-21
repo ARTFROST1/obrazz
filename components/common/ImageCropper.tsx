@@ -1,19 +1,21 @@
+import { Ionicons } from '@expo/vector-icons';
+import { resizeToMegapixels } from '@utils/image/imageCompression';
+import * as ImageManipulator from 'expo-image-manipulator';
 import React, { useRef, useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  Modal,
-  Dimensions,
-  Image as RNImage,
   ActivityIndicator,
+  Alert,
+  Dimensions,
+  Modal,
+  Platform,
+  Image as RNImage,
+  StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  Alert,
-  StatusBar,
+  View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { Ionicons } from '@expo/vector-icons';
 import { CropZoom, useImageResolution, type CropZoomRefType } from 'react-native-zoom-toolkit';
 import { CropOverlay } from './CropOverlay';
 import { ResizableCropOverlay } from './ResizableCropOverlay';
@@ -364,10 +366,23 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
       // Resized image (with original aspect) is centered on target canvas
       const finalImage = await addWhiteBackgroundIfNeeded(resizedImage, targetSize);
 
-      console.log('[ImageCropper] Final image ready:', finalImage);
+      console.log('[ImageCropper] Final image ready, resizing to 1MP...');
+
+      // Step 3: Resize to 1MP (megapixels) to optimize for quality and API costs
+      // This ensures consistent quality regardless of image complexity or aspect ratio
+      const resizeResult = await resizeToMegapixels(finalImage, {
+        targetMegapixels: 1.0, // 1MP - optimal for wardrobe items
+        quality: 0.85, // High quality JPEG
+      });
+
+      console.log('[ImageCropper] Resize to 1MP complete:', {
+        dimensions: `${resizeResult.resizedWidth}x${resizeResult.resizedHeight}`,
+        megapixels: resizeResult.resizedMegapixels.toFixed(2) + 'MP',
+        fileSize: (resizeResult.compressedSize / 1024).toFixed(2) + 'KB',
+      });
 
       setCropping(false);
-      onCropComplete(finalImage);
+      onCropComplete(resizeResult.uri);
     } catch (error) {
       console.error('Error cropping image:', error);
       setCropping(false);
@@ -477,7 +492,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 16 : 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 60,
     paddingBottom: 16,
     backgroundColor: '#000',
     zIndex: 10,

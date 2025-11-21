@@ -1,3 +1,4 @@
+import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { OutfitFilter, OutfitFilterState } from '@components/outfit';
 import { OutfitEmptyState } from '@components/outfit/OutfitEmptyState';
 import { OutfitGrid } from '@components/outfit/OutfitGrid';
@@ -19,9 +20,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  Keyboard,
 } from 'react-native';
-import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { Outfit } from '../../types/models/outfit';
 
 /**
@@ -77,7 +76,8 @@ export default function OutfitsScreen() {
     useCallback(() => {
       StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
       if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor(isDark ? '#000000' : '#FFFFFF', true);
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
       }
     }, [isDark]),
   );
@@ -341,11 +341,13 @@ export default function OutfitsScreen() {
     outfitFilters.isFavorite;
 
   return (
-    <DismissKeyboardView style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+    <DismissKeyboardView
+      style={[styles.container, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}
+    >
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#000000' : '#FFFFFF'}
-        translucent={false}
+        backgroundColor="transparent"
+        translucent={true}
         animated={true}
       />
       {/* Header */}
@@ -663,6 +665,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     // backgroundColor set dynamically
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     paddingTop: 12,

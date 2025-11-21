@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { ItemCategory } from '../../types/models/item';
 import { getAllCategoriesInfo } from '@constants/categories';
+import React from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ItemCategory } from '../../types/models/item';
 
 interface CategoryGridPickerProps {
   selectedCategories: ItemCategory[];
@@ -48,31 +48,31 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 12,
+    gap: Platform.OS === 'android' ? 6 : 8,
+    justifyContent: 'flex-start',
   },
   card: {
-    width: '47%',
+    width: '23%',
+    aspectRatio: Platform.OS === 'android' ? 0.9 : 0.85,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8F8F8',
     borderColor: '#E5E5E5',
-    borderRadius: 16,
+    borderRadius: Platform.OS === 'android' ? 12 : 16,
     borderWidth: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 12,
+    padding: Platform.OS === 'android' ? 6 : 4,
   },
   cardSelected: {
     backgroundColor: '#000',
     borderColor: '#000',
   },
   icon: {
-    fontSize: 32,
-    marginBottom: 8,
+    fontSize: Platform.OS === 'android' ? 28 : 34,
+    marginBottom: Platform.OS === 'android' ? 4 : 8,
   },
   label: {
     color: '#000',
-    fontSize: 14,
+    fontSize: Platform.OS === 'android' ? 10 : 12,
     fontWeight: '600',
     textAlign: 'center',
     textTransform: 'capitalize',

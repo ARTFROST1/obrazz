@@ -58,15 +58,17 @@ export interface SubscriptionFeatures {
 export type Season = 'spring' | 'summer' | 'fall' | 'winter';
 export type StyleTag =
   | 'casual'
-  | 'formal'
-  | 'sporty'
-  | 'elegant'
-  | 'vintage'
-  | 'minimalist'
-  | 'bohemian'
-  | 'streetwear'
-  | 'preppy'
-  | 'romantic';
+  | 'classic'
+  | 'sport'
+  | 'minimalism'
+  | 'old_money'
+  | 'scandi'
+  | 'indie'
+  | 'y2k'
+  | 'star'
+  | 'alt'
+  | 'cottagecore'
+  | 'downtown';
 
 export interface AuthSession {
   user: User;

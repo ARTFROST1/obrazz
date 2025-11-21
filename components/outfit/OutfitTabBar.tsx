@@ -4,10 +4,20 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { OutfitTabBarProps, OutfitTabType } from '../../types/components/OutfitCreator';
 import { DEFAULT_OUTFIT_TABS } from '@constants/outfitTabs';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export function OutfitTabBar({
   activeTab,
@@ -37,7 +47,8 @@ export function OutfitTabBar({
     onTabChange(tabId);
   };
 
-  const tabWidth = 100 / tabs.length;
+  const tabWidth = 100 / tabs.length; // Process width (for style)
+  const tabWidthInPixels = SCREEN_WIDTH / tabs.length; // Pixel width (for translateX)
 
   return (
     <View style={styles.container}>
@@ -104,7 +115,7 @@ export function OutfitTabBar({
               {
                 translateX: indicatorAnim.interpolate({
                   inputRange: [0, tabs.length - 1],
-                  outputRange: [0, (tabs.length - 1) * (100 / tabs.length)],
+                  outputRange: [0, (tabs.length - 1) * tabWidthInPixels],
                 }),
               },
             ],

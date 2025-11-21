@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { OutfitItem } from '../../types/models/outfit';
 
 interface ItemMiniPreviewBarProps {
@@ -10,7 +10,8 @@ interface ItemMiniPreviewBarProps {
   onItemRemove?: (itemId: string) => void;
 }
 
-const MINI_ITEM_SIZE = 100;
+// Android optimization: smaller preview items to save space
+const MINI_ITEM_SIZE = Platform.OS === 'android' ? 80 : 100;
 
 /**
  * ItemMiniPreviewBar - Bottom bar showing mini previews of selected items
@@ -101,17 +102,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
-    paddingVertical: 16,
+    // Android optimization: reduce padding to save space
+    paddingVertical: Platform.OS === 'android' ? 12 : 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 16,
+    // Android optimization: smaller margin
+    marginBottom: Platform.OS === 'android' ? 12 : 16,
   },
   label: {
-    fontSize: 18,
+    // Android optimization: slightly smaller text
+    fontSize: Platform.OS === 'android' ? 16 : 18,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -122,15 +126,18 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    // Android optimization: reduce padding
+    paddingVertical: Platform.OS === 'android' ? 4 : 8,
   },
   separator: {
-    width: 16,
+    // Android optimization: smaller gap between items
+    width: Platform.OS === 'android' ? 12 : 16,
   },
   miniItem: {
     width: MINI_ITEM_SIZE,
     height: MINI_ITEM_SIZE,
-    borderRadius: 16,
+    // Android optimization: smaller border radius
+    borderRadius: Platform.OS === 'android' ? 12 : 16,
     borderWidth: 2,
     borderColor: '#E5E5E5',
     backgroundColor: '#F8F8F8',
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
   miniImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 14,
+    borderRadius: Platform.OS === 'android' ? 10 : 14,
   },
   miniImagePlaceholder: {
     width: '100%',
