@@ -2,7 +2,9 @@
   "header": {
     "title": "Wardrobe",
     "addItem": "Add Item",
-    "myWardrobe": "My Wardrobe"
+    "myWardrobe": "My Wardrobe",
+    "itemCount_one": "item",
+    "itemCount_other": "items"
   },
   "search": {
     "placeholder": "Search items...",

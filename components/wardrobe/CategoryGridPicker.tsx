@@ -52,10 +52,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -4,
+    gap: 8,
+    paddingHorizontal: 0,
   },
   card: {
-    width: '25%',
+    flexBasis: '23%',
+    maxWidth: '23%',
     aspectRatio: Platform.OS === 'android' ? 0.9 : 0.85,
     alignItems: 'center',
     justifyContent: 'center',
@@ -64,8 +66,6 @@ const styles = StyleSheet.create({
     borderRadius: Platform.OS === 'android' ? 12 : 16,
     borderWidth: 1,
     padding: Platform.OS === 'android' ? 6 : 4,
-    marginHorizontal: 4,
-    marginBottom: 8,
   },
   cardSelected: {
     backgroundColor: '#000',

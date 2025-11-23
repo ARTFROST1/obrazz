@@ -117,34 +117,6 @@ const createEmptySelection = (size: number): (WardrobeItem | null)[] => {
   return new Array(size).fill(null);
 };
 
-// ✅ HELPER FUNCTIONS for tab detection and synchronization
-
-// Check if categories match Basic tab
-function isBasicTab(categories: ItemCategory[]): boolean {
-  return (
-    categories.length === 3 &&
-    categories[0] === 'tops' &&
-    categories[1] === 'bottoms' &&
-    categories[2] === 'footwear'
-  );
-}
-
-// Check if categories match Dress tab
-function isDressTab(categories: ItemCategory[]): boolean {
-  return (
-    categories.length === 3 &&
-    categories[0] === 'fullbody' &&
-    categories[1] === 'footwear' &&
-    categories[2] === 'accessories'
-  );
-}
-
-// Check if categories match All tab
-function isAllTab(categories: ItemCategory[]): boolean {
-  if (categories.length !== CATEGORIES.length) return false;
-  return categories.every((cat, index) => cat === CATEGORIES[index]);
-}
-
 // ✅ NEW: Compute selectedItemsForCreation based on active tab
 function computeSelectedItemsForCreation(
   activeTab: OutfitTabType,
@@ -185,7 +157,7 @@ export const useOutfitStore = create<OutfitState>()(
       customTabSelectedItems: [],
       selectedItemsForCreation: createEmptySelection(DEFAULT_CUSTOM_CATEGORIES.length),
 
-      activeTab: 'custom', // ✅ FIX #1: Open Custom tab by default (with Basic categories)
+      activeTab: 'basic', // ✅ Открываем вкладку 'Основная' (Basic) по умолчанию
       customTabCategories: DEFAULT_CUSTOM_CATEGORIES, // ['tops', 'bottoms', 'footwear'] - same as Basic
       customTabOrder: DEFAULT_CUSTOM_CATEGORIES.map((_, i) => i),
       isCustomTabEditing: false,
@@ -217,7 +189,7 @@ export const useOutfitStore = create<OutfitState>()(
               fullbody: null,
               other: null,
             },
-            activeTab: 'custom',
+            activeTab: 'basic',
             canvasSettings: defaultCanvasSettings,
             error: null,
           });

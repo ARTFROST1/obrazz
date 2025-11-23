@@ -367,8 +367,8 @@ export default function WardrobeScreen() {
               <Text style={styles.itemCount}>
                 {filteredItems.length}{' '}
                 {filteredItems.length === 1
-                  ? t('wardrobe:header.itemCount_one')
-                  : t('wardrobe:header.itemCount_other')}
+                  ? t('header.itemCount_one')
+                  : t('header.itemCount_other')}
               </Text>
             </View>
 

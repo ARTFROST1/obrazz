@@ -208,11 +208,12 @@ class AuthService {
       }
 
       return data.session;
-    } catch (error: any) {
-      console.error('[AuthService] Error getting session:', error?.message || error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[AuthService] Error getting session:', errorMessage);
 
       // If it's a refresh token error, ensure storage is cleared
-      if (error?.message?.includes('refresh') || error?.message?.includes('Refresh Token')) {
+      if (errorMessage.includes('refresh') || errorMessage.includes('Refresh Token')) {
         await clearAuthStorage();
       }
 
@@ -224,7 +225,7 @@ class AuthService {
    * Initialize auth state listener
    */
   initializeAuthListener() {
-    supabase.auth.onAuthStateChange((_event: any, session: any) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         useAuthStore.getState().initialize(session.user, session);
       } else {

@@ -105,11 +105,11 @@ function RootLayoutNav() {
         } else {
           useAuthStore.getState().clearAuth();
         }
-      } catch (error: any) {
-        console.error('[RootLayoutNav] Auth initialization error:', error?.message || error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown auth error';
+        console.error('[RootLayoutNav] Auth initialization error:', errorMessage);
 
         // Handle auth errors properly
-        const errorMessage = error?.message || 'Unknown auth error';
         useAuthStore.getState().handleAuthError(errorMessage);
       } finally {
         console.log('[RootLayoutNav] Auth initialization complete');

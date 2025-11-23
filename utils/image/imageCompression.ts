@@ -186,7 +186,17 @@ export async function resizeToMegapixels(
  *
  * @deprecated Use resizeToMegapixels instead
  */
-export async function compressImageToSize(imageUri: string, options: any = {}): Promise<any> {
+export async function compressImageToSize(
+  imageUri: string,
+  options: { initialQuality?: number } = {},
+): Promise<{
+  uri: string;
+  originalSize: number;
+  compressedSize: number;
+  compressionRatio: number;
+  width: number;
+  height: number;
+}> {
   console.log(
     '[ImageCompression] DEPRECATED: compressImageToSize called, using resizeToMegapixels instead',
   );

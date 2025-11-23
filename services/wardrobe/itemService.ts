@@ -1,8 +1,33 @@
 import { supabase } from '@lib/supabase/client';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { ItemCategory, WardrobeItem } from '../../types/models/item';
+import { ItemCategory, ItemMetadata, WardrobeItem } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
+
+// Database record interface (snake_case)
+interface ItemDbRecord {
+  id: string;
+  user_id: string;
+  name?: string;
+  category: ItemCategory;
+  subcategory?: string;
+  color?: string;
+  colors?: Array<{ hex: string; name?: string }>;
+  primary_color?: { hex: string };
+  material?: string;
+  style?: StyleTag[];
+  season?: Season[];
+  image_url?: string;
+  is_default?: boolean;
+  brand?: string;
+  size?: string;
+  price?: number;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+  favorite?: boolean;
+  metadata?: ItemMetadata;
+}
 
 export interface CreateItemInput {
   userId: string;
@@ -258,7 +283,7 @@ class ItemService {
    */
   async updateItem(itemId: string, updates: UpdateItemInput): Promise<WardrobeItem> {
     try {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
 
       if (updates.title !== undefined) updateData.name = updates.title;
       if (updates.category !== undefined) updateData.category = updates.category;
@@ -269,7 +294,7 @@ class ItemService {
       if (updates.isFavorite !== undefined) updateData.favorite = updates.isFavorite;
 
       // Update metadata
-      const metadataUpdates: any = {};
+      const metadataUpdates: Record<string, unknown> = {};
       if (updates.subcategory !== undefined) metadataUpdates.subcategory = updates.subcategory;
       if (updates.colors !== undefined) metadataUpdates.colors = updates.colors;
       if (updates.primaryColor !== undefined) metadataUpdates.primaryColor = updates.primaryColor;
@@ -534,31 +559,31 @@ class ItemService {
   /**
    * Map Supabase item to WardrobeItem model
    */
-  private mapSupabaseItemToWardrobeItem(data: any): WardrobeItem {
-    const metadata = data.metadata || {};
+  private mapSupabaseItemToWardrobeItem(data: ItemDbRecord): WardrobeItem {
+    const metadata = data.metadata || ({} as ItemMetadata);
 
     return {
       id: data.id,
       userId: data.user_id,
       title: data.name,
       category: data.category,
-      subcategory: metadata.subcategory,
-      colors: metadata.colors || [{ hex: data.color }],
-      primaryColor: metadata.primaryColor || { hex: data.color },
-      material: metadata.material,
+      subcategory: data.subcategory,
+      colors: data.colors || (data.color ? [{ hex: data.color }] : []),
+      primaryColor: data.primary_color || (data.color ? { hex: data.color } : { hex: '#CCCCCC' }),
+      material: data.material,
       styles: data.style || [],
       seasons: data.season || [],
       imageLocalPath: data.image_url,
       imageUrl: data.image_url,
-      isBuiltin: data.is_default,
-      brand: metadata.brand,
-      size: metadata.size,
-      price: metadata.price,
+      isBuiltin: data.is_default || false,
+      brand: data.brand,
+      size: data.size,
+      price: data.price,
       tags: data.tags || [],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       wearCount: 0,
-      isFavorite: data.favorite,
+      isFavorite: data.favorite || false,
       metadata: {
         originalImagePath: metadata.originalImagePath,
         processedImagePath: metadata.processedImagePath,
@@ -569,6 +594,7 @@ class ItemService {
         aiTags: metadata.aiTags,
         source: metadata.source || 'gallery',
         sourceUrl: metadata.sourceUrl,
+        price: metadata.price,
       },
     };
   }

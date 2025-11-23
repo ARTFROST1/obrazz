@@ -1,41 +1,76 @@
 import { supabase } from '../../lib/supabase/client';
+import { WardrobeItem } from '../../types/models/item';
 import {
+  AiOutfitMetadata,
+  CanvasSettings,
+  OccasionTag,
   Outfit,
+  OutfitBackground,
   OutfitCreationParams,
   OutfitFilter,
+  OutfitItem,
   OutfitSortOptions,
 } from '../../types/models/outfit';
-import { WardrobeItem } from '../../types/models/item';
+import { Season, StyleTag } from '../../types/models/user';
+import { getErrorMessage, logError } from '../../utils/errors/errorHandler';
+
+// Database record interface (snake_case)
+interface OutfitDbRecord {
+  id: string;
+  user_id: string;
+  title?: string;
+  description?: string;
+  items?: OutfitItem[];
+  background?: OutfitBackground;
+  visibility?: 'private' | 'shared' | 'public';
+  is_ai_generated?: boolean;
+  ai_metadata?: AiOutfitMetadata;
+  tags?: string[];
+  styles?: StyleTag[];
+  seasons?: Season[];
+  occasions?: OccasionTag[];
+  created_at: string;
+  updated_at: string;
+  last_worn_at?: string;
+  wear_count?: number;
+  is_favorite?: boolean;
+  likes_count?: number;
+  views_count?: number;
+  shares_count?: number;
+  canvas_settings?: CanvasSettings;
+}
 
 /**
  * Parse Supabase error to get a user-friendly message
  */
-const parseSupabaseError = (error: any): string => {
+const parseSupabaseError = (error: unknown): string => {
   if (!error) return 'Unknown error';
 
-  const message = error.message || error.toString();
+  const message = getErrorMessage(error);
 
   // Check if the error message is HTML (Cloudflare error page, etc.)
   if (message.includes('<!DOCTYPE') || message.includes('<html')) {
-    // This typically means the Supabase URL is incorrect or the service is down
-    console.error('[OutfitService] Received HTML error response. This usually means:');
-    console.error('  - Supabase URL is incorrect');
-    console.error('  - Supabase project is paused or deleted');
-    console.error('  - Network/firewall issue blocking the request');
+    logError('OutfitService', 'Received HTML error response', {
+      hint: 'Check Supabase URL configuration',
+    });
     return 'Unable to connect to database. Please check your internet connection and try again.';
   }
 
   // Handle specific error codes
-  if (error.code === 'PGRST116') {
-    return 'Item not found';
-  }
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code?: string }).code;
 
-  if (error.code === '23505') {
-    return 'A duplicate item already exists';
-  }
+    if (code === 'PGRST116') {
+      return 'Item not found';
+    }
 
-  if (error.code === '42501' || message.includes('permission denied')) {
-    return 'Access denied. Please log in again.';
+    if (code === '23505') {
+      return 'A duplicate item already exists';
+    }
+
+    if (code === '42501' || message.includes('permission denied')) {
+      return 'Access denied. Please log in again.';
+    }
   }
 
   return message;
@@ -245,7 +280,7 @@ class OutfitService {
    * Update an existing outfit
    */
   async updateOutfit(outfitId: string, updates: Partial<Outfit>): Promise<Outfit> {
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -377,7 +412,7 @@ class OutfitService {
   /**
    * Map database record to Outfit type
    */
-  private mapDatabaseToOutfit(data: any): Outfit {
+  private mapDatabaseToOutfit(data: OutfitDbRecord): Outfit {
     return {
       id: data.id,
       userId: data.user_id,

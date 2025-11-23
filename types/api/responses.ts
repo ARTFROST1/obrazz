@@ -1,10 +1,10 @@
 import {
-  User,
-  WardrobeItem,
-  Outfit,
   CommunityPost,
+  Outfit,
   Subscription,
   SubscriptionPlan,
+  User,
+  WardrobeItem,
 } from '../models';
 
 // Base API Response
@@ -257,10 +257,23 @@ export interface DataImportResponse {
 }
 
 // Type guards
-export function isApiError(response: any): response is ApiError {
-  return response && typeof response.code === 'string' && typeof response.message === 'string';
+export function isApiError(response: unknown): response is ApiError {
+  return (
+    response !== null &&
+    typeof response === 'object' &&
+    'code' in response &&
+    typeof (response as ApiError).code === 'string' &&
+    'message' in response &&
+    typeof (response as ApiError).message === 'string'
+  );
 }
 
-export function isPaginatedResponse<T>(response: any): response is PaginatedResponse<T> {
-  return response && Array.isArray(response.items) && response.pagination !== undefined;
+export function isPaginatedResponse<T>(response: unknown): response is PaginatedResponse<T> {
+  return (
+    response !== null &&
+    typeof response === 'object' &&
+    'items' in response &&
+    Array.isArray((response as PaginatedResponse<T>).items) &&
+    'pagination' in response
+  );
 }

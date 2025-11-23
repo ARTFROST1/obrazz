@@ -2,7 +2,9 @@
   "header": {
     "title": "Гардероб",
     "addItem": "Добавить вещь",
-    "myWardrobe": "Мой гардероб"
+    "myWardrobe": "Мой гардероб",
+    "itemCount_one": "вещь",
+    "itemCount_other": "вещей"
   },
   "search": {
     "placeholder": "Поиск вещей...",
