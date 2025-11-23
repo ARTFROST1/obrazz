@@ -271,9 +271,39 @@ Access via `process.env.EXPO_PUBLIC_*` or `Constants.expoConfig.extra.*`.
 
 ### Platform-Specific Code
 
-- iOS uses SF Symbols and native tabs
-- Android uses FontAwesome icons and custom tab styling
-- Web uses localStorage instead of AsyncStorage
+#### Bottom Navigation
+
+**See full documentation**: [Docs/BottomNavigation.md](Docs/BottomNavigation.md)
+
+- **iOS**: Native liquid glass tab bar with SF Symbols
+  - Uses `NativeTabs` from `expo-router/unstable-native-tabs`
+  - `blurEffect` prop enables liquid glass appearance on all iOS 13+ versions
+  - Automatically adapts to light/dark mode with system materials
+
+- **Android**: Floating tab bar with Apple-inspired design
+  - Positioned absolutely with 16px bottom margin
+  - 24px border radius for rounded corners
+  - Semi-transparent background with elevation shadow
+  - **Important**: Screens need `paddingBottom` to avoid content overlap
+  - Use `getTabBarPadding()` from `@constants/Layout`
+
+**Example screen implementation**:
+
+```typescript
+import { getTabBarPadding } from '@constants/Layout';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingBottom: getTabBarPadding(), // Auto-adds 81px on Android, 0 on iOS
+  },
+});
+```
+
+#### Other Platform Differences
+
+- iOS uses SF Symbols, Android uses FontAwesome icons
+- Web uses localStorage instead of AsyncStorage for persistence
 
 ### Error Handling
 
@@ -330,6 +360,7 @@ Existing documentation in `Docs/`:
 - `Bug_tracking.md` - Known issues
 - `PRDobrazz.md` - Product requirements
 - `AppMapobrazz.md` - Application architecture
+- `BottomNavigation.md` - Bottom navigation implementation (iOS liquid glass & Android floating nav)
 
 ## Testing
 
