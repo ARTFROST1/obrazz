@@ -1,0 +1,42 @@
+{
+  "header": {
+    "title": "My Profile"
+  },
+  "userInfo": {
+    "noEmail": "No email",
+    "defaultName": "User"
+  },
+  "sections": {
+    "account": "Account",
+    "appSettings": "App Settings",
+    "subscription": "Subscription",
+    "support": "Support"
+  },
+  "menu": {
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "upgradeToPro": "Upgrade to Pro",
+    "helpSupport": "Help & Support",
+    "termsPrivacy": "Terms & Privacy",
+    "about": "About"
+  },
+  "settings": {
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "currentLanguage": {
+      "ru": "Русский",
+      "en": "English"
+    }
+  },
+  "signOut": {
+    "title": "Sign Out",
+    "message": "Are you sure you want to sign out?",
+    "confirm": "Sign Out",
+    "cancel": "Cancel",
+    "error": "Failed to sign out"
+  },
+  "version": "Version {{version}}"
+}

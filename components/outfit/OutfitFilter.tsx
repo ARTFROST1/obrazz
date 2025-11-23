@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { OccasionTag, Season, StyleTag } from '../../types/models';
@@ -54,6 +55,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
   onApply,
   initialFilters,
 }) => {
+  const { t } = useTranslation('outfit');
   const [filters, setFilters] = useState<OutfitFilterState>(initialFilters);
 
   const handleOccasionSelect = (occasion: OccasionTag) => {
@@ -110,16 +112,16 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={28} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.title}>Filter Outfits</Text>
+          <Text style={styles.title}>{t('filter.filterButton')}</Text>
           <TouchableOpacity onPress={handleClearAll} style={styles.clearButton}>
-            <Text style={styles.clearText}>Clear</Text>
+            <Text style={styles.clearText}>{t('filter.clearFilters')}</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Occasions */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Occasion</Text>
+            <Text style={styles.sectionTitle}>{t('filter.occasions')}</Text>
             <View style={styles.chipContainer}>
               {OCCASIONS.map((occasion) => {
                 const selected = filters.occasions.includes(occasion);
@@ -130,7 +132,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     onPress={() => handleOccasionSelect(occasion)}
                   >
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {occasion}
+                      {t(`categories:occasions.${occasion}`)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -140,7 +142,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
 
           {/* Styles */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Style</Text>
+            <Text style={styles.sectionTitle}>{t('filter.styles')}</Text>
             <View style={styles.chipContainer}>
               {STYLES.map((style) => {
                 const selected = filters.styles.includes(style);
@@ -151,7 +153,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     onPress={() => handleStyleSelect(style)}
                   >
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {style}
+                      {t(`categories:styles.${style}`)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -161,7 +163,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
 
           {/* Seasons */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Season</Text>
+            <Text style={styles.sectionTitle}>{t('filter.seasons')}</Text>
             <View style={styles.chipContainer}>
               {SEASONS.map((season) => {
                 const selected = filters.seasons.includes(season);
@@ -172,7 +174,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     onPress={() => handleSeasonSelect(season)}
                   >
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {season}
+                      {t(`categories:seasons.${season}`)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -182,7 +184,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
 
           {/* Sort By */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sort By</Text>
+            <Text style={styles.sectionTitle}>{t('filter.sortBy')}</Text>
             <View style={styles.sortContainer}>
               <TouchableOpacity
                 style={[
@@ -197,7 +199,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     filters.sortBy === 'newest' && styles.sortOptionTextSelected,
                   ]}
                 >
-                  Newest First
+                  {t('filter.newest')}
                 </Text>
                 {filters.sortBy === 'newest' && (
                   <Ionicons name="checkmark" size={20} color="#FFF" />
@@ -217,7 +219,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     filters.sortBy === 'alphabetical' && styles.sortOptionTextSelected,
                   ]}
                 >
-                  Standard (A-Z)
+                  {t('filter.alphabetical')}
                 </Text>
                 {filters.sortBy === 'alphabetical' && (
                   <Ionicons name="checkmark" size={20} color="#FFF" />
@@ -237,7 +239,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     filters.sortBy === 'favorites' && styles.sortOptionTextSelected,
                   ]}
                 >
-                  Favorites First
+                  {t('filter.favorites')}
                 </Text>
                 {filters.sortBy === 'favorites' && (
                   <Ionicons name="checkmark" size={20} color="#FFF" />
@@ -263,7 +265,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                   size={24}
                   color={filters.isFavorite ? '#FFD700' : '#000'}
                 />
-                <Text style={styles.favoriteText}>Favorites only</Text>
+                <Text style={styles.favoriteText}>{t('filter.favoritesOnly')}</Text>
               </View>
               <Ionicons
                 name={filters.isFavorite ? 'checkmark-circle' : 'ellipse-outline'}
@@ -276,7 +278,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-            <Text style={styles.applyButtonText}>Apply Filters</Text>
+            <Text style={styles.applyButtonText}>{t('filter.applyFilters')}</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import React, { useState } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -22,6 +23,7 @@ interface CompositionStepProps {
  * Allows user to arrange selected items on canvas with drag & drop
  */
 export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
+  const { t } = useTranslation('outfit');
   const {
     currentItems,
     currentBackground,
@@ -48,7 +50,7 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.title}>Compose Outfit</Text>
+        <Text style={styles.title}>{t('create.step2Title')}</Text>
         <TouchableOpacity
           onPress={onSave}
           style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}

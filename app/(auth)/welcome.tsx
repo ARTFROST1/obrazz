@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Button } from '@components/ui';
+import { useTranslation } from '@hooks/useTranslation';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation('auth');
 
   return (
     <View style={styles.container}>
@@ -13,28 +15,25 @@ export default function WelcomeScreen() {
           <Text style={styles.logo}>👔</Text>
         </View>
 
-        <Text style={styles.title}>Welcome to Obrazz</Text>
-        <Text style={styles.subtitle}>
-          Your Personal Fashion Assistant{'\n'}
-          Create stunning outfits with AI
-        </Text>
+        <Text style={styles.title}>{t('welcome.title')}</Text>
+        <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
 
         <View style={styles.features}>
-          <FeatureItem icon="✨" text="AI-powered outfit suggestions" />
-          <FeatureItem icon="👗" text="Manage your digital wardrobe" />
-          <FeatureItem icon="🎨" text="Create custom outfits" />
-          <FeatureItem icon="🌐" text="Share with the community" />
+          <FeatureItem icon="✨" text={t('welcome.features.ai')} />
+          <FeatureItem icon="👗" text={t('welcome.features.wardrobe')} />
+          <FeatureItem icon="🎨" text={t('welcome.features.create')} />
+          <FeatureItem icon="🌐" text={t('welcome.features.community')} />
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <Button
-          title="Sign In"
+          title={t('welcome.signInButton')}
           onPress={() => router.push('/(auth)/sign-in')}
           style={styles.signInButton}
         />
         <Button
-          title="Create Account"
+          title={t('welcome.signUpButton')}
           onPress={() => router.push('/(auth)/sign-up')}
           variant="secondary"
           style={styles.signUpButton}

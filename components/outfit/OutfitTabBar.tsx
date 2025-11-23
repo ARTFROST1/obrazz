@@ -3,19 +3,20 @@
  * Provides 4 tabs: Basic, Dress, All, Custom
  */
 
-import React, { useRef, useEffect } from 'react';
+import { DEFAULT_OUTFIT_TABS } from '@constants/outfitTabs';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
+import React, { useEffect, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
   Animated,
   Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { OutfitTabBarProps, OutfitTabType } from '../../types/components/OutfitCreator';
-import { DEFAULT_OUTFIT_TABS } from '@constants/outfitTabs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -26,6 +27,8 @@ export function OutfitTabBar({
   isCustomTabEditing = false,
   tabs = DEFAULT_OUTFIT_TABS,
 }: OutfitTabBarProps) {
+  const { t } = useTranslation('outfit');
+
   // Animated indicator
   const indicatorAnim = useRef(new Animated.Value(0)).current;
   const tabRefs = useRef<{ [key: string]: number }>({});
@@ -64,8 +67,16 @@ export function OutfitTabBar({
 
           // For custom tab, show Edit/Done label when active
           const isCustomTab = tab.id === 'custom';
+
+          // Get translated label for tab
+          const translatedLabel = t(`create.tabs.${tab.id}`);
+
           const displayLabel =
-            isCustomTab && isActive ? (isCustomTabEditing ? 'Done' : 'Edit') : tab.label;
+            isCustomTab && isActive
+              ? isCustomTabEditing
+                ? t('create.tabs.done')
+                : t('create.tabs.edit')
+              : translatedLabel;
 
           // Change icon for custom tab when in edit mode
           const displayIcon =

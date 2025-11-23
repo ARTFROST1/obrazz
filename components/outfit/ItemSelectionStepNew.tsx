@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { CATEGORIES, getCategoryIcon, getCategoryLabel } from '@constants/categories';
 import { Ionicons } from '@expo/vector-icons';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { useTranslation } from '@hooks/useTranslation';
 import { useOutfitStore } from '@store/outfit/outfitStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { loadCustomTabConfig, saveCustomTabConfig } from '@utils/storage/customTabStorage';
+import React, { useCallback, useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { OutfitTabType } from '../../types/components/OutfitCreator';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 import { CategorySelectorWithSmooth } from './CategorySelectorWithSmooth';
 import { OutfitTabBar } from './OutfitTabBar';
-import { WardrobeItem, ItemCategory } from '../../types/models/item';
-import { OutfitTabType } from '../../types/components/OutfitCreator';
-import { loadCustomTabConfig, saveCustomTabConfig } from '@utils/storage/customTabStorage';
-import { CATEGORIES, getCategoryLabel, getCategoryIcon } from '@constants/categories';
 
 interface ItemSelectionStepNewProps {
   onNext: () => void;
@@ -20,6 +21,7 @@ interface ItemSelectionStepNewProps {
  * 4 tabs: Basic, Dress, All, Custom
  */
 export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewProps) {
+  const { t } = useTranslation('outfit');
   const { items: wardrobeItems } = useWardrobeStore();
   const {
     currentOutfit, // ✅ To detect edit mode
@@ -155,7 +157,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.title}>Build Your Outfit</Text>
+        <Text style={styles.title}>{t('create.step1Title')}</Text>
         <View style={styles.headerRight}>
           <Text style={styles.selectedCount}>{selectedCount}</Text>
         </View>
@@ -263,7 +265,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
               activeOpacity={0.7}
             >
               <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
-                Next
+                {t('create.nextButton')}
               </Text>
               <Ionicons name="arrow-forward" size={20} color={canProceed ? '#FFF' : '#CCC'} />
             </TouchableOpacity>

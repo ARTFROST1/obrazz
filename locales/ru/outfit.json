@@ -1,0 +1,91 @@
+{
+  "header": {
+    "title": "Образы",
+    "createOutfit": "Создать образ",
+    "searchPlaceholder": "Поиск образов...",
+    "outfitCount_one": "образ",
+    "outfitCount_other": "образов"
+  },
+  "tabs": {
+    "all": "Все",
+    "favorites": "Избранное",
+    "recent": "Недавние"
+  },
+  "empty": {
+    "title": "У вас пока нет образов",
+    "subtitle": "Создайте свой первый образ из вещей гардероба",
+    "createFirst": "Создать первый образ"
+  },
+  "create": {
+    "title": "Создать образ",
+    "step1": "Выбор вещей",
+    "step2": "Композиция",
+    "step1Title": "Соберите свой образ",
+    "step2Title": "Скомпонуйте образ",
+    "nextButton": "Далее",
+    "selectItems": "Выберите вещи",
+    "arrangeItems": "Расположите вещи",
+    "saveOutfit": "Сохранить образ",
+    "nameLabel": "Название образа",
+    "namePlaceholder": "Введите название (опционально)",
+    "notesLabel": "Заметки",
+    "notesPlaceholder": "Добавьте заметки (опционально)",
+    "selectBackground": "Выбрать фон",
+    "addMoreItems": "Добавить ещё",
+    "removeItem": "Убрать вещь",
+    "resetCanvas": "Сбросить",
+    "successMessage": "Образ создан!",
+    "errorMessage": "Не удалось создать образ",
+    "emptyOutfitTitle": "Пустой образ",
+    "emptyOutfitMessage": "Добавьте хотя бы одну вещь",
+    "tabs": {
+      "basic": "Основной",
+      "dress": "Платье",
+      "all": "Всё",
+      "custom": "Кастомный",
+      "edit": "Изменить",
+      "done": "Готово"
+    },
+    "selectedItems": "Выбранные вещи",
+    "itemCount_one": "вещь",
+    "itemCount_other": "вещей",
+    "noItemsOnCanvas": "Нет вещей на холсте"
+  },
+  "detail": {
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "share": "Поделиться",
+    "favorite": "Избранное",
+    "items": "Вещи",
+    "notes": "Заметки",
+    "createdOn": "Создано",
+    "deleteConfirmTitle": "Удалить образ?",
+    "deleteConfirmMessage": "Это действие нельзя отменить",
+    "deleteSuccess": "Образ удалён",
+    "deleteError": "Не удалось удалить образ"
+  },
+  "filter": {
+    "allOutfits": "Все образы",
+    "myOutfits": "Мои образы",
+    "aiGenerated": "Созданные AI",
+    "sortBy": "Сортировать по",
+    "newest": "Сначала новые",
+    "oldest": "Старые",
+    "mostLiked": "Популярные",
+    "favorites": "Сначала избранные",
+    "alphabetical": "Стандартно (A-Z)",
+    "filterButton": "Фильтры",
+    "clearFilters": "Очистить",
+    "applyFilters": "Применить фильтры",
+    "clearAll": "Очистить всё",
+    "occasions": "Повод",
+    "styles": "Стиль",
+    "seasons": "Сезон",
+    "favoritesOnly": "Только избранные",
+    "visibility": "Видимость",
+    "all": "Все",
+    "private": "Личные",
+    "shared": "Поделенные",
+    "public": "Публичные"
+  }
+}

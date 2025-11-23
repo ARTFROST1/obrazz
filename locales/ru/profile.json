@@ -1,0 +1,42 @@
+{
+  "header": {
+    "title": "Мой профиль"
+  },
+  "userInfo": {
+    "noEmail": "Email не указан",
+    "defaultName": "Пользователь"
+  },
+  "sections": {
+    "account": "Аккаунт",
+    "appSettings": "Настройки приложения",
+    "subscription": "Подписка",
+    "support": "Поддержка"
+  },
+  "menu": {
+    "editProfile": "Редактировать профиль",
+    "changePassword": "Изменить пароль",
+    "notifications": "Уведомления",
+    "darkMode": "Темная тема",
+    "language": "Язык",
+    "upgradeToPro": "Обновить до Pro",
+    "helpSupport": "Помощь и поддержка",
+    "termsPrivacy": "Условия и конфиденциальность",
+    "about": "О приложении"
+  },
+  "settings": {
+    "language": "Язык",
+    "selectLanguage": "Выберите язык",
+    "currentLanguage": {
+      "ru": "Русский",
+      "en": "English"
+    }
+  },
+  "signOut": {
+    "title": "Выход",
+    "message": "Вы уверены, что хотите выйти?",
+    "confirm": "Выйти",
+    "cancel": "Отмена",
+    "error": "Не удалось выйти из системы"
+  },
+  "version": "Версия {{version}}"
+}

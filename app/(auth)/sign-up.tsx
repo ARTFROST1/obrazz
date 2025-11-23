@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { Button, Input, Loader } from '@components/ui';
+import { useTranslation } from '@hooks/useTranslation';
 import { authService } from '@services/auth/authService';
 import {
   validateEmail,
+  validateName,
   validatePassword,
   validatePasswordMatch,
-  validateName,
 } from '@utils/validation/authValidation';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { t } = useTranslation('auth');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,10 +74,10 @@ export default function SignUpScreen() {
       if (result.success) {
         router.replace('/(tabs)');
       } else {
-        Alert.alert('Sign Up Failed', result.error || 'Please try again.');
+        Alert.alert(t('common:states.error'), result.error || t('signUp.errorMessage'));
       }
     } catch {
-      Alert.alert('Error', 'An unexpected error occurred.');
+      Alert.alert(t('common:states.error'), t('signUp.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -96,14 +98,14 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to get started</Text>
+            <Text style={styles.title}>{t('signUp.title')}</Text>
+            <Text style={styles.subtitle}>{t('signUp.subtitle')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Full Name"
-              placeholder="Enter your full name"
+              label={t('signUp.fullNameLabel')}
+              placeholder={t('signUp.fullNamePlaceholder')}
               value={fullName}
               onChangeText={(text) => {
                 setFullName(text);
@@ -117,8 +119,8 @@ export default function SignUpScreen() {
             />
 
             <Input
-              label="Email"
-              placeholder="Enter your email"
+              label={t('signUp.emailLabel')}
+              placeholder={t('signUp.emailPlaceholder')}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -133,8 +135,8 @@ export default function SignUpScreen() {
             />
 
             <Input
-              label="Password"
-              placeholder="Create a password"
+              label={t('signUp.passwordLabel')}
+              placeholder={t('signUp.passwordPlaceholder')}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -151,8 +153,8 @@ export default function SignUpScreen() {
             />
 
             <Input
-              label="Confirm Password"
-              placeholder="Confirm your password"
+              label={t('signUp.confirmPasswordLabel')}
+              placeholder={t('signUp.confirmPasswordPlaceholder')}
               value={confirmPassword}
               onChangeText={(text) => {
                 setConfirmPassword(text);
@@ -169,23 +171,22 @@ export default function SignUpScreen() {
             />
 
             <Button
-              title="Create Account"
+              title={t('signUp.createAccountButton')}
               onPress={handleSignUp}
               loading={loading}
               style={styles.signUpButton}
             />
 
             <View style={styles.signInPrompt}>
-              <Text style={styles.signInPromptText}>Already have an account? </Text>
+              <Text style={styles.signInPromptText}>{t('signUp.haveAccount')}</Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-                <Text style={styles.signInLink}>Sign In</Text>
+                <Text style={styles.signInLink}>{t('signUp.signInLink')}</Text>
               </TouchableOpacity>
             </View>
 
             <Text style={styles.termsText}>
-              By creating an account, you agree to our{'\n'}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              {t('signUp.termsText')} <Text style={styles.termsLink}>{t('signUp.termsLink')}</Text>{' '}
+              {t('signUp.and')} <Text style={styles.termsLink}>{t('signUp.privacyLink')}</Text>
             </Text>
           </View>
         </ScrollView>

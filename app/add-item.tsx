@@ -6,6 +6,7 @@ import { CategoryGridPicker } from '@components/wardrobe/CategoryGridPicker';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
 import { SelectionGrid } from '@components/wardrobe/SelectionGrid';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
 import { itemService } from '@services/wardrobe/itemService';
 import { useAuthStore } from '@store/auth/authStore';
@@ -28,6 +29,7 @@ import { ItemCategory } from '../types/models/item';
 import { Season, StyleTag } from '../types/models/user';
 
 export default function AddItemScreen() {
+  const { t } = useTranslation('wardrobe');
   const { id: itemId } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuthStore();
   const { addItem, updateItem } = useWardrobeStore();
@@ -51,25 +53,25 @@ export default function AddItemScreen() {
   const [removingBg, setRemovingBg] = useState(false);
 
   const STYLES: { label: string; value: StyleTag }[] = [
-    { label: 'Casual', value: 'casual' },
-    { label: 'Classic', value: 'classic' },
-    { label: 'Sport', value: 'sport' },
-    { label: 'Minimalism', value: 'minimalism' },
-    { label: 'Old Money', value: 'old_money' },
-    { label: 'Scandi', value: 'scandi' },
-    { label: 'Indie', value: 'indie' },
-    { label: 'Y2K', value: 'y2k' },
-    { label: 'Star', value: 'star' },
-    { label: 'Alt', value: 'alt' },
-    { label: 'Cottagecore', value: 'cottagecore' },
-    { label: 'Downtown', value: 'downtown' },
+    { label: t('categories:styles.casual'), value: 'casual' },
+    { label: t('categories:styles.classic'), value: 'classic' },
+    { label: t('categories:styles.sport'), value: 'sport' },
+    { label: t('categories:styles.minimalism'), value: 'minimalism' },
+    { label: t('categories:styles.old_money'), value: 'old_money' },
+    { label: t('categories:styles.scandi'), value: 'scandi' },
+    { label: t('categories:styles.indie'), value: 'indie' },
+    { label: t('categories:styles.y2k'), value: 'y2k' },
+    { label: t('categories:styles.star'), value: 'star' },
+    { label: t('categories:styles.alt'), value: 'alt' },
+    { label: t('categories:styles.cottagecore'), value: 'cottagecore' },
+    { label: t('categories:styles.downtown'), value: 'downtown' },
   ];
 
   const SEASONS: { label: string; value: Season }[] = [
-    { label: 'Spring 🌱', value: 'spring' },
-    { label: 'Summer ☀️', value: 'summer' },
-    { label: 'Fall 🍂', value: 'fall' },
-    { label: 'Winter ❄️', value: 'winter' },
+    { label: `${t('categories:seasons.spring')} 🌱`, value: 'spring' },
+    { label: `${t('categories:seasons.summer')} ☀️`, value: 'summer' },
+    { label: `${t('categories:seasons.fall')} 🍂`, value: 'fall' },
+    { label: `${t('categories:seasons.winter')} ❄️`, value: 'winter' },
   ];
 
   // Load item data if in edit mode
@@ -96,7 +98,7 @@ export default function AddItemScreen() {
       setPrice(item.price ? String(item.price) : '');
     } catch (error) {
       console.error('Error loading item:', error);
-      Alert.alert('Error', 'Failed to load item data');
+      Alert.alert(t('common:states.error'), t('addItem.loadItemError'));
       router.back();
     } finally {
       setLoadingItem(false);
@@ -108,10 +110,7 @@ export default function AddItemScreen() {
     const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
-      Alert.alert(
-        'Permissions Required',
-        'Camera and photo library permissions are required to add items.',
-      );
+      Alert.alert(t('addItem.permissionsRequired'), t('addItem.permissionsMessage'));
       return false;
     }
     return true;
@@ -134,7 +133,7 @@ export default function AddItemScreen() {
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
+      Alert.alert(t('common:states.error'), t('addItem.photoError'));
     }
   };
 
@@ -155,18 +154,18 @@ export default function AddItemScreen() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert(t('common:states.error'), t('addItem.pickImageError'));
     }
   };
 
   const handleImageAction = () => {
     Alert.alert(
-      'Add Photo',
-      'Choose an option',
+      t('addItem.selectPhoto'),
+      t('addItem.chooseOption'),
       [
-        { text: 'Take Photo', onPress: handleTakePhoto },
-        { text: 'Choose from Gallery', onPress: handlePickImage },
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('addItem.takePhoto'), onPress: handleTakePhoto },
+        { text: t('addItem.chooseFromGallery'), onPress: handlePickImage },
+        { text: t('common:buttons.cancel'), style: 'cancel' },
       ],
       { cancelable: true },
     );
@@ -201,7 +200,7 @@ export default function AddItemScreen() {
       setImageUri(processedUri);
     } catch (error) {
       console.error('Error removing background:', error);
-      Alert.alert('Error', 'Failed to remove background');
+      Alert.alert(t('common:states.error'), t('addItem.bgRemovalError'));
     } finally {
       setRemovingBg(false);
     }
@@ -231,11 +230,14 @@ export default function AddItemScreen() {
 
   const handleNext = () => {
     if (!imageUri) {
-      Alert.alert('Missing Image', 'Please add an image for your item');
+      Alert.alert(t('common:states.error'), t('addItem.imageRequired'));
       return;
     }
     if (selectedColors.length === 0) {
-      Alert.alert('Missing Color', 'Please select at least one color');
+      Alert.alert(
+        t('common:states.error'),
+        t('addItem.colorLabel') + ' ' + t('common:states.error'),
+      );
       return;
     }
     setStep(2);
@@ -320,7 +322,9 @@ export default function AddItemScreen() {
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.addPhotoButton} onPress={handleImageAction}>
             <Ionicons name={imageUri ? 'camera-reverse' : 'camera'} size={20} color="#FFF" />
-            <Text style={styles.addPhotoButtonText}>{imageUri ? 'Change' : 'Add Photo'}</Text>
+            <Text style={styles.addPhotoButtonText}>
+              {imageUri ? t('common:buttons.edit') : t('addItem.selectPhoto')}
+            </Text>
           </TouchableOpacity>
 
           {imageUri && backgroundRemoverService.isConfigured() && (
@@ -334,7 +338,7 @@ export default function AddItemScreen() {
               ) : (
                 <>
                   <Ionicons name="sparkles" size={18} color="#FFF" />
-                  <Text style={styles.addPhotoButtonText}>Remove BG</Text>
+                  <Text style={styles.addPhotoButtonText}>{t('addItem.removeBg')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -344,7 +348,7 @@ export default function AddItemScreen() {
 
       {/* Category */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Category</Text>
+        <Text style={styles.sectionTitle}>{t('addItem.categoryLabel')}</Text>
         <CategoryGridPicker
           selectedCategories={[category]}
           onCategorySelect={handleCategorySelect}
@@ -354,7 +358,7 @@ export default function AddItemScreen() {
 
       {/* Colors */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Colors</Text>
+        <Text style={styles.sectionTitle}>{t('addItem.colorsLabel')}</Text>
         <ColorPicker
           selectedColors={selectedColors}
           onColorSelect={handleColorSelect}
@@ -368,15 +372,20 @@ export default function AddItemScreen() {
     <>
       {/* Details */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Details</Text>
-        <Input placeholder="Item Name" value={title} onChangeText={setTitle} />
-        <Input placeholder="Brand" value={brand} onChangeText={setBrand} />
-        <Input placeholder="Price" value={price} onChangeText={setPrice} keyboardType="numeric" />
+        <Text style={styles.sectionTitle}>{t('addItem.detailsLabel')}</Text>
+        <Input placeholder={t('addItem.namePlaceholder')} value={title} onChangeText={setTitle} />
+        <Input placeholder={t('addItem.brandPlaceholder')} value={brand} onChangeText={setBrand} />
+        <Input
+          placeholder={t('addItem.pricePlaceholder')}
+          value={price}
+          onChangeText={setPrice}
+          keyboardType="numeric"
+        />
       </View>
 
       {/* Styles */}
       <View style={[styles.section, styles.sectionTight]}>
-        <Text style={styles.sectionTitle}>Style</Text>
+        <Text style={styles.sectionTitle}>{t('addItem.styleLabel')}</Text>
         <SelectionGrid
           items={STYLES}
           selectedItems={selectedStyles}
@@ -387,7 +396,7 @@ export default function AddItemScreen() {
 
       {/* Seasons */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Season</Text>
+        <Text style={styles.sectionTitle}>{t('addItem.seasonLabel')}</Text>
         <SelectionGrid
           items={SEASONS}
           selectedItems={selectedSeasons}
@@ -418,11 +427,11 @@ export default function AddItemScreen() {
         <Text style={styles.title}>
           {isEditMode
             ? step === 1
-              ? 'Edit Item'
-              : 'Edit Details'
+              ? t('addItem.editItemTitle')
+              : t('addItem.editDetailsTitle')
             : step === 1
-              ? 'Add Item'
-              : 'Details'}
+              ? t('addItem.addItemTitle')
+              : t('addItem.detailsTitle')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -437,7 +446,11 @@ export default function AddItemScreen() {
 
       <View style={styles.footer}>
         <Button onPress={step === 1 ? handleNext : handleSave} loading={loading} disabled={loading}>
-          {step === 1 ? 'Next' : isEditMode ? 'Update Item' : 'Save to Wardrobe'}
+          {step === 1
+            ? t('common:buttons.next')
+            : isEditMode
+              ? t('addItem.updateButton')
+              : t('addItem.saveButton')}
         </Button>
       </View>
 

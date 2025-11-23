@@ -1,27 +1,29 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  Alert,
-  TextInput,
-  Dimensions,
-  ScrollView,
-  Keyboard,
-  Modal,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useOutfitStore } from '@store/outfit/outfitStore';
-import { useAuthStore } from '@store/auth/authStore';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { CompositionStep, ItemSelectionStepNew } from '@components/outfit';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import { outfitService } from '@services/outfit/outfitService';
 import { itemService } from '@services/wardrobe/itemService';
-import { ItemSelectionStepNew, CompositionStep } from '@components/outfit';
-import { Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@store/auth/authStore';
+import { useOutfitStore } from '@store/outfit/outfitStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { OccasionTag } from '../../types/models/outfit';
 import { Season, StyleTag } from '../../types/models/user';
 
@@ -33,6 +35,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * Step 2: Compose items on canvas with drag & drop
  */
 export default function CreateScreen() {
+  const { t } = useTranslation('outfit');
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
 
@@ -147,17 +150,17 @@ export default function CreateScreen() {
 
   const handleSave = useCallback(async () => {
     if (!user?.id) {
-      Alert.alert('Error', 'You must be logged in to save outfits');
+      Alert.alert(t('common:states.error'), t('create.errorMessage'));
       return;
     }
 
     if (currentItems.length === 0) {
-      Alert.alert('Empty Outfit', 'Please add at least one item to your outfit');
+      Alert.alert(t('create.emptyOutfitTitle'), t('create.emptyOutfitMessage'));
       return;
     }
 
     setShowSaveModal(true);
-  }, [user, currentItems]);
+  }, [user, currentItems, t]);
 
   const confirmSave = useCallback(async () => {
     if (!user?.id) return;

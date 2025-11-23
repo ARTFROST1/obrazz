@@ -1,11 +1,14 @@
 import { Button, Loader } from '@components/ui';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import { authService } from '@services/auth/authService';
 import { useAuthStore } from '@store/auth/authStore';
+import { useSettingsStore } from '@store/settings/settingsStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -19,7 +22,10 @@ import {
 export default function ProfileScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { language, setLanguage } = useSettingsStore();
+  const { t, i18n } = useTranslation('profile');
   const [loading, setLoading] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   // Update StatusBar when screen is focused
   useFocusEffect(
@@ -33,13 +39,13 @@ export default function ProfileScreen() {
   );
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+    Alert.alert(t('signOut.title'), t('signOut.message'), [
       {
-        text: 'Cancel',
+        text: t('signOut.cancel'),
         style: 'cancel',
       },
       {
-        text: 'Sign Out',
+        text: t('signOut.confirm'),
         style: 'destructive',
         onPress: async () => {
           setLoading(true);
@@ -49,11 +55,17 @@ export default function ProfileScreen() {
           if (result.success) {
             router.replace('/(auth)/welcome');
           } else {
-            Alert.alert('Error', result.error || 'Failed to sign out.');
+            Alert.alert(t('common:states.error'), result.error || t('signOut.error'));
           }
         },
       },
     ]);
+  };
+
+  const handleLanguageChange = (newLang: 'ru' | 'en') => {
+    setLanguage(newLang);
+    i18n.changeLanguage(newLang);
+    setShowLanguagePicker(false);
   };
 
   if (loading) {
@@ -67,7 +79,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerTop}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>My Profile</Text>
+            <Text style={styles.headerTitle}>{t('header.title')}</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -79,17 +91,19 @@ export default function ProfileScreen() {
               <Ionicons name="person" size={48} color="#666666" />
             </View>
           </View>
-          <Text style={styles.name}>{user?.user_metadata?.full_name || 'User'}</Text>
-          <Text style={styles.email}>{user?.email || 'No email'}</Text>
+          <Text style={styles.name}>
+            {user?.user_metadata?.full_name || t('userInfo.defaultName')}
+          </Text>
+          <Text style={styles.email}>{user?.email || t('userInfo.noEmail')}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>{t('sections.account')}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="person-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Edit Profile</Text>
+              <Text style={styles.menuItemText}>{t('menu.editProfile')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
@@ -97,19 +111,19 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="lock-closed-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Change Password</Text>
+              <Text style={styles.menuItemText}>{t('menu.changePassword')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App Settings</Text>
+          <Text style={styles.sectionTitle}>{t('sections.appSettings')}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="notifications-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Notifications</Text>
+              <Text style={styles.menuItemText}>{t('menu.notifications')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
@@ -117,39 +131,40 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="moon-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Dark Mode</Text>
+              <Text style={styles.menuItemText}>{t('menu.darkMode')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguagePicker(true)}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="language-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Language</Text>
+              <Text style={styles.menuItemText}>{t('menu.language')}</Text>
             </View>
+            <Text style={styles.currentValue}>{t(`settings.currentLanguage.${language}`)}</Text>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Subscription</Text>
+          <Text style={styles.sectionTitle}>{t('sections.subscription')}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="diamond-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Upgrade to Pro</Text>
+              <Text style={styles.menuItemText}>{t('menu.upgradeToPro')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
+          <Text style={styles.sectionTitle}>{t('sections.support')}</Text>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="help-circle-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Help & Support</Text>
+              <Text style={styles.menuItemText}>{t('menu.helpSupport')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
@@ -157,7 +172,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="document-text-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>Terms & Privacy</Text>
+              <Text style={styles.menuItemText}>{t('menu.termsPrivacy')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
@@ -165,7 +180,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="information-circle-outline" size={24} color="#000000" />
-              <Text style={styles.menuItemText}>About</Text>
+              <Text style={styles.menuItemText}>{t('menu.about')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
           </TouchableOpacity>
@@ -173,15 +188,62 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Button
-            title="Sign Out"
+            title={t('common:buttons.signOut')}
             onPress={handleSignOut}
             variant="secondary"
             style={styles.signOutButton}
           />
         </View>
 
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={styles.version}>{t('version', { version: '1.0.0' })}</Text>
       </ScrollView>
+
+      {/* Language Picker Modal */}
+      <Modal
+        visible={showLanguagePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLanguagePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLanguagePicker(false)}
+        >
+          <View style={styles.languageModal} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
+
+            <TouchableOpacity
+              style={[styles.languageOption, language === 'ru' && styles.languageOptionSelected]}
+              onPress={() => handleLanguageChange('ru')}
+            >
+              <Text style={styles.languageEmoji}>🇷🇺</Text>
+              <Text style={[styles.languageText, language === 'ru' && styles.languageTextSelected]}>
+                Русский
+              </Text>
+              {language === 'ru' && <Ionicons name="checkmark" size={24} color="#007AFF" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.languageOption, language === 'en' && styles.languageOptionSelected]}
+              onPress={() => handleLanguageChange('en')}
+            >
+              <Text style={styles.languageEmoji}>🇬🇧</Text>
+              <Text style={[styles.languageText, language === 'en' && styles.languageTextSelected]}>
+                English
+              </Text>
+              {language === 'en' && <Ionicons name="checkmark" size={24} color="#007AFF" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowLanguagePicker(false)}
+            >
+              <Text style={styles.closeButtonText}>{t('common:buttons.close')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -279,10 +341,74 @@ const styles = StyleSheet.create({
   signOutButton: {
     marginTop: 8,
   },
+  currentValue: {
+    color: '#666666',
+    fontSize: 15,
+    marginRight: 8,
+  },
   version: {
     color: '#C4C4C4',
     fontSize: 13,
     paddingVertical: 32,
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  languageModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#F8F8F8',
+  },
+  languageOptionSelected: {
+    backgroundColor: '#E3F2FD',
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  languageEmoji: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  languageText: {
+    fontSize: 17,
+    color: '#000000',
+    flex: 1,
+  },
+  languageTextSelected: {
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  closeButton: {
+    marginTop: 12,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
   },
 });

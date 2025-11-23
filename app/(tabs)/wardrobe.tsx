@@ -3,6 +3,7 @@ import { FAB } from '@components/ui';
 import { FilterState, ItemFilter } from '@components/wardrobe/ItemFilter';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import { itemService } from '@services/wardrobe/itemService';
 import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
@@ -29,6 +30,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function WardrobeScreen() {
+  const { t } = useTranslation('wardrobe');
   const { user } = useAuthStore();
   const {
     items,
@@ -179,55 +181,73 @@ export default function WardrobeScreen() {
     // Determine alert message
     let alertMessage = '';
     if (hasBuiltinItems && hasUserItems) {
-      alertMessage = `This will delete ${userItems.length} ${userItems.length === 1 ? 'item' : 'items'} and hide ${builtinItems.length} default ${builtinItems.length === 1 ? 'item' : 'items'} from your wardrobe.`;
+      alertMessage = t('selection.mixedConfirmMessage', {
+        userCount: userItems.length,
+        userPlural: userItems.length === 1 ? t('selection.item') : t('selection.items'),
+        builtinCount: builtinItems.length,
+        builtinPlural: builtinItems.length === 1 ? t('selection.item') : t('selection.items'),
+      });
     } else if (hasBuiltinItems) {
-      alertMessage = `This will hide ${builtinItems.length} default ${builtinItems.length === 1 ? 'item' : 'items'} from your wardrobe. You can restore them later.`;
+      alertMessage = t('selection.hideConfirmMessage', {
+        count: builtinItems.length,
+        plural: builtinItems.length === 1 ? t('selection.item') : t('selection.items'),
+      });
     } else {
-      alertMessage = `Are you sure you want to delete ${userItems.length} ${userItems.length === 1 ? 'item' : 'items'}?`;
+      alertMessage = t('selection.deleteConfirmMessage', {
+        count: userItems.length,
+        plural: userItems.length === 1 ? t('selection.item') : t('selection.items'),
+      });
     }
 
-    Alert.alert(hasBuiltinItems && !hasUserItems ? 'Hide Items' : 'Delete Items', alertMessage, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: hasBuiltinItems && !hasUserItems ? 'Hide' : 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            setLoading(true);
+    Alert.alert(
+      hasBuiltinItems && !hasUserItems ? t('selection.hideItems') : t('selection.deleteItems'),
+      alertMessage,
+      [
+        { text: t('common:actions.cancel'), style: 'cancel' },
+        {
+          text:
+            hasBuiltinItems && !hasUserItems
+              ? t('selection.hideItems')
+              : t('common:actions.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
 
-            // Delete user's own items
-            if (hasUserItems) {
-              await Promise.all(userItems.map((item) => itemService.deleteItem(item.id)));
+              // Delete user's own items
+              if (hasUserItems) {
+                await Promise.all(userItems.map((item) => itemService.deleteItem(item.id)));
+              }
+
+              // Hide builtin items (instead of deleting)
+              if (hasBuiltinItems) {
+                await Promise.all(
+                  builtinItems.map(async (item) => {
+                    await itemService.hideDefaultItem(user.id, item.id);
+                    addHiddenDefaultItemId(item.id);
+                    removeItemLocally(item.id);
+                  }),
+                );
+              }
+
+              // Reload items if we deleted any user items
+              if (hasUserItems) {
+                await loadItems();
+              }
+
+              // Exit selection mode
+              setIsSelectionMode(false);
+              setSelectedItems(new Set());
+            } catch (error) {
+              console.error('Error deleting/hiding items:', error);
+              Alert.alert('Error', 'Failed to process some items');
+            } finally {
+              setLoading(false);
             }
-
-            // Hide builtin items (instead of deleting)
-            if (hasBuiltinItems) {
-              await Promise.all(
-                builtinItems.map(async (item) => {
-                  await itemService.hideDefaultItem(user.id, item.id);
-                  addHiddenDefaultItemId(item.id);
-                  removeItemLocally(item.id);
-                }),
-              );
-            }
-
-            // Reload items if we deleted any user items
-            if (hasUserItems) {
-              await loadItems();
-            }
-
-            // Exit selection mode
-            setIsSelectionMode(false);
-            setSelectedItems(new Set());
-          } catch (error) {
-            console.error('Error deleting/hiding items:', error);
-            Alert.alert('Error', 'Failed to process some items');
-          } finally {
-            setLoading(false);
-          }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const filteredItems = getFilteredItems();
@@ -246,13 +266,15 @@ export default function WardrobeScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>My Wardrobe</Text>
+            <Text style={styles.headerTitle}>{t('header.title')}</Text>
             <TouchableOpacity
               style={styles.selectButton}
               onPress={handleToggleSelectionMode}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.selectButtonText}>{isSelectionMode ? 'Cancel' : 'Select'}</Text>
+              <Text style={styles.selectButtonText}>
+                {isSelectionMode ? t('common:actions.cancel') : t('common:actions.select')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -263,7 +285,7 @@ export default function WardrobeScreen() {
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search items..."
+          placeholder={t('search.placeholder')}
           value={searchQuery}
           onChangeText={handleSearch}
           placeholderTextColor="#999"
@@ -289,7 +311,9 @@ export default function WardrobeScreen() {
             >
               <Ionicons name="checkmark-done" size={20} color="#000" />
               <Text style={styles.selectionActionText}>
-                {selectedItems.size === filteredItems.length ? 'Deselect All' : 'Select All'}
+                {selectedItems.size === filteredItems.length
+                  ? t('selection.deselectAll')
+                  : t('selection.selectAll')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -310,7 +334,7 @@ export default function WardrobeScreen() {
               <Text
                 style={[styles.deleteActionText, selectedItems.size === 0 && styles.disabledText]}
               >
-                Delete ({selectedItems.size})
+                {t('common:actions.delete')} ({selectedItems.size})
               </Text>
             </TouchableOpacity>
           </>
@@ -329,7 +353,7 @@ export default function WardrobeScreen() {
                     hasActiveFilters ? styles.filterButtonTextActive : null,
                   ]}
                 >
-                  Filter
+                  {t('filter.filterButton')}
                 </Text>
                 {hasActiveFilters && (
                   <View style={styles.filterBadge}>
@@ -341,14 +365,17 @@ export default function WardrobeScreen() {
 
             <View style={styles.filterBarCenter}>
               <Text style={styles.itemCount}>
-                {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+                {filteredItems.length}{' '}
+                {filteredItems.length === 1
+                  ? t('wardrobe:header.itemCount_one')
+                  : t('wardrobe:header.itemCount_other')}
               </Text>
             </View>
 
             <View style={styles.filterBarRight}>
               {hasActiveFilters ? (
                 <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
-                  <Text style={styles.clearFilterText}>Clear All</Text>
+                  <Text style={styles.clearFilterText}>{t('filter.clearAll')}</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity

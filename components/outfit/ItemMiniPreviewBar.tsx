@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@hooks/useTranslation';
 import React from 'react';
 import { FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { OutfitItem } from '../../types/models/outfit';
@@ -23,16 +24,18 @@ export function ItemMiniPreviewBar({
   onItemSelect,
   onItemRemove,
 }: ItemMiniPreviewBarProps) {
+  const { t } = useTranslation('outfit');
+
   if (items.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.label}>Selected Items</Text>
+          <Text style={styles.label}>{t('create.selectedItems')}</Text>
           <Text style={styles.count}>0</Text>
         </View>
         <View style={styles.emptyState}>
           <Ionicons name="albums-outline" size={32} color="#CCC" />
-          <Text style={styles.emptyText}>No items on canvas</Text>
+          <Text style={styles.emptyText}>{t('create.noItemsOnCanvas')}</Text>
         </View>
       </View>
     );
@@ -79,9 +82,10 @@ export function ItemMiniPreviewBar({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>Selected Items</Text>
+        <Text style={styles.label}>{t('create.selectedItems')}</Text>
         <Text style={styles.count}>
-          {items.length} item{items.length !== 1 ? 's' : ''}
+          {items.length}{' '}
+          {items.length === 1 ? t('create.itemCount_one') : t('create.itemCount_other')}
         </Text>
       </View>
       <FlatList

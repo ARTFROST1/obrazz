@@ -1,0 +1,15 @@
+{
+  "tabs": {
+    "home": "Home",
+    "wardrobe": "Wardrobe",
+    "outfits": "Outfits",
+    "profile": "Profile"
+  },
+  "screens": {
+    "addItem": "Add Item",
+    "itemDetail": "Item Details",
+    "createOutfit": "Create Outfit",
+    "outfitDetail": "Outfit Details",
+    "editOutfit": "Edit Outfit"
+  }
+}

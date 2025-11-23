@@ -1,0 +1,52 @@
+{
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "signOut": "Sign Out",
+    "apply": "Apply",
+    "reset": "Reset",
+    "select": "Select",
+    "continue": "Continue"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "select": "Select",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "delete": "Delete",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "uploading": "Uploading...",
+    "processing": "Processing..."
+  },
+  "general": {
+    "outfit": "outfit",
+    "outfits": "outfits"
+  },
+  "messages": {
+    "deleteConfirm": "Are you sure you want to delete"
+  },
+  "states": {
+    "empty": "Empty",
+    "noResults": "No results found",
+    "error": "Error",
+    "success": "Success"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago"
+  }
+}

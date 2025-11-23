@@ -1,0 +1,15 @@
+{
+  "tabs": {
+    "home": "Главная",
+    "wardrobe": "Гардероб",
+    "outfits": "Образы",
+    "profile": "Профиль"
+  },
+  "screens": {
+    "addItem": "Добавить вещь",
+    "itemDetail": "Детали вещи",
+    "createOutfit": "Создать образ",
+    "outfitDetail": "Детали образа",
+    "editOutfit": "Редактировать образ"
+  }
+}

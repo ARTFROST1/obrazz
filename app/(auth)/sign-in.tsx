@@ -1,23 +1,25 @@
+import { Button, Input, Loader } from '@components/ui';
+import { useTranslation } from '@hooks/useTranslation';
+import { authService } from '@services/auth/authService';
+import { validateEmail, validatePassword } from '@utils/validation/authValidation';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Alert,
-  Keyboard,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Button, Input, Loader } from '@components/ui';
-import { authService } from '@services/auth/authService';
-import { validateEmail, validatePassword } from '@utils/validation/authValidation';
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,10 +49,10 @@ export default function SignInScreen() {
         // Navigation will be handled automatically by auth state change
         router.replace('/(tabs)');
       } else {
-        Alert.alert('Sign In Failed', result.error || 'Please try again.');
+        Alert.alert(t('common:states.error'), result.error || t('signIn.errorMessage'));
       }
     } catch {
-      Alert.alert('Error', 'An unexpected error occurred.');
+      Alert.alert(t('common:states.error'), t('signIn.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -71,14 +73,14 @@ export default function SignInScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue</Text>
+            <Text style={styles.title}>{t('signIn.title')}</Text>
+            <Text style={styles.subtitle}>{t('signIn.subtitle')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
-              placeholder="Enter your email"
+              label={t('signIn.emailLabel')}
+              placeholder={t('signIn.emailPlaceholder')}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -93,8 +95,8 @@ export default function SignInScreen() {
             />
 
             <Input
-              label="Password"
-              placeholder="Enter your password"
+              label={t('signIn.passwordLabel')}
+              placeholder={t('signIn.passwordPlaceholder')}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -114,20 +116,20 @@ export default function SignInScreen() {
               style={styles.forgotPassword}
               onPress={() => router.push('/(auth)/forgot-password')}
             >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              <Text style={styles.forgotPasswordText}>{t('signIn.forgotPassword')}</Text>
             </TouchableOpacity>
 
             <Button
-              title="Sign In"
+              title={t('signIn.signInButton')}
               onPress={handleSignIn}
               loading={loading}
               style={styles.signInButton}
             />
 
             <View style={styles.signUpPrompt}>
-              <Text style={styles.signUpPromptText}>Don't have an account? </Text>
+              <Text style={styles.signUpPromptText}>{t('signIn.noAccount')}</Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
-                <Text style={styles.signUpLink}>Sign Up</Text>
+                <Text style={styles.signUpLink}>{t('signIn.signUpLink')}</Text>
               </TouchableOpacity>
             </View>
           </View>

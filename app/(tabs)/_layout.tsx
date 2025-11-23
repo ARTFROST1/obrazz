@@ -1,9 +1,10 @@
-import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from '@hooks/useTranslation';
 import { Tabs } from 'expo-router';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
-import { useColorScheme, Platform, PlatformColor } from 'react-native';
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import React from 'react';
+import { Platform, PlatformColor, useColorScheme } from 'react-native';
 
 import Colors from '../../constants/Colors';
 
@@ -24,6 +25,7 @@ function TabBarIconIonic(props: {
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation('navigation');
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -75,7 +77,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Feed',
+            title: t('tabs.home'),
             tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
             headerShown: false,
           }}
@@ -83,7 +85,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="wardrobe"
           options={{
-            title: 'Wardrobe',
+            title: t('tabs.wardrobe'),
             tabBarIcon: ({ color }) => <TabBarIconIonic name="shirt" color={color} />,
             headerShown: false,
           }}
@@ -91,7 +93,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="outfits"
           options={{
-            title: 'Outfits',
+            title: t('tabs.outfits'),
             tabBarIcon: ({ color }) => <TabBarIcon name="th-large" color={color} />,
             headerShown: false,
           }}
@@ -99,7 +101,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profile',
+            title: t('tabs.profile'),
             tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
             headerShown: false,
           }}
@@ -131,22 +133,22 @@ export default function TabLayout() {
       disableTransparentOnScrollEdge={false}
     >
       <NativeTabs.Trigger name="index">
-        <Label>Feed</Label>
+        <Label>{t('tabs.home')}</Label>
         <Icon sf="house.fill" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="wardrobe">
-        <Label>Wardrobe</Label>
+        <Label>{t('tabs.wardrobe')}</Label>
         <Icon sf="tshirt.fill" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="outfits">
-        <Label>Outfits</Label>
+        <Label>{t('tabs.outfits')}</Label>
         <Icon sf="square.grid.2x2.fill" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="profile">
-        <Label>Profile</Label>
+        <Label>{t('tabs.profile')}</Label>
         <Icon sf="person.fill" />
       </NativeTabs.Trigger>
     </NativeTabs>

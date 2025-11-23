@@ -1,0 +1,52 @@
+{
+  "buttons": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "create": "Создать",
+    "close": "Закрыть",
+    "confirm": "Подтвердить",
+    "back": "Назад",
+    "next": "Далее",
+    "done": "Готово",
+    "signOut": "Выйти",
+    "apply": "Применить",
+    "reset": "Сбросить",
+    "select": "Выбрать",
+    "continue": "Продолжить"
+  },
+  "actions": {
+    "cancel": "Отмена",
+    "select": "Выбрать",
+    "selectAll": "Выбрать всё",
+    "deselectAll": "Снять выделение",
+    "delete": "Удалить",
+    "filter": "Фильтр",
+    "loading": "Загрузка...",
+    "saving": "Сохранение...",
+    "deleting": "Удаление...",
+    "uploading": "Загрузка...",
+    "processing": "Обработка..."
+  },
+  "general": {
+    "outfit": "образ",
+    "outfits": "образов"
+  },
+  "messages": {
+    "deleteConfirm": "Удалить"
+  },
+  "states": {
+    "empty": "Пусто",
+    "noResults": "Ничего не найдено",
+    "error": "Ошибка",
+    "success": "Успешно"
+  },
+  "time": {
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "daysAgo": "{{count}} дн. назад",
+    "weeksAgo": "{{count}} нед. назад",
+    "monthsAgo": "{{count}} мес. назад"
+  }
+}

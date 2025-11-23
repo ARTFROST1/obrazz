@@ -1,4 +1,6 @@
 import { getAllCategoriesInfo } from '@constants/categories';
+import { useTranslation } from '@hooks/useTranslation';
+import { useSettingsStore } from '@store/settings/settingsStore';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ItemCategory } from '../../types/models/item';
@@ -9,13 +11,15 @@ interface CategoryGridPickerProps {
   multiSelect?: boolean;
 }
 
-const CATEGORIES = getAllCategoriesInfo('en');
-
 export const CategoryGridPicker: React.FC<CategoryGridPickerProps> = ({
   selectedCategories,
   onCategorySelect,
   multiSelect = true,
 }) => {
+  const { t } = useTranslation('categories');
+  const { language } = useSettingsStore();
+  const CATEGORIES = getAllCategoriesInfo(language);
+
   const isSelected = (category: ItemCategory) => selectedCategories.includes(category);
 
   const handlePress = (category: ItemCategory) => {
@@ -48,11 +52,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Platform.OS === 'android' ? 6 : 8,
-    justifyContent: 'flex-start',
+    marginHorizontal: -4,
   },
   card: {
-    width: '23%',
+    width: '25%',
     aspectRatio: Platform.OS === 'android' ? 0.9 : 0.85,
     alignItems: 'center',
     justifyContent: 'center',
@@ -61,6 +64,8 @@ const styles = StyleSheet.create({
     borderRadius: Platform.OS === 'android' ? 12 : 16,
     borderWidth: 1,
     padding: Platform.OS === 'android' ? 6 : 4,
+    marginHorizontal: 4,
+    marginBottom: 8,
   },
   cardSelected: {
     backgroundColor: '#000',

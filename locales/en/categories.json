@@ -1,0 +1,40 @@
+{
+  "items": {
+    "headwear": "Headwear",
+    "outerwear": "Outerwear",
+    "tops": "Tops",
+    "bottoms": "Bottoms",
+    "footwear": "Footwear",
+    "accessories": "Accessories",
+    "fullbody": "Full Body",
+    "other": "Other"
+  },
+  "styles": {
+    "casual": "Casual",
+    "classic": "Classic",
+    "sport": "Sport",
+    "minimalism": "Minimalism",
+    "old_money": "Old Money",
+    "scandi": "Scandi",
+    "indie": "Indie",
+    "y2k": "Y2K",
+    "star": "Star",
+    "alt": "Alt",
+    "cottagecore": "Cottagecore",
+    "downtown": "Downtown"
+  },
+  "seasons": {
+    "spring": "Spring 🌱",
+    "summer": "Summer ☀️",
+    "fall": "Fall 🍂",
+    "winter": "Winter ❄️"
+  },
+  "occasions": {
+    "casual": "Casual",
+    "work": "Work",
+    "formal": "Formal",
+    "party": "Party",
+    "sport": "Sport",
+    "vacation": "Vacation"
+  }
+}

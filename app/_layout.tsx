@@ -1,16 +1,19 @@
-import React, { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { Loader } from '@components/ui';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { i18n } from '@hooks/useTranslation';
+import '@lib/i18n/config'; // Initialize i18n
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { authService } from '@services/auth/authService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useSettingsStore } from '@store/settings/settingsStore';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import { useAuthStore } from '@store/auth/authStore';
-import { authService } from '@services/auth/authService';
-import { Loader } from '@components/ui';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -53,6 +56,7 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, isLoading, setLoading } = useAuthStore();
+  const { language } = useSettingsStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -62,8 +66,15 @@ function RootLayoutNav() {
     if (typeof window !== 'undefined') {
       console.log('[RootLayoutNav] Rehydrating stores...');
       useAuthStore.persist.rehydrate();
+      useSettingsStore.persist.rehydrate();
     }
   }, []);
+
+  // Sync language with i18n
+  useEffect(() => {
+    console.log('[RootLayoutNav] Setting i18n language:', language);
+    i18n.changeLanguage(language);
+  }, [language]);
 
   // Initialize auth listener and session check
   useEffect(() => {

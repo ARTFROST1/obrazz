@@ -1,15 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Platform,
   Animated,
+  Dimensions,
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { WardrobeItem } from '../../types/models/item';
 
 interface ItemCardProps {
@@ -109,9 +109,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       <View style={styles.infoContainer}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title || 'Untitled'}
-        </Text>
-        <Text style={styles.category} numberOfLines={1}>
-          {item.category}
         </Text>
       </View>
     </TouchableOpacity>

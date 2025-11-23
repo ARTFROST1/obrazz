@@ -1,0 +1,91 @@
+{
+  "header": {
+    "title": "Outfits",
+    "createOutfit": "Create Outfit",
+    "searchPlaceholder": "Search outfits...",
+    "outfitCount_one": "outfit",
+    "outfitCount_other": "outfits"
+  },
+  "tabs": {
+    "all": "All",
+    "favorites": "Favorites",
+    "recent": "Recent"
+  },
+  "empty": {
+    "title": "You don't have any outfits yet",
+    "subtitle": "Create your first outfit from your wardrobe items",
+    "createFirst": "Create first outfit"
+  },
+  "create": {
+    "title": "Create Outfit",
+    "step1": "Select Items",
+    "step2": "Composition",
+    "step1Title": "Build Your Outfit",
+    "step2Title": "Compose Outfit",
+    "nextButton": "Next",
+    "selectItems": "Select items",
+    "arrangeItems": "Arrange items",
+    "saveOutfit": "Save Outfit",
+    "nameLabel": "Outfit Name",
+    "namePlaceholder": "Enter name (optional)",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Add notes (optional)",
+    "selectBackground": "Select Background",
+    "addMoreItems": "Add More",
+    "removeItem": "Remove Item",
+    "resetCanvas": "Reset",
+    "successMessage": "Outfit created!",
+    "errorMessage": "You must be logged in to save outfits",
+    "emptyOutfitTitle": "Empty Outfit",
+    "emptyOutfitMessage": "Please add at least one item to your outfit",
+    "tabs": {
+      "basic": "Basic",
+      "dress": "Dress",
+      "all": "All",
+      "custom": "Custom",
+      "edit": "Edit",
+      "done": "Done"
+    },
+    "selectedItems": "Selected Items",
+    "itemCount_one": "item",
+    "itemCount_other": "items",
+    "noItemsOnCanvas": "No items on canvas"
+  },
+  "detail": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "share": "Share",
+    "favorite": "Favorite",
+    "items": "Items",
+    "notes": "Notes",
+    "createdOn": "Created on",
+    "deleteConfirmTitle": "Delete Outfit?",
+    "deleteConfirmMessage": "This action cannot be undone",
+    "deleteSuccess": "Outfit deleted",
+    "deleteError": "Failed to delete outfit"
+  },
+  "filter": {
+    "allOutfits": "All Outfits",
+    "myOutfits": "My Outfits",
+    "aiGenerated": "AI Generated",
+    "sortBy": "Sort By",
+    "newest": "Newest First",
+    "oldest": "Oldest",
+    "mostLiked": "Most Liked",
+    "favorites": "Favorites First",
+    "alphabetical": "Standard (A-Z)",
+    "filterButton": "Filters",
+    "clearFilters": "Clear",
+    "applyFilters": "Apply Filters",
+    "clearAll": "Clear All",
+    "occasions": "Occasion",
+    "styles": "Style",
+    "seasons": "Season",
+    "favoritesOnly": "Favorites only",
+    "visibility": "Visibility",
+    "all": "All",
+    "private": "Private",
+    "shared": "Shared",
+    "public": "Public"
+  }
+}
