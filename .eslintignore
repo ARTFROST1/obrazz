@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+.expo-shared/
+dist/
+build/
+android/
+ios/
+*.bundle.js
+*.map
+coverage/
+.vscode/
+.git/
