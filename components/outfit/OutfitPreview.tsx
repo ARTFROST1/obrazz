@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { OutfitItem, OutfitBackground } from '../../types/models/outfit';
+import React from 'react';
+import { Image, StyleSheet, View } from 'react-native';
+import { OutfitBackground, OutfitItem } from '../../types/models/outfit';
 
 interface OutfitPreviewProps {
   items: OutfitItem[];
