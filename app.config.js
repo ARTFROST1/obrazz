@@ -13,10 +13,11 @@ export default {
     splash: {
       image: './assets/images/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0b0b0d',
     },
     ios: {
       supportsTablet: true,
+      icon: './assets/images/icon.png',
       infoPlist: {
         NSCameraUsageDescription:
           'Obrazz needs access to your camera to take photos of clothing items for your wardrobe.',
@@ -30,9 +31,10 @@ export default {
     },
     android: {
       package: 'com.artfrost.obrazz',
+      icon: './assets/images/adaptive-icon.png',
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
-        backgroundColor: '#ffffff',
+        foregroundImage: './assets/images/adaptive-icon-foreground.png',
+        backgroundImage: './assets/images/adaptive-icon-background.png',
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
