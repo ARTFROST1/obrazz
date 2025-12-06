@@ -98,6 +98,18 @@ export function SmoothCarousel({
 
   const [centerIndex, setCenterIndex] = useState(initialScrollIndex);
 
+  // Cleanup timeouts on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (snapCheckTimeoutRef.current) {
+        clearTimeout(snapCheckTimeoutRef.current);
+      }
+      if (adjustmentTimeoutRef.current) {
+        clearTimeout(adjustmentTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Padding to center first/last items
   const sidePadding = (SCREEN_WIDTH - itemWidth) / 2;
 
@@ -332,9 +344,9 @@ export function SmoothCarousel({
     [itemWidth, itemHeight, centerIndex],
   );
 
-  // Initialize scroll position
+  // Initialize scroll position AND notify initial selection
   useEffect(() => {
-    if (flatListRef.current && carouselItems.length > 0) {
+    if (flatListRef.current && carouselItems.length > 0 && items.length > 0) {
       const initialIndex = indexOffset + (initialScrollIndex % items.length);
 
       console.log(`🔍 [SmoothCarousel] Initializing ${category}:`, {
@@ -354,6 +366,10 @@ export function SmoothCarousel({
         setCenterIndex(initialIndex);
         scrollOffsetRef.current = initialIndex * itemWidth;
 
+        // ✅ FIX: Notify initial item selection so untouched carousels pass their value
+        // This ensures the first/initial item is always selected even without user scroll
+        notifyItemSelection(initialIndex);
+
         setTimeout(() => {
           isProgrammaticScrollRef.current = false;
         }, 100);
@@ -363,21 +379,15 @@ export function SmoothCarousel({
         clearTimeout(timer);
       };
     }
-  }, [category, initialScrollIndex, itemWidth, indexOffset, items.length, carouselItems.length]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (snapCheckTimeoutRef.current) {
-        clearTimeout(snapCheckTimeoutRef.current);
-      }
-      if (adjustmentTimeoutRef.current) {
-        clearTimeout(adjustmentTimeoutRef.current);
-      }
-      isAdjustingRef.current = false;
-      isProgrammaticScrollRef.current = false;
-    };
-  }, []);
+  }, [
+    category,
+    initialScrollIndex,
+    itemWidth,
+    indexOffset,
+    items.length,
+    carouselItems.length,
+    notifyItemSelection,
+  ]);
 
   const contentContainerStyle = useMemo(
     () => ({

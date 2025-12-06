@@ -9,6 +9,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 /**
  * Calculate item dimensions maintaining 3:4 aspect ratio
  * Now supports different tab types with optimized sizing
+ *
+ * Strategy:
+ * - basic/dress (3 carousels): Fill available space, no scroll
+ * - custom (1-5 carousels): Fill available space proportionally, no scroll
+ * - custom (6+ carousels) or all: Fixed small size with vertical scroll
  */
 function calculateItemDimensions(
   numberOfCategories: number,
@@ -20,21 +25,40 @@ function calculateItemDimensions(
   carouselHeight: number;
   needsVerticalScroll: boolean;
 } {
-  // Special handling for basic and dress tabs (3 carousels)
-  if (tabType === 'basic' || tabType === 'dress') {
-    const carouselHeight = Math.floor(availableHeight / 3);
-    const itemHeight = Math.floor(carouselHeight - 20);
+  // Maximum carousels that fit on screen without scroll
+  // Beyond this, we need scrolling to keep items usable
+  const MAX_CAROUSELS_NO_SCROLL = 5;
+
+  // For basic, dress tabs OR custom tab with few carousels - fill the space
+  const shouldFillSpace =
+    tabType === 'basic' ||
+    tabType === 'dress' ||
+    (tabType === 'custom' && numberOfCategories <= MAX_CAROUSELS_NO_SCROLL);
+
+  if (shouldFillSpace) {
+    // Distribute available height evenly among all carousels
+    const carouselHeight = Math.floor(availableHeight / numberOfCategories);
+    // Padding between items and carousel edges
+    const itemPadding = numberOfCategories <= 3 ? 20 : 16;
+    const itemHeight = Math.floor(carouselHeight - itemPadding);
+    // Maintain 3:4 aspect ratio
     const itemWidth = Math.floor(itemHeight * 0.75);
 
+    // Dynamic min/max based on number of carousels
+    const minItemHeight = numberOfCategories <= 2 ? 200 : numberOfCategories <= 4 ? 140 : 100;
+    const maxItemHeight = numberOfCategories <= 2 ? 300 : numberOfCategories <= 4 ? 240 : 200;
+    const minItemWidth = numberOfCategories <= 2 ? 150 : numberOfCategories <= 4 ? 105 : 75;
+    const maxItemWidth = numberOfCategories <= 2 ? 225 : numberOfCategories <= 4 ? 180 : 150;
+
     return {
-      itemWidth: Math.max(120, Math.min(180, itemWidth)),
-      itemHeight: Math.max(160, Math.min(240, itemHeight)),
+      itemWidth: Math.max(minItemWidth, Math.min(maxItemWidth, itemWidth)),
+      itemHeight: Math.max(minItemHeight, Math.min(maxItemHeight, itemHeight)),
       carouselHeight,
       needsVerticalScroll: false,
     };
   }
 
-  // For 'all' and 'custom' tabs - dynamic calculation
+  // For 'all' tab or custom with many carousels - use fixed size with scroll
   const MIN_CAROUSEL_HEIGHT = 100;
   const MAX_CAROUSEL_HEIGHT = 140;
   const calculatedHeight = Math.floor(availableHeight / numberOfCategories);
@@ -47,7 +71,7 @@ function calculateItemDimensions(
   const totalHeight = carouselHeight * numberOfCategories;
   const needsVerticalScroll = totalHeight > availableHeight;
 
-  // Item dimensions
+  // Item dimensions for scrollable mode
   const itemHeight = Math.floor(carouselHeight - 16);
   const itemWidth = Math.floor(itemHeight * 0.75);
 

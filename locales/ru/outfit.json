@@ -46,6 +46,18 @@
       "edit": "Изменить",
       "done": "Готово"
     },
+    "customTab": {
+      "manageTitle": "Управление категориями",
+      "carouselCount_one": "карусель",
+      "carouselCount_other": "каруселей",
+      "dragToReorder": "Перетащите для сортировки",
+      "currentCategories": "Текущие категории",
+      "dragHint": "Удерживайте и перетащите для изменения порядка",
+      "emptyText": "Категорий пока нет. Добавьте их ниже!",
+      "addCategories": "Добавить категории",
+      "addHint": "Нажмите для добавления (дубликаты разрешены)"
+    },
+    "randomize": "Случайно",
     "selectedItems": "Выбранные вещи",
     "itemCount_one": "вещь",
     "itemCount_other": "вещей",

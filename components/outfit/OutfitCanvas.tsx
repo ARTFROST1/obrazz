@@ -134,7 +134,7 @@ export function OutfitCanvas({
           .filter((item) => item.isVisible && item.item)
           .map((outfitItem) => (
             <CanvasItem
-              key={outfitItem.itemId}
+              key={`${outfitItem.itemId}-slot-${outfitItem.slot}`}
               outfitItem={outfitItem}
               isSelected={selectedItemId === outfitItem.itemId}
               onTransformUpdate={onItemTransformUpdate}

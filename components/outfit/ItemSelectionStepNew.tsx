@@ -6,10 +6,20 @@ import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { loadCustomTabConfig, saveCustomTabConfig } from '@utils/storage/customTabStorage';
 import React, { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { OutfitTabType } from '../../types/components/OutfitCreator';
 import { ItemCategory, WardrobeItem } from '../../types/models/item';
 import { CategorySelectorWithSmooth } from './CategorySelectorWithSmooth';
 import { OutfitTabBar } from './OutfitTabBar';
+
+// Type for draggable list item with index
+interface DraggableCategoryItem {
+  category: ItemCategory;
+  index: number;
+}
 
 interface ItemSelectionStepNewProps {
   onNext: () => void;
@@ -87,6 +97,14 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
   const selectedCount = getSelectedItemsCount();
   const canProceed = selectedCount > 0;
 
+  // Prepare data for draggable list
+  const draggableCategories: DraggableCategoryItem[] = customTabCategories.map(
+    (category, index) => ({
+      category,
+      index,
+    }),
+  );
+
   const handleAddCategory = useCallback(
     (category: ItemCategory) => {
       // Allow duplicates - just add to the end
@@ -95,6 +113,16 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
       updateCustomTab(newCategories, order);
     },
     [customTabCategories, updateCustomTab],
+  );
+
+  // Handle drag & drop reorder
+  const handleReorderCategories = useCallback(
+    ({ data }: { data: DraggableCategoryItem[] }) => {
+      const newCategories = data.map((item) => item.category);
+      const order = newCategories.map((_, i) => i);
+      updateCustomTab(newCategories, order);
+    },
+    [updateCustomTab],
   );
 
   const handleRemoveCategory = useCallback(
@@ -180,42 +208,74 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
         >
           {/* Header */}
           <View style={styles.editHeader}>
-            <Text style={styles.editTitle}>Manage Categories</Text>
+            <Text style={styles.editTitle}>{t('create.customTab.manageTitle')}</Text>
             <Text style={styles.editSubtitle}>
               {customTabCategories.length}{' '}
-              {customTabCategories.length === 1 ? 'carousel' : 'carousels'} • Duplicates allowed
+              {customTabCategories.length === 1
+                ? t('create.customTab.carouselCount_one')
+                : t('create.customTab.carouselCount_other')}{' '}
+              • {t('create.customTab.dragToReorder')}
             </Text>
           </View>
 
-          {/* Current Categories */}
+          {/* Current Categories - Draggable */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current Categories</Text>
+            <Text style={styles.sectionTitle}>{t('create.customTab.currentCategories')}</Text>
+            <Text style={styles.sectionHint}>{t('create.customTab.dragHint')}</Text>
             {customTabCategories.length > 0 ? (
-              <View style={styles.categoryList}>
-                {customTabCategories.map((category, index) => (
-                  <View key={`current-${index}`} style={styles.categoryRow}>
-                    <View style={styles.categoryInfo}>
-                      <Text style={styles.categoryEmoji}>{getCategoryIcon(category)}</Text>
-                      <Text style={styles.categoryName}>{getCategoryLabel(category)}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => handleRemoveCategory(index)}
-                      style={styles.removeButton}
-                    >
-                      <Ionicons name="close-circle" size={24} color="#FF3B30" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
+              <DraggableFlatList
+                data={draggableCategories}
+                onDragEnd={handleReorderCategories}
+                keyExtractor={(item) => `draggable-${item.index}-${item.category}`}
+                renderItem={({
+                  item,
+                  drag,
+                  isActive,
+                  getIndex,
+                }: RenderItemParams<DraggableCategoryItem>) => {
+                  const currentIndex = getIndex() ?? 0;
+                  return (
+                    <ScaleDecorator>
+                      <TouchableOpacity
+                        onLongPress={drag}
+                        disabled={isActive}
+                        style={[
+                          styles.categoryRow,
+                          styles.draggableCategoryRow,
+                          isActive && styles.categoryRowActive,
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        {/* Drag Handle */}
+                        <View style={styles.dragHandle}>
+                          <Ionicons name="menu" size={20} color="#999" />
+                        </View>
+                        <View style={styles.categoryInfo}>
+                          <Text style={styles.categoryEmoji}>{getCategoryIcon(item.category)}</Text>
+                          <Text style={styles.categoryName}>{getCategoryLabel(item.category)}</Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleRemoveCategory(currentIndex)}
+                          style={styles.removeButton}
+                        >
+                          <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    </ScaleDecorator>
+                  );
+                }}
+                containerStyle={styles.draggableList}
+                scrollEnabled={false}
+              />
             ) : (
-              <Text style={styles.emptyText}>No categories yet. Add some below!</Text>
+              <Text style={styles.emptyText}>{t('create.customTab.emptyText')}</Text>
             )}
           </View>
 
           {/* All Available Categories */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Add Categories</Text>
-            <Text style={styles.sectionHint}>Tap to add (duplicates allowed)</Text>
+            <Text style={styles.sectionTitle}>{t('create.customTab.addCategories')}</Text>
+            <Text style={styles.sectionHint}>{t('create.customTab.addHint')}</Text>
             <View style={styles.categoryList}>
               {CATEGORIES.map((category) => (
                 <TouchableOpacity
@@ -255,7 +315,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
               activeOpacity={0.7}
             >
               <Ionicons name="shuffle" size={20} color="#666" />
-              <Text style={styles.randomButtonText}>Randomize</Text>
+              <Text style={styles.randomButtonText}>{t('create.randomize')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -413,7 +473,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F8F8',
     borderRadius: 12,
   },
+  draggableCategoryRow: {
+    marginBottom: 8,
+  },
+  categoryRowActive: {
+    backgroundColor: '#E8E8E8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dragHandle: {
+    paddingRight: 8,
+    paddingVertical: 4,
+  },
+  draggableList: {
+    marginTop: 4,
+  },
   categoryInfo: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

@@ -46,6 +46,18 @@
       "edit": "Edit",
       "done": "Done"
     },
+    "customTab": {
+      "manageTitle": "Manage Categories",
+      "carouselCount_one": "carousel",
+      "carouselCount_other": "carousels",
+      "dragToReorder": "Drag to reorder",
+      "currentCategories": "Current Categories",
+      "dragHint": "Hold and drag to reorder",
+      "emptyText": "No categories yet. Add some below!",
+      "addCategories": "Add Categories",
+      "addHint": "Tap to add (duplicates allowed)"
+    },
+    "randomize": "Randomize",
     "selectedItems": "Selected Items",
     "itemCount_one": "item",
     "itemCount_other": "items",

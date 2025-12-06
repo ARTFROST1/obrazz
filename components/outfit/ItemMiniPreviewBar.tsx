@@ -91,7 +91,7 @@ export function ItemMiniPreviewBar({
       <FlatList
         data={items}
         renderItem={renderItem}
-        keyExtractor={(item) => item.itemId}
+        keyExtractor={(item) => `${item.itemId}-slot-${item.slot}`}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
