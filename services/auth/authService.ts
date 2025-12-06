@@ -1,5 +1,9 @@
 import { clearAuthStorage, supabase } from '@lib/supabase/client';
 import { useAuthStore } from '@store/auth/authStore';
+import { createLogger } from '@utils/logger';
+import { ServiceError, ServiceErrorCode } from '@utils/errors/ServiceError';
+
+const logger = createLogger('AuthService');
 
 export interface SignUpData {
   email: string;
@@ -200,7 +204,7 @@ class AuthService {
           error.message?.includes('Refresh Token') ||
           error.message?.includes('Invalid Refresh Token')
         ) {
-          console.warn('[AuthService] Invalid refresh token detected, clearing storage...');
+          logger.warn('Invalid refresh token detected, clearing storage...');
           await clearAuthStorage();
           await supabase.auth.signOut({ scope: 'local' });
         }
@@ -210,7 +214,7 @@ class AuthService {
       return data.session;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[AuthService] Error getting session:', errorMessage);
+      logger.error('Error getting session:', errorMessage);
 
       // If it's a refresh token error, ensure storage is cleared
       if (errorMessage.includes('refresh') || errorMessage.includes('Refresh Token')) {

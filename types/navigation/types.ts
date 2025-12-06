@@ -121,7 +121,8 @@ export interface NavigationState {
   index: number;
   routes: Array<{
     name: string;
-    params?: any;
+    // Utility type for unknown params
+    params?: Record<string, unknown>;
     state?: NavigationState;
   }>;
 }

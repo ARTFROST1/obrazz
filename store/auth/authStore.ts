@@ -2,6 +2,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { zustandStorage } from '../storage';
+import { createLogger } from '@utils/logger';
+
+const logger = createLogger('AuthStore');
 
 export interface AuthState {
   user: User | null;
@@ -72,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
         })),
 
       handleAuthError: (error) => {
-        console.error('[AuthStore] Handling auth error:', error);
+        logger.error('Handling auth error:', error);
 
         // Clear auth state on critical errors
         if (

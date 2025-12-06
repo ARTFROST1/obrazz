@@ -18,7 +18,7 @@ export interface ApiResponse<T> {
 export interface ApiError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   statusCode?: number;
   recoverable?: boolean;
 }
@@ -216,7 +216,7 @@ export interface UserStatsResponse {
 export interface SearchResponse<T> {
   results: T[];
   query: string;
-  filters: any;
+  filters: Record<string, unknown>;
   totalResults: number;
   searchTime: number;
   suggestions?: string[];
@@ -234,7 +234,7 @@ export interface Notification {
   type: 'like' | 'comment' | 'follow' | 'outfit_shared' | 'system';
   title: string;
   body: string;
-  data?: any;
+  data?: Record<string, unknown>;
   isRead: boolean;
   createdAt: string;
 }

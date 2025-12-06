@@ -124,7 +124,7 @@ export interface PurchaseResult {
   transaction?: {
     id: string;
     receiptData?: string;
-    verificationResult?: any;
+    verificationResult?: Record<string, unknown>;
   };
   error?: {
     code: string;

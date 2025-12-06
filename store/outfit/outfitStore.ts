@@ -626,10 +626,8 @@ export const useOutfitStore = create<OutfitState>()(
       addCategoryToCustom: (category) => {
         const { customTabCategories, customTabOrder } = get();
 
-        if (
-          !customTabCategories.includes(category) &&
-          customTabCategories.length < CATEGORIES.length
-        ) {
+        // Allow adding category even if it already exists (duplicates allowed in custom tab)
+        if (customTabCategories.length < CATEGORIES.length * 2) {
           const newCategories = [...customTabCategories, category];
           const newOrder = [...customTabOrder, customTabCategories.length];
 
@@ -637,6 +635,9 @@ export const useOutfitStore = create<OutfitState>()(
             customTabCategories: newCategories,
             customTabOrder: newOrder,
           });
+
+          // Recompute derived state after adding category
+          get().updateSelectedItemsForCreation();
         }
       },
 
@@ -655,20 +656,50 @@ export const useOutfitStore = create<OutfitState>()(
               customTabCategories: newCategories,
               customTabOrder: newOrder,
             });
+
+            // Recompute derived state after removing category
+            get().updateSelectedItemsForCreation();
           }
         }
       },
 
       reorderCustomCategories: (fromIndex, toIndex) => {
-        const { customTabCategories } = get();
+        const { customTabCategories, customTabSelectedItems } = get();
+
+        // Validate indices
+        if (
+          fromIndex < 0 ||
+          fromIndex >= customTabCategories.length ||
+          toIndex < 0 ||
+          toIndex >= customTabCategories.length
+        ) {
+          console.warn('[outfitStore] Invalid reorder indices:', {
+            fromIndex,
+            toIndex,
+            length: customTabCategories.length,
+          });
+          return;
+        }
+
         const newCategories = [...customTabCategories];
-        const [movedItem] = newCategories.splice(fromIndex, 1);
-        newCategories.splice(toIndex, 0, movedItem);
+        const [movedCategory] = newCategories.splice(fromIndex, 1);
+        newCategories.splice(toIndex, 0, movedCategory);
+
+        // Also reorder selected items to maintain slot alignment
+        const newSelectedItems = [...customTabSelectedItems];
+        if (newSelectedItems.length > 0) {
+          const [movedItem] = newSelectedItems.splice(fromIndex, 1);
+          newSelectedItems.splice(toIndex, 0, movedItem);
+        }
 
         set({
           customTabCategories: newCategories,
           customTabOrder: newCategories.map((_, i) => i),
+          customTabSelectedItems: newSelectedItems,
         });
+
+        // Recompute derived state after reordering
+        get().updateSelectedItemsForCreation();
       },
 
       getActiveTabCategories: () => {

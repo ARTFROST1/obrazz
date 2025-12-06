@@ -197,6 +197,13 @@ export function KeyboardAwareScrollView({
   );
 }
 
+// Type definitions for props that might have input-like behavior
+interface InputLikeProps {
+  onChangeText?: (text: string) => void;
+  onFocus?: (event: { nativeEvent: { target: number } }) => void;
+  children?: React.ReactNode;
+}
+
 // Helper function to recursively find and enhance TextInput components
 function enhanceTextInputs(
   element: React.ReactElement,
@@ -205,12 +212,13 @@ function enhanceTextInputs(
   // Check if this is a TextInput or has TextInput-like behavior
   const isTextInput =
     element.type === TextInput ||
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (element.props && (element.props as any).onChangeText !== undefined);
+    (element.props &&
+      'onChangeText' in element.props &&
+      typeof element.props.onChangeText === 'function');
 
   if (isTextInput) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalOnFocus = (element.props as any).onFocus;
+    const props = element.props as InputLikeProps;
+    const originalOnFocus = props.onFocus;
     return React.cloneElement(element, {
       onFocus: (e: { nativeEvent: { target: number } }) => {
         onFocus({ target: e.nativeEvent.target });
@@ -222,10 +230,9 @@ function enhanceTextInputs(
   }
 
   // Recursively process children
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (element.props && (element.props as any).children) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const children = React.Children.map((element.props as any).children, (child) => {
+  if (element.props && 'children' in element.props) {
+    const props = element.props as InputLikeProps;
+    const children = React.Children.map(props.children, (child) => {
       if (React.isValidElement(child)) {
         return enhanceTextInputs(child, onFocus);
       }

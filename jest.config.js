@@ -1,0 +1,31 @@
+module.exports = {
+  preset: 'jest-expo',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+    '^@app/(.*)$': '<rootDir>/app/$1',
+    '^@components/(.*)$': '<rootDir>/components/$1',
+    '^@services/(.*)$': '<rootDir>/services/$1',
+    '^@store/(.*)$': '<rootDir>/store/$1',
+    '^@utils/(.*)$': '<rootDir>/utils/$1',
+    '^@types/(.*)$': '<rootDir>/types/$1',
+    '^@hooks/(.*)$': '<rootDir>/hooks/$1',
+    '^@constants/(.*)$': '<rootDir>/constants/$1',
+    '^@config/(.*)$': '<rootDir>/config/$1',
+    '^@lib/(.*)$': '<rootDir>/lib/$1',
+  },
+  testEnvironment: 'node',
+  collectCoverageFrom: [
+    '**/*.{ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+    '!**/__tests__/**',
+    '!**/coverage/**',
+    '!babel.config.js',
+    '!metro.config.js',
+    '!jest.config.js',
+  ],
+};

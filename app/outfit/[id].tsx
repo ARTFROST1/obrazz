@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
+import { Ionicons } from '@expo/vector-icons';
+import { outfitService } from '@services/outfit/outfitService';
+import { useAuthStore } from '@store/auth/authStore';
+import { useOutfitStore } from '@store/outfit/outfitStore';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
   ActivityIndicator,
+  Alert,
   Dimensions,
-  Modal,
-  TextInput,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useOutfitStore } from '@store/outfit/outfitStore';
-import { useAuthStore } from '@store/auth/authStore';
-import { outfitService } from '@services/outfit/outfitService';
-import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
-import { Outfit, OccasionTag } from '../../types/models/outfit';
+import { OccasionTag, Outfit } from '../../types/models/outfit';
 import { Season, StyleTag } from '../../types/models/user';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -130,7 +130,7 @@ export default function OutfitDetailScreen() {
   }, [outfit]);
 
   const handleToggleFavorite = useCallback(async () => {
-    if (!outfit) return;
+    if (!outfit?.id) return;
 
     try {
       const newFavoriteStatus = !isFavorite;
@@ -141,7 +141,7 @@ export default function OutfitDetailScreen() {
       console.error('Error toggling favorite:', error);
       Alert.alert('Error', 'Failed to update favorite status');
     }
-  }, [outfit, isFavorite, updateOutfitInStore]);
+  }, [outfit?.id, isFavorite, updateOutfitInStore]);
 
   const handleDelete = useCallback(() => {
     if (!outfit) return;

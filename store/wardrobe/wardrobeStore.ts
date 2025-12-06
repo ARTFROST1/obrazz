@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { ItemCategory, ItemFilter, ItemSortOptions, WardrobeItem } from '../../types/models/item';
 import { zustandStorage } from '../storage';
-import { WardrobeItem, ItemFilter, ItemSortOptions, ItemCategory } from '../../types/models/item';
 
 interface WardrobeState {
   items: WardrobeItem[];
@@ -154,6 +154,11 @@ export const useWardrobeStore = create<WardrobeState>()(
         filtered.sort((a, b) => {
           const aValue = a[sortOptions.field];
           const bValue = b[sortOptions.field];
+
+          // Handle null/undefined values - put them at the end
+          if (aValue == null && bValue == null) return 0;
+          if (aValue == null) return 1;
+          if (bValue == null) return -1;
 
           if (aValue instanceof Date && bValue instanceof Date) {
             return sortOptions.direction === 'asc'

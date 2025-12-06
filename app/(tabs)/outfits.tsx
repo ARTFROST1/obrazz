@@ -101,11 +101,22 @@ export default function OutfitsScreen() {
   };
 
   const handleRefresh = useCallback(async () => {
+    if (!user?.id) {
+      setRefreshing(false);
+      return;
+    }
+
     setRefreshing(true);
-    await loadOutfits();
-    setRefreshing(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      const userOutfits = await outfitService.getUserOutfits(user.id);
+      setOutfits(userOutfits);
+    } catch (error) {
+      console.error('Error refreshing outfits:', error);
+      setError('Failed to refresh outfits');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.id, setOutfits, setError]);
 
   const handleOutfitPress = (outfit: Outfit) => {
     if (isSelectionMode) {
