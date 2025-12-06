@@ -448,6 +448,7 @@ export default function OutfitsScreen() {
                   hasActiveFilters
                     ? styles.filterButtonActive
                     : { backgroundColor: isDark ? '#2C2C2E' : '#F8F8F8' },
+                  { borderWidth: 1, borderColor: isDark ? '#48484A' : '#D1D1D1' },
                 ]}
                 onPress={() => setShowFilterMenu(true)}
               >
@@ -473,19 +474,30 @@ export default function OutfitsScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.filterBarCenter}>
-              <Text style={[styles.itemCount, { color: isDark ? '#FFFFFF' : '#000' }]}>
-                {filteredOutfits.length}{' '}
-                {filteredOutfits.length === 1
-                  ? t('header.outfitCount_one')
-                  : t('header.outfitCount_other')}
-              </Text>
-            </View>
+            {hasActiveFilters ? (
+              <View style={styles.filterBarCenter}>
+                <Text style={[styles.itemCount, { color: isDark ? '#FFFFFF' : '#000' }]}>
+                  {filteredOutfits.length}{' '}
+                  {filteredOutfits.length === 1
+                    ? t('header.outfitCount_one')
+                    : t('header.outfitCount_other')}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.filterBarRight}>
               {hasActiveFilters ? (
                 <TouchableOpacity
-                  style={styles.clearFilterButton}
+                  style={[
+                    styles.clearFilterButton,
+                    {
+                      borderWidth: 1,
+                      borderColor: isDark ? '#48484A' : '#D1D1D1',
+                      borderRadius: 20,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                    },
+                  ]}
                   onPress={() => {
                     setFilterBy('all');
                     setOutfitFilters({
@@ -501,35 +513,18 @@ export default function OutfitsScreen() {
                     {t('filter.clearAll')}
                   </Text>
                 </TouchableOpacity>
-              ) : null}
+              ) : (
+                <Text style={[styles.itemCount, { color: isDark ? '#FFFFFF' : '#000' }]}>
+                  {filteredOutfits.length}{' '}
+                  {filteredOutfits.length === 1
+                    ? t('header.outfitCount_one')
+                    : t('header.outfitCount_other')}
+                </Text>
+              )}
             </View>
           </>
         )}
       </View>
-
-      {/* Results Count */}
-      {hasActiveFilters && (
-        <View style={styles.resultsContainer}>
-          <Text style={[styles.resultsText, { color: isDark ? '#8E8E93' : '#666666' }]}>
-            {filteredOutfits.length} {filteredOutfits.length === 1 ? 'outfit' : 'outfits'}
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setSearchQuery('');
-              setFilterBy('all');
-              setOutfitFilters({
-                occasions: [],
-                styles: [],
-                seasons: [],
-                sortBy: 'newest',
-                isFavorite: undefined,
-              });
-            }}
-          >
-            <Text style={styles.clearFiltersText}>Clear filters</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Outfit Grid */}
       <OutfitGrid

@@ -24,8 +24,8 @@ interface OutfitCanvasProps {
 const MIN_SCALE = 0.5;
 // Android optimization: smaller max scale to prevent overlapping
 const MAX_SCALE = Platform.OS === 'android' ? 2.5 : 3;
-// Android optimization: smaller base item size
-const ITEM_BASE_SIZE = Platform.OS === 'android' ? 75 : 100;
+// Increased base item size by 30%
+const ITEM_BASE_SIZE = Platform.OS === 'android' ? 98 : 130;
 
 export function OutfitCanvas({
   items,
@@ -315,7 +315,7 @@ function CanvasItem({
 
 const styles = StyleSheet.create({
   canvas: {
-    borderColor: '#E5E5E5',
+    borderColor: '#000000',
     borderRadius: 12,
     borderWidth: 2,
     overflow: 'hidden',
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     borderColor: '#000000',
-    borderWidth: 1.5,
-    borderStyle: 'solid',
+    borderWidth: 2,
+    borderRadius: 4,
   },
 });

@@ -64,19 +64,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.container, { width: cardWidth }]}
+      style={[styles.container, { width: cardWidth }, isSelected && styles.containerSelected]}
       onPress={() => onPress(item)}
       activeOpacity={0.7}
     >
-      <View
-        style={[
-          styles.imageContainer,
-          {
-            borderColor: isSelected ? '#000000' : 'transparent',
-            borderWidth: isSelected ? 2 : 0,
-          },
-        ]}
-      >
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.imageLocalPath || item.imageUrl }}
           style={styles.image}
@@ -99,10 +91,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           </TouchableOpacity>
         )}
 
+        {/* Selection Overlay (darkening effect) */}
+        {isSelectable && isSelected && <View style={styles.selectionOverlay} />}
+
         {/* Selection Indicator */}
         {isSelectable && isSelected && (
           <View style={styles.selectionIndicator}>
-            <Ionicons name="checkmark-circle" size={24} color="#000000" />
+            <Ionicons name="checkmark-circle" size={24} color="#FF3B30" />
           </View>
         )}
       </View>
@@ -143,6 +138,10 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  containerSelected: {
+    borderColor: '#000000',
+    borderWidth: 2,
+  },
   favoriteButton: {
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
@@ -177,7 +176,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
 });

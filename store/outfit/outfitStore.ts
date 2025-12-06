@@ -253,6 +253,14 @@ export const useOutfitStore = create<OutfitState>()(
           activeTab: 'custom', // ✅ ВСЕГДА custom для edit
           canvasSettings: outfit.canvasSettings || defaultCanvasSettings,
           error: null,
+          // ✅ Initialize history for undo/redo in edit mode
+          history: [
+            {
+              items: JSON.parse(JSON.stringify(allItems)),
+              background: JSON.parse(JSON.stringify(outfit.background || defaultBackground)),
+            },
+          ],
+          historyIndex: 0,
         });
 
         // ✅ Recompute derived state
@@ -400,37 +408,112 @@ export const useOutfitStore = create<OutfitState>()(
           categories,
           categoriesCount: categories.length,
           selectedCount: selected.filter(Boolean).length,
+          selectedLength: selected.length, // ← Added
+          categoriesLength: categories.length, // ← Added
+          lengthMatch: selected.length === categories.length, // ← Added
+          selectedItemsForCreation: selected.map((item, idx) => ({
+            slot: idx,
+            category: categories[idx],
+            item: item?.title || 'null',
+            hasCategoryAtIndex: categories[idx] !== undefined, // ← Added
+          })),
         });
 
         const CANVAS_WIDTH = 300;
         const CANVAS_HEIGHT = 400;
+        // Increased item size to 130 (was 100), accounting for scale
+        const ITEM_SIZE = 130;
 
-        const outfitItems: OutfitItem[] = [];
+        // ✅ Define category order priority (top to bottom on canvas)
+        const CATEGORY_ORDER: ItemCategory[] = [
+          'headwear',
+          'outerwear',
+          'tops',
+          'fullbody',
+          'bottoms',
+          'accessories',
+          'footwear',
+          'other',
+        ];
+
+        // ✅ Collect all selected items with their categories
+        const itemsWithCategories: {
+          item: WardrobeItem;
+          category: ItemCategory;
+          slotIndex: number;
+        }[] = [];
+
+        console.log('🔍 [outfitStore] Processing selected items:', {
+          selectedLength: selected.length,
+          categoriesLength: categories.length,
+        });
 
         selected.forEach((item, slotIndex) => {
+          console.log(
+            `  Slot ${slotIndex}: item=${item?.title || 'null'}, category=${categories[slotIndex] || 'undefined'}`,
+          );
+
           if (item && categories[slotIndex]) {
-            const category = categories[slotIndex];
-            const centerX = CANVAS_WIDTH / 2 - 50;
-            const spacing = CANVAS_HEIGHT / (categories.length + 1);
-            const centerY = spacing * (slotIndex + 1) - 50;
-
-            outfitItems.push({
-              itemId: item.id,
+            itemsWithCategories.push({
               item,
-              category,
-              slot: slotIndex,
-              transform: {
-                x: centerX,
-                y: centerY,
-                scale: 1,
-                rotation: 0,
-                zIndex: slotIndex,
-              },
-              isVisible: true,
+              category: categories[slotIndex],
+              slotIndex,
             });
-
-            console.log(`  ✓ Item ${slotIndex}: ${item.title} (${category})`);
+            console.log(`    ✓ Added to collection`);
+          } else if (item && !categories[slotIndex]) {
+            console.log(`    ✗ Skipped - no category at this index!`);
           }
+        });
+
+        console.log(
+          '📦 [outfitStore] Items collected:',
+          itemsWithCategories.map((i) => `${i.category}: ${i.item.title}`),
+        );
+
+        // ✅ Sort by category order (top to bottom)
+        itemsWithCategories.sort((a, b) => {
+          const orderA = CATEGORY_ORDER.indexOf(a.category);
+          const orderB = CATEGORY_ORDER.indexOf(b.category);
+          // If category not found in order, put at end
+          return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+        });
+
+        console.log(
+          '📐 [outfitStore] Items sorted by category order:',
+          itemsWithCategories.map((i) => `${i.category}: ${i.item.title}`),
+        );
+
+        const itemCount = itemsWithCategories.length;
+
+        // ✅ Calculate vertical distribution
+        const verticalPadding = 20;
+        const availableHeight = CANVAS_HEIGHT - verticalPadding * 2 - ITEM_SIZE;
+        const spacing = itemCount > 1 ? availableHeight / (itemCount - 1) : 0;
+
+        const outfitItems: OutfitItem[] = itemsWithCategories.map((data, index) => {
+          // Center horizontally, distribute vertically from top to bottom
+          const x = (CANVAS_WIDTH - ITEM_SIZE) / 2;
+          const y =
+            itemCount === 1 ? (CANVAS_HEIGHT - ITEM_SIZE) / 2 : verticalPadding + index * spacing;
+
+          console.log(
+            `  ✓ Item ${index}: ${data.item.title} (${data.category}) at (${x.toFixed(0)}, ${y.toFixed(0)})`,
+          );
+
+          return {
+            itemId: data.item.id,
+            item: data.item,
+            category: data.category,
+            slot: data.slotIndex,
+            transform: {
+              x,
+              y,
+              scale: 1,
+              rotation: 0,
+              zIndex: index, // z-index based on vertical order
+            },
+            isVisible: true,
+          };
         });
 
         console.log('💾 [outfitStore] Saving categories from active tab to canvasSettings:', {
@@ -446,9 +529,15 @@ export const useOutfitStore = create<OutfitState>()(
             ...currentSettings,
             customTabCategories: categories, // ✅ Save ACTIVE tab categories
           },
+          // ✅ Initialize history with current state for undo/redo to work
+          history: [
+            {
+              items: JSON.parse(JSON.stringify(outfitItems)),
+              background: JSON.parse(JSON.stringify(get().currentBackground)),
+            },
+          ],
+          historyIndex: 0,
         });
-
-        get().pushHistory();
       },
 
       clearItemSelection: () => {

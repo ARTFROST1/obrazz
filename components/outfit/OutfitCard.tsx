@@ -110,15 +110,7 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
       delayLongPress={500}
     >
       {/* Preview Image */}
-      <View
-        style={[
-          styles.imageContainer,
-          {
-            borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : 'transparent',
-            borderWidth: isSelected ? 2 : 0,
-          },
-        ]}
-      >
+      <View style={[styles.imageContainer]}>
         {hasValidItems ? (
           <OutfitPreview
             items={outfit.items}
@@ -153,10 +145,13 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
           </TouchableOpacity>
         )}
 
+        {/* Selection Overlay (darkening effect) */}
+        {isSelectable && isSelected && <View style={styles.selectionOverlay} />}
+
         {/* Selection Indicator */}
         {isSelectable && isSelected && (
           <View style={styles.selectionIndicator}>
-            <Ionicons name="checkmark-circle" size={24} color={isDark ? '#FFFFFF' : '#000000'} />
+            <Ionicons name="checkmark-circle" size={24} color="#FF3B30" />
           </View>
         )}
       </View>
@@ -219,7 +214,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 12,
   },
   infoContainer: {
