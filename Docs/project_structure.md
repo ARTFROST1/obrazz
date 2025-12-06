@@ -1,6 +1,6 @@
 # Project Structure - Obrazz
 
-**Last Updated:** November 20, 2025
+**Last Updated:** December 6, 2025
 **Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
 **Documentation Status:** ✅ Synchronized with codebase
 
@@ -55,10 +55,19 @@ obrazz/
 │   ├── project_structure.md ✅
 │   ├── Bug_tracking.md ✅
 │   ├── UI_UX_doc.md ✅
-│   ├── STAGE_1_COMPLETION.md ✅
-│   ├── STAGE_1_SUMMARY.md ✅
-│   └── STAGE_2_COMPLETION.md ✅
-├── hooks/ 📋                  # Custom React hooks (готова структура)
+│   ├── AppMapobrazz.md ✅
+│   ├── PRDobrazz.md ✅
+│   ├── README.md ✅
+│   └── Extra/ ✅             # Additional documentation and archives
+│       ├── QUICKSTART.md ✅
+│       ├── DEVELOPER_CHECKLIST.md ✅
+│       ├── STATUS.md ✅
+│       ├── CURRENT_STATUS.md ✅
+│       ├── CHANGELOG.md ✅
+│       └── Archive/ ✅       # Archived stage completion docs
+├── hooks/ ✅                  # Custom React hooks
+│   ├── useKeyboardAwareScroll.ts ✅
+│   └── useTranslation.ts ✅
 ├── lib/ ✅                   # External library configurations
 │   └── supabase/ ✅         # Supabase specific logic
 │       ├── client.ts ✅
@@ -82,17 +91,31 @@ obrazz/
 │   └── navigation/ ✅
 ├── utils/ ✅                  # Utility functions
 │   ├── storage/ ✅           # Storage utilities (Stage 4.8)
-│   │   └── customTabStorage.ts ✅ # AsyncStorage for custom tab (NEW)
+│   │   └── customTabStorage.ts ✅ # AsyncStorage for custom tab
 │   ├── validation/ ✅       # Validation utilities
 │   │   └── authValidation.ts ✅  # Auth validation
-│   ├── image/ 🚧
+│   ├── image/ ✅             # Image utilities
+│   │   ├── imageCompression.ts ✅
+│   │   └── index.ts ✅
+│   ├── errors/ ✅            # Error handling
+│   │   ├── errorHandler.ts ✅
+│   │   └── ServiceError.ts ✅
+│   ├── logger/ ✅            # Logging utilities
+│   │   └── index.ts ✅
 │   └── helpers/ 🚧
-├── locales/ 📋                # i18n translations (готова структура)
-│   ├── en/ 🚧
-│   └── ru/ 🚧
+├── locales/ ✅                # i18n translations
+│   ├── en/ ✅                # English translations (7 files)
+│   │   ├── auth.json ✅
+│   │   ├── categories.json ✅
+│   │   ├── common.json ✅
+│   │   ├── navigation.json ✅
+│   │   ├── outfit.json ✅
+│   │   ├── profile.json ✅
+│   │   └── wardrobe.json ✅
+│   └── ru/ ✅                # Russian translations (7 files)
 ├── node_modules/ ✅
 ├── .env ✅                   # Environment variables
-├── .env.example 🚧          # Environment variables template
+├── .env.example ✅          # Environment variables template
 ├── .eslintrc.js ✅          # ESLint configuration
 ├── .gitignore ✅
 ├── .prettierrc ✅           # Prettier configuration
@@ -103,9 +126,8 @@ obrazz/
 ├── package-lock.json ✅
 ├── tsconfig.json ✅         # TypeScript configuration
 ├── README.md ✅
-├── QUICKSTART.md ✅
-├── DEVELOPER_CHECKLIST.md ✅
-└── STATUS.md ✅
+├── CLAUDE.md ✅              # Copilot context file
+└── TEST_SETUP_COMPLETE.md ✅
 ```
 
 ## Detailed Structure Guidelines
@@ -145,7 +167,7 @@ app/
 └── _layout.tsx ✅           # Root layout with providers
 ```
 
-### `/components` - Reusable Components (33 total)
+### `/components` - Reusable Components (35 total)
 
 ```
 components/
@@ -161,13 +183,14 @@ components/
 │   ├── ResizableCropOverlay.tsx ✅ # Resizable crop overlay
 │   ├── DismissKeyboardView.tsx ✅ # Dismiss keyboard on tap
 │   └── KeyboardAwareScrollView.tsx ✅ # Keyboard-aware scroll
-├── wardrobe/ ✅               # Wardrobe components (Stage 3) - 6 components
+├── wardrobe/ ✅               # Wardrobe components (Stage 3) - 7 components
 │   ├── ItemCard.tsx ✅        # Item preview card
 │   ├── ItemGrid.tsx ✅        # Grid display for items
 │   ├── ItemFilter.tsx ✅      # Filtering component
 │   ├── CategoryPicker.tsx ✅  # Category selection
 │   ├── CategoryGridPicker.tsx ✅ # Grid-based category picker
-│   └── ColorPicker.tsx ✅     # Color selection
+│   ├── ColorPicker.tsx ✅     # Color selection
+│   └── SelectionGrid.tsx ✅   # Selection grid for multi-select
 ├── outfit/ ✅                 # Outfit components (Stages 4.7-4.10) - 14 components
 │   ├── SmoothCarousel.tsx ✅  # Physics-based carousel (Stage 4.7)
 │   ├── CategorySelectorWithSmooth.tsx ✅ # Carousel container
@@ -225,11 +248,13 @@ store/
 ├── auth/ ✅
 │   └── authStore.ts ✅        # User auth state with persistence
 ├── wardrobe/ ✅
-│   └── wardrobeStore.ts ✅  # Items and categories state
+│   └── wardrobeStore.ts ✅    # Items and categories state
 ├── outfit/ ✅
 │   └── outfitStore.ts ✅      # Outfit state with tab system (Stage 4.8-4.10)
-├── storage.ts ✅            # Storage utilities
-└── Future stores 🚧       # Planned stores
+├── settings/ ✅
+│   └── settingsStore.ts ✅    # App settings state
+├── storage.ts ✅              # Storage utilities
+└── Future stores 🚧           # Planned stores
     ├── themeStore.ts 🚧       # Theme preferences
     └── navigationStore.ts 🚧  # Navigation state
 ```
@@ -260,15 +285,15 @@ types/
 
 ```
 lib/
-├── api/
-│   ├── client.ts            # API client setup
-│   └── endpoints.ts         # API endpoints
+├── i18n/ ✅                   # Internationalization
+│   └── config.ts ✅          # i18next configuration
 ├── supabase/ ✅
 │   ├── client.ts ✅          # Supabase client configured
-│   └── schema.sql ✅         # Complete DB schema (16 migrations applied)
-└── storage/
-    ├── asyncStorage.ts      # AsyncStorage wrapper
-    └── fileSystem.ts        # File system helpers
+│   ├── schema.sql ✅         # Complete DB schema
+│   └── migrations/ ✅        # Database migrations
+└── api/ 🚧                   # API client (future)
+    ├── client.ts 🚧         # API client setup
+    └── endpoints.ts 🚧      # API endpoints
 ```
 
 ## Naming Conventions

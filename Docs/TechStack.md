@@ -1,7 +1,8 @@
 # 🚀 Obrazz - Полный технический стек
 
 > **Дата создания:** 12 января 2025  
-> **Версия документа:** 1.0.0  
+> **Последнее обновление:** 6 декабря 2025  
+> **Версия документа:** 1.1.0  
 > **Статус:** Актуальный
 
 ## 📋 Оглавление
@@ -66,26 +67,33 @@
 }
 ```
 
-**📋 Будет установлено (Stage 3+):**
+**✅ Установлено (Stage 3+):**
 
 ```json
 {
   "expo-camera": "~17.0.8",
-  "expo-media-library": "~17.0.0",
   "expo-image-picker": "~17.0.8",
   "expo-file-system": "~19.0.17",
-  "expo-image": "~2.0.0",
   "expo-image-manipulator": "~14.0.7",
+  "expo-blur": "~15.0.7",
+  "expo-linear-gradient": "~15.0.7",
+  "expo-symbols": "~1.0.7",
+  "expo-dev-client": "~6.0.17"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
+  "expo-media-library": "~17.0.0",
+  "expo-image": "~2.0.0",
   "expo-localization": "~16.0.9",
   "expo-notifications": "~0.30.9",
   "expo-secure-store": "~14.0.9",
   "expo-updates": "~0.27.9",
   "expo-device": "~7.0.0",
-  "expo-haptics": "~14.0.0",
-  "expo-blur": "~15.0.7",
-  "expo-linear-gradient": "~15.0.7",
-  "expo-symbols": "~1.0.7",
-  "expo-dev-client": "~6.0.17"
+  "expo-haptics": "~14.0.0"
 }
 ```
 
@@ -253,7 +261,7 @@
 {
   "react-native-reanimated": "~4.1.1",
   "react-native-worklets": "0.5.1",
-  "react-native-gesture-handler": "~2.24.0"
+  "react-native-gesture-handler": "~2.28.0"
 }
 ```
 

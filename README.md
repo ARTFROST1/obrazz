@@ -21,7 +21,7 @@
   **Stage 5: AI Outfit Generation** 🚧 PLANNED  
   **Progress:** 45% (4.5 of 10 stages complete)
   
-  [View Full Roadmap](./Docs/Implementation.md) | [Quick Start Guide](./QUICKSTART.md)
+  [View Full Roadmap](./Docs/Implementation.md) | [Quick Start Guide](./Docs/Extra/QUICKSTART.md)
 </div>
 
 ## 📱 About
