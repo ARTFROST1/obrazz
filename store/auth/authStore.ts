@@ -1,8 +1,8 @@
-import { User, Session } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
+import { createLogger } from '@utils/logger';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { zustandStorage } from '../storage';
-import { createLogger } from '@utils/logger';
 
 const logger = createLogger('AuthStore');
 

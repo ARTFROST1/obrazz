@@ -1,4 +1,4 @@
-import { WardrobeItem, Outfit, CommunityPost } from '../models';
+import { CommunityPost, Outfit, WardrobeItem } from '../models';
 
 export type RootStackParamList = {
   // Auth Stack

@@ -1,7 +1,6 @@
 import { clearAuthStorage, supabase } from '@lib/supabase/client';
 import { useAuthStore } from '@store/auth/authStore';
 import { createLogger } from '@utils/logger';
-import { ServiceError, ServiceErrorCode } from '@utils/errors/ServiceError';
 
 const logger = createLogger('AuthService');
 

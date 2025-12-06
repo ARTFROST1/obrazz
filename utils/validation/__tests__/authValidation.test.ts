@@ -2,7 +2,7 @@
  * Tests for password validation utility
  */
 
-import { validatePassword, validateEmail, validatePasswordMatch } from '../authValidation';
+import { validateEmail, validatePassword, validatePasswordMatch } from '../authValidation';
 
 describe('validatePassword', () => {
   it('should reject empty password', () => {
