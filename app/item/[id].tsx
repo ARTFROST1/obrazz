@@ -10,10 +10,85 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { WardrobeItem } from '../../types/models/item';
+import { Season, StyleTag } from '../../types/models/user';
+import { ItemCategory } from '../../types/models/item';
+
+// Helper function for category stickers
+const getCategorySticker = (category?: string): string => {
+  switch (category) {
+    case 'tops':
+      return '👕';
+    case 'bottoms':
+      return '👖';
+    case 'outerwear':
+      return '🧥';
+    case 'footwear':
+      return '👟';
+    case 'accessories':
+      return '👜';
+    case 'fullbody':
+      return '👗';
+    case 'headwear':
+      return '🧢';
+    case 'other':
+      return '📦';
+    default:
+      return '👔';
+  }
+};
+
+// Helper function for season stickers
+const getSeasonSticker = (season?: string): string => {
+  switch (season) {
+    case 'spring':
+      return '🌸';
+    case 'summer':
+      return '☀️';
+    case 'fall':
+      return '🍂';
+    case 'winter':
+      return '❄️';
+    default:
+      return '🌍';
+  }
+};
+
+// Helper function for style stickers
+const getStyleSticker = (style?: string): string => {
+  switch (style) {
+    case 'casual':
+      return '👕';
+    case 'classic':
+      return '🎩';
+    case 'sport':
+      return '⚽';
+    case 'minimalism':
+      return '⬜';
+    case 'old_money':
+      return '💎';
+    case 'scandi':
+      return '🌿';
+    case 'indie':
+      return '🎸';
+    case 'y2k':
+      return '💿';
+    case 'star':
+      return '⭐';
+    case 'alt':
+      return '🖤';
+    case 'cottagecore':
+      return '🌻';
+    case 'downtown':
+      return '🏙️';
+    default:
+      return '✨';
+  }
+};
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,9 +98,18 @@ export default function ItemDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
+  // Inline editing states
+  const [activeMetadataCard, setActiveMetadataCard] = useState<
+    'category' | 'brand' | 'size' | 'colors' | 'style' | 'season' | null
+  >(null);
+
+  // Text input states for brand and size
+  const [editingBrand, setEditingBrand] = useState('');
+  const [editingSize, setEditingSize] = useState('');
+
   useEffect(() => {
     loadItem();
-  }, [id]);
+  }, [id, loadItem]);
 
   const loadItem = async () => {
     if (!id) return;
@@ -88,6 +172,147 @@ export default function ItemDetailScreen() {
     }
   };
 
+  // Handle inline metadata card tap - opens inline picker
+  const handleMetadataCardTap = (
+    type: 'category' | 'brand' | 'size' | 'colors' | 'style' | 'season',
+  ) => {
+    if (type === 'brand') {
+      if (activeMetadataCard === 'brand') {
+        setActiveMetadataCard(null);
+      } else {
+        setEditingBrand(item?.brand || '');
+        setActiveMetadataCard('brand');
+      }
+    } else if (type === 'size') {
+      if (activeMetadataCard === 'size') {
+        setActiveMetadataCard(null);
+      } else {
+        setEditingSize(item?.size || '');
+        setActiveMetadataCard('size');
+      }
+    } else {
+      setActiveMetadataCard(activeMetadataCard === type ? null : type);
+    }
+  };
+
+  // Handle inline category selection
+  const handleInlineCategorySelect = async (category: ItemCategory) => {
+    if (!item) return;
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, { category });
+      setItem({ ...item, category });
+      updateItem(item.id, updatedItem);
+      setActiveMetadataCard(null);
+    } catch (error) {
+      console.error('Error updating category:', error);
+      Alert.alert('Error', 'Failed to update category');
+    }
+  };
+
+  // Handle inline style selection
+  const handleInlineStyleSelect = async (style: StyleTag) => {
+    if (!item) return;
+
+    const currentStyles = item.styles || [];
+    const newStyles = currentStyles.includes(style)
+      ? currentStyles.filter((s) => s !== style)
+      : [...currentStyles, style];
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, {
+        styles: newStyles.length > 0 ? newStyles : undefined,
+      });
+      setItem({ ...item, styles: newStyles });
+      updateItem(item.id, updatedItem);
+    } catch (error) {
+      console.error('Error updating style:', error);
+      Alert.alert('Error', 'Failed to update style');
+    }
+  };
+
+  // Handle inline season selection
+  const handleInlineSeasonSelect = async (season: Season) => {
+    if (!item) return;
+
+    const currentSeasons = item.seasons || [];
+    const newSeasons = currentSeasons.includes(season)
+      ? currentSeasons.filter((s) => s !== season)
+      : [...currentSeasons, season];
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, {
+        seasons: newSeasons.length > 0 ? newSeasons : undefined,
+      });
+      setItem({ ...item, seasons: newSeasons });
+      updateItem(item.id, updatedItem);
+    } catch (error) {
+      console.error('Error updating season:', error);
+      Alert.alert('Error', 'Failed to update season');
+    }
+  };
+
+  // Handle inline brand update
+  const handleInlineBrandSave = async () => {
+    if (!item) return;
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, {
+        brand: editingBrand.trim() || undefined,
+      });
+      setItem({ ...item, brand: editingBrand.trim() || undefined });
+      updateItem(item.id, updatedItem);
+      setActiveMetadataCard(null);
+    } catch (error) {
+      console.error('Error updating brand:', error);
+      Alert.alert('Error', 'Failed to update brand');
+    }
+  };
+
+  // Handle inline size update
+  const handleInlineSizeSave = async () => {
+    if (!item) return;
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, {
+        size: editingSize.trim() || undefined,
+      });
+      setItem({ ...item, size: editingSize.trim() || undefined });
+      updateItem(item.id, updatedItem);
+      setActiveMetadataCard(null);
+    } catch (error) {
+      console.error('Error updating size:', error);
+      Alert.alert('Error', 'Failed to update size');
+    }
+  };
+
+  // Handle inline color selection
+  const handleInlineColorSelect = async (colorHex: string) => {
+    if (!item) return;
+
+    const currentColors = item.colors || [];
+    const colorExists = currentColors.some((c) => c.hex === colorHex);
+    const newColors = colorExists
+      ? currentColors.filter((c) => c.hex !== colorHex)
+      : [...currentColors, { hex: colorHex }];
+
+    try {
+      const updatedItem = await itemService.updateItem(item.id, {
+        colors: newColors.length > 0 ? newColors : undefined,
+        primaryColor: newColors.length > 0 ? { hex: newColors[0].hex } : undefined,
+      });
+      setItem({
+        ...item,
+        colors: newColors,
+        primaryColor: newColors.length > 0 ? { hex: newColors[0].hex } : { hex: '#CCCCCC' },
+      });
+      updateItem(item.id, updatedItem);
+    } catch (error) {
+      console.error('Error updating colors:', error);
+      Alert.alert('Error', 'Failed to update colors');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -137,97 +362,385 @@ export default function ItemDetailScreen() {
               <Ionicons name="create-outline" size={24} color="#000" />
             </TouchableOpacity>
           </View>
+
+          {/* Added date below title */}
+          <View style={styles.addedDateRow}>
+            <Text style={styles.addedSticker}>📅</Text>
+            <Text style={styles.addedText}>
+              Added {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+
           <View style={styles.divider} />
-          <View style={styles.row}>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Category</Text>
-              <Text style={styles.infoValue}>{item.category}</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Brand</Text>
-              <Text
-                style={[styles.infoValue, !item.brand && styles.notFilled]}
-                numberOfLines={2}
-                ellipsizeMode="tail"
+
+          {/* 6 Metadata Cards - 2 rows x 3 columns */}
+          <View style={styles.metadataGrid}>
+            {/* Row 1 */}
+            <View style={styles.metadataRow}>
+              {/* Category Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'category' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('category')}
+                activeOpacity={0.7}
               >
-                {item.brand || 'not filled in'}
-              </Text>
+                <Text style={styles.metadataSticker}>{getCategorySticker(item.category)}</Text>
+                <Text style={styles.metadataValue} numberOfLines={1}>
+                  {item.category || '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Category</Text>
+              </TouchableOpacity>
+
+              {/* Brand Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'brand' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('brand')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.metadataSticker}>🏷️</Text>
+                <Text
+                  style={[styles.metadataValue, !item.brand && styles.metadataNotFilled]}
+                  numberOfLines={1}
+                >
+                  {item.brand || '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Brand</Text>
+              </TouchableOpacity>
+
+              {/* Size Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'size' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('size')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.metadataSticker}>📐</Text>
+                <Text
+                  style={[styles.metadataValue, !item.size && styles.metadataNotFilled]}
+                  numberOfLines={1}
+                >
+                  {item.size || '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Size</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Size</Text>
-              <Text style={[styles.infoValue, !item.size && styles.notFilled]}>
-                {item.size || 'not filled in'}
-              </Text>
+
+            {/* Row 2 */}
+            <View style={styles.metadataRow}>
+              {/* Colors Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'colors' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('colors')}
+                activeOpacity={0.7}
+              >
+                <View style={styles.colorPreview}>
+                  {item.colors && item.colors.length > 0 ? (
+                    item.colors
+                      .slice(0, 3)
+                      .map((color, index) => (
+                        <View
+                          key={index}
+                          style={[styles.colorDot, { backgroundColor: color.hex }]}
+                        />
+                      ))
+                  ) : (
+                    <Text style={styles.metadataSticker}>🎨</Text>
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.metadataValue,
+                    (!item.colors || item.colors.length === 0) && styles.metadataNotFilled,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.colors && item.colors.length > 0
+                    ? item.colors.length > 3
+                      ? `+${item.colors.length - 3}`
+                      : `${item.colors.length} color${item.colors.length > 1 ? 's' : ''}`
+                    : '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Colors</Text>
+              </TouchableOpacity>
+
+              {/* Style Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'style' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('style')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.metadataSticker}>{getStyleSticker(item.styles?.[0])}</Text>
+                <Text
+                  style={[
+                    styles.metadataValue,
+                    (!item.styles || item.styles.length === 0) && styles.metadataNotFilled,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.styles && item.styles.length > 0 ? item.styles[0] : '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Style</Text>
+              </TouchableOpacity>
+
+              {/* Season Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={[
+                  styles.metadataCard,
+                  activeMetadataCard === 'season' && styles.metadataCardActive,
+                ]}
+                onPress={() => handleMetadataCardTap('season')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.metadataSticker}>{getSeasonSticker(item.seasons?.[0])}</Text>
+                <Text
+                  style={[
+                    styles.metadataValue,
+                    (!item.seasons || item.seasons.length === 0) && styles.metadataNotFilled,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.seasons && item.seasons.length > 0 ? item.seasons[0] : '—'}
+                </Text>
+                <Text style={styles.metadataLabel}>Season</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* Styles */}
-        <View style={styles.section}>
-          <View style={styles.inlineRow}>
-            <Text style={styles.sectionTitle}>Styles:</Text>
-            {item.styles && item.styles.length > 0 ? (
-              <View style={styles.inlineTags}>
-                {item.styles.map((style, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{style}</Text>
-                  </View>
+          {/* Inline Category Picker */}
+          {activeMetadataCard === 'category' && (
+            <View style={styles.inlinePickerContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.inlinePickerScroll}
+              >
+                {(
+                  [
+                    'headwear',
+                    'outerwear',
+                    'tops',
+                    'bottoms',
+                    'footwear',
+                    'accessories',
+                    'fullbody',
+                    'other',
+                  ] as ItemCategory[]
+                ).map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.inlinePickerItem,
+                      item.category === category && styles.inlinePickerItemActive,
+                    ]}
+                    onPress={() => handleInlineCategorySelect(category)}
+                  >
+                    <Text style={styles.inlinePickerSticker}>{getCategorySticker(category)}</Text>
+                    <Text
+                      style={[
+                        styles.inlinePickerItemText,
+                        item.category === category && styles.inlinePickerItemTextActive,
+                      ]}
+                    >
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
-              </View>
-            ) : (
-              <Text style={styles.notSelected}>not selected</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Seasons */}
-        <View style={styles.section}>
-          <View style={styles.inlineRow}>
-            <Text style={styles.sectionTitle}>Seasons:</Text>
-            {item.seasons && item.seasons.length > 0 ? (
-              <View style={styles.inlineTags}>
-                {item.seasons.map((season, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{season}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.notSelected}>not selected</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Colors */}
-        <View style={styles.section}>
-          <View style={styles.inlineRow}>
-            <Text style={styles.sectionTitle}>Colors:</Text>
-            {item.colors && item.colors.length > 0 ? (
-              <View style={styles.inlineColors}>
-                {item.colors.map((color, index) => (
-                  <View key={index} style={[styles.colorCircle, { backgroundColor: color.hex }]} />
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.notSelected}>not selected</Text>
-            )}
-          </View>
-          <View style={styles.divider} />
-        </View>
-
-        {/* Stats */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Statistics</Text>
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{item.wearCount}</Text>
-              <Text style={styles.statLabel}>Times Worn</Text>
+              </ScrollView>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-              <Text style={styles.statLabel}>Added</Text>
+          )}
+
+          {/* Inline Style Picker */}
+          {activeMetadataCard === 'style' && (
+            <View style={styles.inlinePickerContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.inlinePickerScroll}
+              >
+                {(
+                  [
+                    'casual',
+                    'classic',
+                    'sport',
+                    'minimalism',
+                    'old_money',
+                    'scandi',
+                    'indie',
+                    'y2k',
+                    'star',
+                    'alt',
+                    'cottagecore',
+                    'downtown',
+                  ] as StyleTag[]
+                ).map((style) => (
+                  <TouchableOpacity
+                    key={style}
+                    style={[
+                      styles.inlinePickerItem,
+                      item.styles?.includes(style) && styles.inlinePickerItemActive,
+                    ]}
+                    onPress={() => handleInlineStyleSelect(style)}
+                  >
+                    <Text style={styles.inlinePickerSticker}>{getStyleSticker(style)}</Text>
+                    <Text
+                      style={[
+                        styles.inlinePickerItemText,
+                        item.styles?.includes(style) && styles.inlinePickerItemTextActive,
+                      ]}
+                    >
+                      {style.charAt(0).toUpperCase() + style.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-          </View>
+          )}
+
+          {/* Inline Season Picker */}
+          {activeMetadataCard === 'season' && (
+            <View style={styles.inlinePickerContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.inlinePickerScroll}
+              >
+                {(['spring', 'summer', 'fall', 'winter'] as Season[]).map((season) => (
+                  <TouchableOpacity
+                    key={season}
+                    style={[
+                      styles.inlinePickerItem,
+                      item.seasons?.includes(season) && styles.inlinePickerItemActive,
+                    ]}
+                    onPress={() => handleInlineSeasonSelect(season)}
+                  >
+                    <Text style={styles.inlinePickerSticker}>{getSeasonSticker(season)}</Text>
+                    <Text
+                      style={[
+                        styles.inlinePickerItemText,
+                        item.seasons?.includes(season) && styles.inlinePickerItemTextActive,
+                      ]}
+                    >
+                      {season.charAt(0).toUpperCase() + season.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Inline Brand Editor */}
+          {activeMetadataCard === 'brand' && (
+            <View style={styles.inlinePickerContainer}>
+              <View style={styles.inlineInputRow}>
+                <TextInput
+                  style={styles.inlineTextInput}
+                  value={editingBrand}
+                  onChangeText={setEditingBrand}
+                  placeholder="Enter brand name..."
+                  placeholderTextColor="#999"
+                  autoFocus
+                />
+                <TouchableOpacity style={styles.inlineSaveButton} onPress={handleInlineBrandSave}>
+                  <Text style={styles.inlineSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Inline Size Editor */}
+          {activeMetadataCard === 'size' && (
+            <View style={styles.inlinePickerContainer}>
+              <View style={styles.inlineInputRow}>
+                <TextInput
+                  style={styles.inlineTextInput}
+                  value={editingSize}
+                  onChangeText={setEditingSize}
+                  placeholder="Enter size (e.g., M, L, 42)..."
+                  placeholderTextColor="#999"
+                  autoFocus
+                />
+                <TouchableOpacity style={styles.inlineSaveButton} onPress={handleInlineSizeSave}>
+                  <Text style={styles.inlineSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Inline Color Picker */}
+          {activeMetadataCard === 'colors' && (
+            <View style={styles.inlinePickerContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.inlinePickerScroll}
+              >
+                {[
+                  '#000000',
+                  '#FFFFFF',
+                  '#808080',
+                  '#C0C0C0',
+                  '#FF0000',
+                  '#FF6B6B',
+                  '#FFA500',
+                  '#FFD700',
+                  '#FFFF00',
+                  '#90EE90',
+                  '#008000',
+                  '#00CED1',
+                  '#0000FF',
+                  '#4169E1',
+                  '#800080',
+                  '#FF1493',
+                  '#8B4513',
+                  '#D2691E',
+                  '#F5DEB3',
+                  '#FFC0CB',
+                ].map((colorHex) => {
+                  const isSelected = item.colors?.some((c) => c.hex === colorHex);
+                  return (
+                    <TouchableOpacity
+                      key={colorHex}
+                      style={[
+                        styles.colorPickerItem,
+                        { backgroundColor: colorHex },
+                        isSelected && styles.colorPickerItemSelected,
+                      ]}
+                      onPress={() => handleInlineColorSelect(colorHex)}
+                    >
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark"
+                          size={20}
+                          color={
+                            colorHex === '#FFFFFF' ||
+                            colorHex === '#FFFF00' ||
+                            colorHex === '#FFD700' ||
+                            colorHex === '#F5DEB3' ||
+                            colorHex === '#FFC0CB'
+                              ? '#000'
+                              : '#FFF'
+                          }
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
         </View>
 
         {/* Delete Button */}
@@ -365,6 +878,20 @@ const styles = StyleSheet.create({
   editButton: {
     padding: 4,
   },
+  // Added date row below title
+  addedDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addedSticker: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  addedText: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
   inlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -402,8 +929,147 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#E5E5E5',
-    marginTop: 16,
+    marginTop: 8,
     marginBottom: 16,
+  },
+  // Metadata Grid Styles - 6 cards (2 rows x 3 columns)
+  metadataGrid: {
+    gap: 10,
+    paddingHorizontal: 0,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  metadataCard: {
+    flex: 1,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F8F8',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 8,
+    minHeight: 90,
+  },
+  metadataSticker: {
+    fontSize: 24,
+    marginBottom: 6,
+  },
+  metadataValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+    textTransform: 'capitalize',
+    marginBottom: 4,
+  },
+  metadataNotFilled: {
+    color: '#999',
+  },
+  metadataLabel: {
+    fontSize: 10,
+    color: '#8E8E93',
+    textAlign: 'center',
+  },
+  colorPreview: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 6,
+    justifyContent: 'center',
+  },
+  colorDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  // Active states
+  metadataCardActive: {
+    backgroundColor: '#E8E8E8',
+  },
+  // Inline Picker Styles
+  inlinePickerContainer: {
+    marginTop: 12,
+    paddingVertical: 12,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    marginHorizontal: 0,
+  },
+  inlinePickerScroll: {
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  inlinePickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  inlinePickerItemActive: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  inlinePickerSticker: {
+    fontSize: 16,
+  },
+  inlinePickerItemText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  inlinePickerItemTextActive: {
+    color: '#FFF',
+  },
+  // Inline text input styles
+  inlineInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  inlineTextInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: '#000',
+  },
+  inlineSaveButton: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  inlineSaveButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Color picker styles
+  colorPickerItem: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorPickerItemSelected: {
+    borderColor: '#000',
   },
   loadingContainer: {
     alignItems: 'center',

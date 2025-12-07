@@ -24,17 +24,21 @@
     "downtown": "Downtown"
   },
   "seasons": {
-    "spring": "Spring 🌱",
-    "summer": "Summer ☀️",
-    "fall": "Fall 🍂",
-    "winter": "Winter ❄️"
+    "spring": "Spring",
+    "summer": "Summer",
+    "fall": "Fall",
+    "winter": "Winter"
   },
   "occasions": {
     "casual": "Casual",
     "work": "Work",
-    "formal": "Formal",
     "party": "Party",
+    "date": "Date",
     "sport": "Sport",
-    "vacation": "Vacation"
+    "beach": "Beach",
+    "wedding": "Wedding",
+    "travel": "Travel",
+    "home": "Home",
+    "special": "Special"
   }
 }

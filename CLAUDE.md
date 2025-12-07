@@ -279,6 +279,8 @@ Access via `process.env.EXPO_PUBLIC_*` or `Constants.expoConfig.extra.*`.
   - Uses `NativeTabs` from `expo-router/unstable-native-tabs`
   - `blurEffect` prop enables liquid glass appearance on all iOS 13+ versions
   - Automatically adapts to light/dark mode with system materials
+  - **iOS 26+**: Full liquid glass with `minimizeBehavior="onScrollDown"`
+  - **iOS 13-25**: Blur effect with `disableTransparentOnScrollEdge={true}` for visibility
 
 - **Android**: Floating tab bar with Apple-inspired design
   - Positioned absolutely with 16px bottom margin

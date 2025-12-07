@@ -1,7 +1,6 @@
 import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
 import { Ionicons } from '@expo/vector-icons';
 import { outfitService } from '@services/outfit/outfitService';
-import { useAuthStore } from '@store/auth/authStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -28,53 +27,101 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CANVAS_WIDTH = SCREEN_WIDTH - 32;
 const CANVAS_HEIGHT = (CANVAS_WIDTH / 3) * 4;
 
-// Helper function to get occasion icon
-const getOccasionIcon = (occasion?: string): keyof typeof Ionicons.glyphMap => {
+// Helper function to get occasion sticker (emoji)
+const getOccasionSticker = (occasion?: string): string => {
   switch (occasion) {
     case 'casual':
-      return 'cafe-outline';
+      return '☕';
     case 'work':
-      return 'briefcase-outline';
+      return '💼';
     case 'party':
-      return 'musical-notes-outline';
+      return '🎉';
     case 'date':
-      return 'heart-outline';
+      return '❤️';
     case 'sport':
-      return 'fitness-outline';
+      return '🏃';
     case 'beach':
-      return 'sunny-outline';
+      return '🏖️';
     case 'wedding':
-      return 'flower-outline';
+      return '💒';
     case 'travel':
-      return 'airplane-outline';
+      return '✈️';
     case 'home':
-      return 'home-outline';
+      return '🏠';
     case 'special':
-      return 'sparkles-outline';
+      return '✨';
     default:
-      return 'ellipse-outline';
+      return '📍';
   }
 };
 
-// Helper function to get season icon
-const getSeasonIcon = (season?: string): keyof typeof Ionicons.glyphMap => {
+// Helper function to get style sticker (emoji)
+const getStyleSticker = (style?: string): string => {
+  switch (style) {
+    case 'casual':
+      return '👕';
+    case 'formal':
+      return '🎩';
+    case 'classic':
+      return '🎩'; // Alias for formal
+    case 'sporty':
+      return '⚽';
+    case 'sport':
+      return '⚽'; // Alias for sporty
+    case 'elegant':
+      return '💎';
+    case 'vintage':
+      return '🎸'; // Changed to match indie style
+    case 'minimalist':
+      return '⬜';
+    case 'bohemian':
+      return '🌻'; // Matches cottagecore
+    case 'streetwear':
+      return '🏙️'; // Matches downtown
+    case 'preppy':
+      return '🎓';
+    case 'romantic':
+      return '🌹';
+    // Add missing styles from unified list
+    case 'old_money':
+      return '💎';
+    case 'scandi':
+      return '🌿';
+    case 'indie':
+      return '🎸';
+    case 'y2k':
+      return '💿';
+    case 'star':
+      return '⭐';
+    case 'alt':
+      return '🖤';
+    case 'cottagecore':
+      return '🌻';
+    case 'downtown':
+      return '🏙️';
+    default:
+      return '👔';
+  }
+};
+
+// Helper function to get season sticker (emoji)
+const getSeasonSticker = (season?: string): string => {
   switch (season) {
     case 'spring':
-      return 'flower-outline';
+      return '🌸';
     case 'summer':
-      return 'sunny-outline';
+      return '☀️';
     case 'fall':
-      return 'leaf-outline';
+      return '🍂';
     case 'winter':
-      return 'snow-outline';
+      return '❄️';
     default:
-      return 'ellipse-outline';
+      return '🌍';
   }
 };
 
 export default function OutfitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user } = useAuthStore();
   const { updateOutfit: updateOutfitInStore, deleteOutfit: deleteOutfitFromStore } =
     useOutfitStore();
 
@@ -95,6 +142,14 @@ export default function OutfitDetailScreen() {
   const [activeMetadataCard, setActiveMetadataCard] = useState<
     'occasion' | 'style' | 'season' | null
   >(null);
+
+  // Inline title editing
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editingTitleValue, setEditingTitleValue] = useState('');
+  const titleInputRef = React.useRef<TextInput>(null);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const titleRowRef = React.useRef<View>(null);
+  const [titleRowY, setTitleRowY] = useState(0);
 
   useEffect(() => {
     loadOutfit();
@@ -222,6 +277,40 @@ export default function OutfitDetailScreen() {
     setActiveMetadataCard(activeMetadataCard === type ? null : type);
   };
 
+  // Start inline title editing
+  const handleStartTitleEdit = useCallback(() => {
+    if (!outfit) return;
+    setEditingTitleValue(outfit.title || '');
+    setIsEditingTitle(true);
+    // Focus the input and scroll to title after state update
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      // Scroll to title row to ensure it's visible above keyboard
+      if (scrollViewRef.current && titleRowY > 0) {
+        scrollViewRef.current.scrollTo({ y: titleRowY - 100, animated: true });
+      }
+    }, 100);
+  }, [outfit, titleRowY]);
+
+  // Save inline title
+  const handleSaveTitle = useCallback(async () => {
+    if (!outfit) return;
+
+    const newTitle = editingTitleValue.trim() || 'My Outfit';
+
+    try {
+      await outfitService.updateOutfit(outfit.id, { title: newTitle });
+      setOutfit({ ...outfit, title: newTitle });
+      setOutfitTitle(newTitle);
+      updateOutfitInStore(outfit.id, { title: newTitle });
+      setIsEditingTitle(false);
+      Keyboard.dismiss();
+    } catch (error) {
+      console.error('Error updating title:', error);
+      Alert.alert('Error', 'Failed to update title');
+    }
+  }, [outfit, editingTitleValue, updateOutfitInStore]);
+
   // Handle inline occasion selection
   const handleInlineOccasionSelect = async (occasion: OccasionTag) => {
     if (!outfit) return;
@@ -330,263 +419,296 @@ export default function OutfitDetailScreen() {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Canvas Preview */}
-        <View style={styles.canvasContainer}>
-          <OutfitCanvas
-            items={outfit.items}
-            background={outfit.background}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            onItemTransformUpdate={() => {}}
-            showGrid={false}
-            snapToGrid={false}
-          />
-        </View>
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          {/* Title Row with Edit Icon */}
-          <View style={styles.titleRow}>
-            <Text style={styles.outfitTitle}>{outfit.title || 'Untitled Outfit'}</Text>
-            <TouchableOpacity onPress={() => setShowUpdateModal(true)} style={styles.editIcon}>
-              <Ionicons name="create-outline" size={24} color="#000" />
-            </TouchableOpacity>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Canvas Preview */}
+          <View style={styles.canvasContainer}>
+            <OutfitCanvas
+              items={outfit.items}
+              background={outfit.background}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              onItemTransformUpdate={() => {}}
+              showGrid={false}
+              snapToGrid={false}
+            />
           </View>
 
-          <View style={styles.divider} />
-
-          {/* Metadata Cards in Row */}
-          <View style={styles.metadataRow}>
-            {/* Occasion Card - Tappable for inline editing */}
-            <TouchableOpacity
-              style={[
-                styles.metadataCard,
-                activeMetadataCard === 'occasion' && styles.metadataCardActive,
-              ]}
-              onPress={() => handleMetadataCardTap('occasion')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.metadataIconContainer}>
-                <Ionicons name={getOccasionIcon(outfit.occasions?.[0])} size={24} color="#000" />
-                <Text style={styles.metadataValue} numberOfLines={1}>
-                  {outfit.occasions && outfit.occasions.length > 0
-                    ? outfit.occasions[0].charAt(0).toUpperCase() + outfit.occasions[0].slice(1)
-                    : '—'}
-                </Text>
-              </View>
-              <Text style={styles.metadataLabel}>Occasion</Text>
-            </TouchableOpacity>
-
-            {/* Style Card - Tappable for inline editing */}
-            <TouchableOpacity
-              style={[
-                styles.metadataCard,
-                activeMetadataCard === 'style' && styles.metadataCardActive,
-              ]}
-              onPress={() => handleMetadataCardTap('style')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.metadataIconContainer}>
-                <Ionicons name="shirt-outline" size={24} color="#000" />
-                <Text style={styles.metadataValue} numberOfLines={1}>
-                  {outfit.styles && outfit.styles.length > 0
-                    ? outfit.styles[0].charAt(0).toUpperCase() + outfit.styles[0].slice(1)
-                    : '—'}
-                </Text>
-              </View>
-              <Text style={styles.metadataLabel}>Style</Text>
-            </TouchableOpacity>
-
-            {/* Season Card - Tappable for inline editing */}
-            <TouchableOpacity
-              style={[
-                styles.metadataCard,
-                activeMetadataCard === 'season' && styles.metadataCardActive,
-              ]}
-              onPress={() => handleMetadataCardTap('season')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.metadataIconContainer}>
-                <Ionicons name={getSeasonIcon(outfit.seasons?.[0])} size={24} color="#000" />
-                <Text style={styles.metadataValue} numberOfLines={1}>
-                  {outfit.seasons && outfit.seasons.length > 0
-                    ? outfit.seasons[0].charAt(0).toUpperCase() + outfit.seasons[0].slice(1)
-                    : '—'}
-                </Text>
-              </View>
-              <Text style={styles.metadataLabel}>Season</Text>
-            </TouchableOpacity>
-
-            {/* Date Card - Not editable */}
-            <View style={styles.metadataCard}>
-              <View style={styles.metadataIconContainer}>
-                <Ionicons name="calendar-outline" size={24} color="#000" />
-                <Text style={styles.metadataValue} numberOfLines={1}>
-                  {new Date(outfit.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </Text>
-              </View>
-              <Text style={styles.metadataLabel}>Created</Text>
+          {/* Info Section */}
+          <View
+            style={styles.infoSection}
+            onLayout={(event) => {
+              // Capture position of info section (includes title) relative to scroll content
+              setTitleRowY(event.nativeEvent.layout.y);
+            }}
+          >
+            {/* Title Row with Inline Edit */}
+            <View style={styles.titleRow} ref={titleRowRef}>
+              {isEditingTitle ? (
+                <TextInput
+                  ref={titleInputRef}
+                  style={styles.titleInputInline}
+                  value={editingTitleValue}
+                  onChangeText={setEditingTitleValue}
+                  onSubmitEditing={handleSaveTitle}
+                  onBlur={handleSaveTitle}
+                  placeholder="Outfit name"
+                  placeholderTextColor="#999"
+                  returnKeyType="done"
+                  autoFocus
+                />
+              ) : (
+                <Text style={styles.outfitTitle}>{outfit.title || 'Untitled Outfit'}</Text>
+              )}
+              <TouchableOpacity
+                onPress={isEditingTitle ? handleSaveTitle : handleStartTitleEdit}
+                style={styles.editIcon}
+              >
+                <Ionicons
+                  name={isEditingTitle ? 'checkmark' : 'create-outline'}
+                  size={24}
+                  color="#000"
+                />
+              </TouchableOpacity>
             </View>
+
+            <View style={styles.divider} />
+
+            {/* Metadata Cards in Row */}
+            <View style={styles.metadataRow}>
+              {/* Occasion Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={styles.metadataCard}
+                onPress={() => handleMetadataCardTap('occasion')}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.metadataIconContainer,
+                    activeMetadataCard === 'occasion' && styles.metadataIconContainerActive,
+                  ]}
+                >
+                  <Text style={styles.metadataSticker}>
+                    {getOccasionSticker(outfit.occasions?.[0])}
+                  </Text>
+                  <Text style={styles.metadataValue} numberOfLines={1}>
+                    {outfit.occasions && outfit.occasions.length > 0
+                      ? outfit.occasions[0].charAt(0).toUpperCase() + outfit.occasions[0].slice(1)
+                      : '—'}
+                  </Text>
+                </View>
+                <Text style={styles.metadataLabel}>Occasion</Text>
+              </TouchableOpacity>
+
+              {/* Style Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={styles.metadataCard}
+                onPress={() => handleMetadataCardTap('style')}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.metadataIconContainer,
+                    activeMetadataCard === 'style' && styles.metadataIconContainerActive,
+                  ]}
+                >
+                  <Text style={styles.metadataSticker}>{getStyleSticker(outfit.styles?.[0])}</Text>
+                  <Text style={styles.metadataValue} numberOfLines={1}>
+                    {outfit.styles && outfit.styles.length > 0
+                      ? outfit.styles[0].charAt(0).toUpperCase() + outfit.styles[0].slice(1)
+                      : '—'}
+                  </Text>
+                </View>
+                <Text style={styles.metadataLabel}>Style</Text>
+              </TouchableOpacity>
+
+              {/* Season Card - Tappable for inline editing */}
+              <TouchableOpacity
+                style={styles.metadataCard}
+                onPress={() => handleMetadataCardTap('season')}
+                activeOpacity={0.7}
+              >
+                <View
+                  style={[
+                    styles.metadataIconContainer,
+                    activeMetadataCard === 'season' && styles.metadataIconContainerActive,
+                  ]}
+                >
+                  <Text style={styles.metadataSticker}>
+                    {getSeasonSticker(outfit.seasons?.[0])}
+                  </Text>
+                  <Text style={styles.metadataValue} numberOfLines={1}>
+                    {outfit.seasons && outfit.seasons.length > 0
+                      ? outfit.seasons[0].charAt(0).toUpperCase() + outfit.seasons[0].slice(1)
+                      : '—'}
+                  </Text>
+                </View>
+                <Text style={styles.metadataLabel}>Season</Text>
+              </TouchableOpacity>
+
+              {/* Date Card - Not editable */}
+              <View style={styles.metadataCard}>
+                <View style={styles.metadataIconContainer}>
+                  <Text style={styles.metadataSticker}>📅</Text>
+                  <Text style={styles.metadataValue} numberOfLines={1}>
+                    {new Date(outfit.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </Text>
+                </View>
+                <Text style={styles.metadataLabel}>Created</Text>
+              </View>
+            </View>
+
+            {/* Inline Occasion Picker */}
+            {activeMetadataCard === 'occasion' && (
+              <View style={styles.inlinePickerContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.inlinePickerScroll}
+                >
+                  {(
+                    [
+                      'casual',
+                      'work',
+                      'party',
+                      'date',
+                      'sport',
+                      'beach',
+                      'wedding',
+                      'travel',
+                      'home',
+                      'special',
+                    ] as OccasionTag[]
+                  ).map((occasion) => (
+                    <TouchableOpacity
+                      key={occasion}
+                      style={[
+                        styles.inlinePickerItem,
+                        outfit.occasions?.[0] === occasion && styles.inlinePickerItemActive,
+                      ]}
+                      onPress={() => handleInlineOccasionSelect(occasion)}
+                    >
+                      <Text style={styles.inlinePickerSticker}>{getOccasionSticker(occasion)}</Text>
+                      <Text
+                        style={[
+                          styles.inlinePickerItemText,
+                          outfit.occasions?.[0] === occasion && styles.inlinePickerItemTextActive,
+                        ]}
+                      >
+                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Inline Style Picker */}
+            {activeMetadataCard === 'style' && (
+              <View style={styles.inlinePickerContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.inlinePickerScroll}
+                >
+                  {(
+                    [
+                      'casual',
+                      'formal',
+                      'sporty',
+                      'elegant',
+                      'vintage',
+                      'minimalist',
+                      'bohemian',
+                      'streetwear',
+                      'preppy',
+                      'romantic',
+                    ] as StyleTag[]
+                  ).map((style) => (
+                    <TouchableOpacity
+                      key={style}
+                      style={[
+                        styles.inlinePickerItem,
+                        outfit.styles?.includes(style) && styles.inlinePickerItemActive,
+                      ]}
+                      onPress={() => handleInlineStyleSelect(style)}
+                    >
+                      <Text style={styles.inlinePickerSticker}>{getStyleSticker(style)}</Text>
+                      <Text
+                        style={[
+                          styles.inlinePickerItemText,
+                          outfit.styles?.includes(style) && styles.inlinePickerItemTextActive,
+                        ]}
+                      >
+                        {style.charAt(0).toUpperCase() + style.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Inline Season Picker */}
+            {activeMetadataCard === 'season' && (
+              <View style={styles.inlinePickerContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.inlinePickerScroll}
+                >
+                  {(['spring', 'summer', 'fall', 'winter'] as Season[]).map((season) => (
+                    <TouchableOpacity
+                      key={season}
+                      style={[
+                        styles.inlinePickerItem,
+                        outfit.seasons?.[0] === season && styles.inlinePickerItemActive,
+                      ]}
+                      onPress={() => handleInlineSeasonSelect(season)}
+                    >
+                      <Text style={styles.inlinePickerSticker}>{getSeasonSticker(season)}</Text>
+                      <Text
+                        style={[
+                          styles.inlinePickerItemText,
+                          outfit.seasons?.[0] === season && styles.inlinePickerItemTextActive,
+                        ]}
+                      >
+                        {season.charAt(0).toUpperCase() + season.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {outfit.description && <Text style={styles.description}>{outfit.description}</Text>}
           </View>
 
-          {/* Inline Occasion Picker */}
-          {activeMetadataCard === 'occasion' && (
-            <View style={styles.inlinePickerContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.inlinePickerScroll}
-              >
-                {(
-                  [
-                    'casual',
-                    'work',
-                    'party',
-                    'date',
-                    'sport',
-                    'beach',
-                    'wedding',
-                    'travel',
-                    'home',
-                    'special',
-                  ] as OccasionTag[]
-                ).map((occasion) => (
-                  <TouchableOpacity
-                    key={occasion}
-                    style={[
-                      styles.inlinePickerItem,
-                      outfit.occasions?.[0] === occasion && styles.inlinePickerItemActive,
-                    ]}
-                    onPress={() => handleInlineOccasionSelect(occasion)}
-                  >
-                    <Ionicons
-                      name={getOccasionIcon(occasion)}
-                      size={20}
-                      color={outfit.occasions?.[0] === occasion ? '#FFF' : '#000'}
-                    />
-                    <Text
-                      style={[
-                        styles.inlinePickerItemText,
-                        outfit.occasions?.[0] === occasion && styles.inlinePickerItemTextActive,
-                      ]}
-                    >
-                      {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
+          {/* Actions */}
+          <View style={styles.actionsSection}>
+            <TouchableOpacity onPress={handleEdit} style={styles.actionButton}>
+              <Ionicons name="pencil-outline" size={24} color="#FFF" />
+              <Text style={styles.actionButtonText}>Edit Outfit</Text>
+            </TouchableOpacity>
 
-          {/* Inline Style Picker */}
-          {activeMetadataCard === 'style' && (
-            <View style={styles.inlinePickerContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.inlinePickerScroll}
-              >
-                {(
-                  [
-                    'casual',
-                    'formal',
-                    'sporty',
-                    'elegant',
-                    'vintage',
-                    'minimalist',
-                    'bohemian',
-                    'streetwear',
-                    'preppy',
-                    'romantic',
-                  ] as StyleTag[]
-                ).map((style) => (
-                  <TouchableOpacity
-                    key={style}
-                    style={[
-                      styles.inlinePickerItem,
-                      outfit.styles?.includes(style) && styles.inlinePickerItemActive,
-                    ]}
-                    onPress={() => handleInlineStyleSelect(style)}
-                  >
-                    <Ionicons
-                      name="checkmark"
-                      size={16}
-                      color={outfit.styles?.includes(style) ? '#FFF' : 'transparent'}
-                    />
-                    <Text
-                      style={[
-                        styles.inlinePickerItemText,
-                        outfit.styles?.includes(style) && styles.inlinePickerItemTextActive,
-                      ]}
-                    >
-                      {style.charAt(0).toUpperCase() + style.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Inline Season Picker */}
-          {activeMetadataCard === 'season' && (
-            <View style={styles.inlinePickerContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.inlinePickerScroll}
-              >
-                {(['spring', 'summer', 'fall', 'winter'] as Season[]).map((season) => (
-                  <TouchableOpacity
-                    key={season}
-                    style={[
-                      styles.inlinePickerItem,
-                      outfit.seasons?.[0] === season && styles.inlinePickerItemActive,
-                    ]}
-                    onPress={() => handleInlineSeasonSelect(season)}
-                  >
-                    <Ionicons
-                      name={getSeasonIcon(season)}
-                      size={20}
-                      color={outfit.seasons?.[0] === season ? '#FFF' : '#000'}
-                    />
-                    <Text
-                      style={[
-                        styles.inlinePickerItemText,
-                        outfit.seasons?.[0] === season && styles.inlinePickerItemTextActive,
-                      ]}
-                    >
-                      {season.charAt(0).toUpperCase() + season.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {outfit.description && <Text style={styles.description}>{outfit.description}</Text>}
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity onPress={handleEdit} style={styles.actionButton}>
-            <Ionicons name="pencil-outline" size={24} color="#FFF" />
-            <Text style={styles.actionButtonText}>Edit Outfit</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-            <Text style={styles.deleteButtonText}>Delete Outfit</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+              <Text style={styles.deleteButtonText}>Delete Outfit</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Update Outfit Modal */}
       {showUpdateModal && (
@@ -925,6 +1047,16 @@ const styles = StyleSheet.create({
     color: '#000',
     flex: 1,
   },
+  titleInputInline: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
   editIcon: {
     padding: 4,
   },
@@ -953,6 +1085,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 6,
     gap: 4,
+  },
+  metadataSticker: {
+    fontSize: 22,
   },
   metadataValue: {
     fontSize: 11,
@@ -1123,9 +1258,10 @@ const styles = StyleSheet.create({
   },
   // Inline Picker Styles
   metadataCardActive: {
-    borderColor: '#000',
-    borderWidth: 2,
-    backgroundColor: '#F8F8F8',
+    // No border, just darken the background
+  },
+  metadataIconContainerActive: {
+    backgroundColor: '#E8E8E8',
   },
   inlinePickerContainer: {
     marginTop: 12,
@@ -1141,7 +1277,9 @@ const styles = StyleSheet.create({
   inlinePickerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 4,
+    minWidth: 90,
     paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: '#FFF',
@@ -1149,6 +1287,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5E5',
     marginRight: 4,
+  },
+  inlinePickerSticker: {
+    fontSize: 16,
   },
   inlinePickerItemActive: {
     backgroundColor: '#000',

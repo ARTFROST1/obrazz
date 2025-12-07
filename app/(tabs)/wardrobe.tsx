@@ -562,8 +562,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   selectButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 16,
   },
   selectButtonText: {
     color: '#007AFF',

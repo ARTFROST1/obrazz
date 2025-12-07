@@ -7,6 +7,7 @@
  */
 
 import { ItemCategory } from '../types/models/item';
+import { StyleTag, Season } from '../types/models/user';
 
 /**
  * Complete list of all item categories
@@ -102,4 +103,48 @@ export function getCategoryInfo(category: ItemCategory, lang: 'ru' | 'en' = 'ru'
  */
 export function getAllCategoriesInfo(lang: 'ru' | 'en' = 'ru') {
   return CATEGORIES.map((category) => getCategoryInfo(category, lang));
+}
+
+/**
+ * Style stickers/emojis - unified across the app
+ */
+export const STYLE_STICKERS: Record<StyleTag, string> = {
+  casual: '👕',
+  classic: '🎩',
+  sport: '⚽',
+  minimalism: '⬜',
+  old_money: '💎',
+  scandi: '🌿',
+  indie: '🎸',
+  y2k: '💿',
+  star: '⭐',
+  alt: '🖤',
+  cottagecore: '🌻',
+  downtown: '🏙️',
+};
+
+/**
+ * Season stickers/emojis - unified across the app
+ */
+export const SEASON_STICKERS: Record<Season, string> = {
+  spring: '🌸',
+  summer: '☀️',
+  fall: '🍂',
+  winter: '❄️',
+};
+
+/**
+ * Get style sticker
+ */
+export function getStyleSticker(style?: StyleTag): string {
+  if (!style) return '✨';
+  return STYLE_STICKERS[style] || '✨';
+}
+
+/**
+ * Get season sticker
+ */
+export function getSeasonSticker(season?: Season): string {
+  if (!season) return '🌍';
+  return SEASON_STICKERS[season] || '🌍';
 }

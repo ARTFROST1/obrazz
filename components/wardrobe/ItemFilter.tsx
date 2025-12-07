@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ItemCategory } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
+import { STYLE_STICKERS, SEASON_STICKERS } from '../../constants/categories';
 import { CategoryGridPicker } from './CategoryGridPicker';
 import { ColorPicker } from './ColorPicker';
 
@@ -113,7 +114,7 @@ export const ItemFilter: React.FC<ItemFilterProps> = ({
           </TouchableOpacity>
           <Text style={styles.title}>{t('filter.filterButton')}</Text>
           <TouchableOpacity onPress={handleClearAll} style={styles.clearButton}>
-            <Text style={styles.clearText}>{t('filter.clearFilters')}</Text>
+            <Text style={styles.clearText}>Clear</Text>
           </TouchableOpacity>
         </View>
 
@@ -145,6 +146,7 @@ export const ItemFilter: React.FC<ItemFilterProps> = ({
                     style={[styles.chip, selected && styles.chipSelected]}
                     onPress={() => handleStyleSelect(style)}
                   >
+                    <Text style={styles.chipSticker}>{STYLE_STICKERS[style]}</Text>
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                       {t(`categories:styles.${style}`)}
                     </Text>
@@ -157,16 +159,17 @@ export const ItemFilter: React.FC<ItemFilterProps> = ({
           {/* Seasons */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('filter.seasons')}</Text>
-            <View style={styles.chipContainer}>
+            <View style={styles.seasonsContainer}>
               {SEASONS.map((season) => {
                 const selected = filters.seasons.includes(season);
                 return (
                   <TouchableOpacity
                     key={season}
-                    style={[styles.chip, selected && styles.chipSelected]}
+                    style={[styles.seasonCard, selected && styles.seasonCardSelected]}
                     onPress={() => handleSeasonSelect(season)}
                   >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    <Text style={styles.seasonSticker}>{SEASON_STICKERS[season]}</Text>
+                    <Text style={[styles.seasonText, selected && styles.seasonTextSelected]}>
                       {t(`categories:seasons.${season}`)}
                     </Text>
                   </TouchableOpacity>
@@ -235,6 +238,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   chipContainer: {
     flexDirection: 'row',
@@ -244,6 +250,9 @@ const styles = StyleSheet.create({
   chipSelected: {
     backgroundColor: '#000',
     borderColor: '#000',
+  },
+  chipSticker: {
+    fontSize: 14,
   },
   chipText: {
     color: '#000',
@@ -303,6 +312,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 12,
   },
+  headerSide: {
+    width: 70,
+  },
   section: {
     marginBottom: 24,
     marginTop: 16,
@@ -318,5 +330,39 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
+  },
+  seasonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  seasonCard: {
+    width: '23%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F8F8',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  seasonCardSelected: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  seasonSticker: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  seasonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000',
+    textTransform: 'capitalize',
+  },
+  seasonTextSelected: {
+    color: '#FFF',
   },
 });

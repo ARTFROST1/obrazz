@@ -4,7 +4,6 @@ import { Button } from '@components/ui/Button';
 import { Input } from '@components/ui/Input';
 import { CategoryGridPicker } from '@components/wardrobe/CategoryGridPicker';
 import { ColorPicker } from '@components/wardrobe/ColorPicker';
-import { SelectionGrid } from '@components/wardrobe/SelectionGrid';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
@@ -38,6 +37,7 @@ export default function AddItemScreen() {
   // State
   const [step, setStep] = useState<1 | 2>(1);
   const [loadingItem, setLoadingItem] = useState(isEditMode);
+  const [originalItem, setOriginalItem] = useState<any>(null); // Store original item for comparison
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [tempImageUri, setTempImageUri] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
@@ -52,26 +52,26 @@ export default function AddItemScreen() {
   const [loading, setLoading] = useState(false);
   const [removingBg, setRemovingBg] = useState(false);
 
-  const STYLES: { label: string; value: StyleTag }[] = [
-    { label: t('categories:styles.casual'), value: 'casual' },
-    { label: t('categories:styles.classic'), value: 'classic' },
-    { label: t('categories:styles.sport'), value: 'sport' },
-    { label: t('categories:styles.minimalism'), value: 'minimalism' },
-    { label: t('categories:styles.old_money'), value: 'old_money' },
-    { label: t('categories:styles.scandi'), value: 'scandi' },
-    { label: t('categories:styles.indie'), value: 'indie' },
-    { label: t('categories:styles.y2k'), value: 'y2k' },
-    { label: t('categories:styles.star'), value: 'star' },
-    { label: t('categories:styles.alt'), value: 'alt' },
-    { label: t('categories:styles.cottagecore'), value: 'cottagecore' },
-    { label: t('categories:styles.downtown'), value: 'downtown' },
+  const STYLES: { label: string; value: StyleTag; sticker: string }[] = [
+    { label: t('categories:styles.casual'), value: 'casual', sticker: '👕' },
+    { label: t('categories:styles.classic'), value: 'classic', sticker: '🎩' },
+    { label: t('categories:styles.sport'), value: 'sport', sticker: '⚽' },
+    { label: t('categories:styles.minimalism'), value: 'minimalism', sticker: '⬜' },
+    { label: t('categories:styles.old_money'), value: 'old_money', sticker: '💎' },
+    { label: t('categories:styles.scandi'), value: 'scandi', sticker: '🌿' },
+    { label: t('categories:styles.indie'), value: 'indie', sticker: '🎸' },
+    { label: t('categories:styles.y2k'), value: 'y2k', sticker: '💿' },
+    { label: t('categories:styles.star'), value: 'star', sticker: '⭐' },
+    { label: t('categories:styles.alt'), value: 'alt', sticker: '🖤' },
+    { label: t('categories:styles.cottagecore'), value: 'cottagecore', sticker: '🌻' },
+    { label: t('categories:styles.downtown'), value: 'downtown', sticker: '🏙️' },
   ];
 
-  const SEASONS: { label: string; value: Season }[] = [
-    { label: `${t('categories:seasons.spring')} 🌱`, value: 'spring' },
-    { label: `${t('categories:seasons.summer')} ☀️`, value: 'summer' },
-    { label: `${t('categories:seasons.fall')} 🍂`, value: 'fall' },
-    { label: `${t('categories:seasons.winter')} ❄️`, value: 'winter' },
+  const SEASONS: { label: string; value: Season; sticker: string }[] = [
+    { label: t('categories:seasons.spring'), value: 'spring', sticker: '🌸' },
+    { label: t('categories:seasons.summer'), value: 'summer', sticker: '☀️' },
+    { label: t('categories:seasons.fall'), value: 'fall', sticker: '🍂' },
+    { label: t('categories:seasons.winter'), value: 'winter', sticker: '❄️' },
   ];
 
   // Load item data if in edit mode
@@ -79,12 +79,13 @@ export default function AddItemScreen() {
     if (isEditMode && itemId) {
       loadItemData();
     }
-  }, [itemId]);
+  }, [itemId, isEditMode, loadItemData]);
 
   const loadItemData = async () => {
     try {
       setLoadingItem(true);
       const item = await itemService.getItemById(itemId!);
+      setOriginalItem(item); // Store original item
 
       // Pre-fill form with existing data
       setImageUri(item.imageLocalPath || item.imageUrl || null);
@@ -254,7 +255,7 @@ export default function AddItemScreen() {
 
       if (isEditMode) {
         // Update existing item
-        const updatedItem = await itemService.updateItem(itemId!, {
+        const updateData: any = {
           title: title || undefined,
           category,
           colors: selectedColors.map((hex) => ({ hex })),
@@ -264,8 +265,18 @@ export default function AddItemScreen() {
           brand: brand || undefined,
           size: size || undefined,
           price: price ? parseFloat(price) : undefined,
-        });
+        };
 
+        // Only include imageUri if it has changed
+        if (
+          imageUri &&
+          imageUri !== originalItem?.imageLocalPath &&
+          imageUri !== originalItem?.imageUrl
+        ) {
+          updateData.imageUri = imageUri;
+        }
+
+        const updatedItem = await itemService.updateItem(itemId!, updateData);
         updateItem(itemId!, updatedItem);
       } else {
         // Create new item
@@ -371,8 +382,8 @@ export default function AddItemScreen() {
   const renderStep2 = () => (
     <>
       {/* Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('addItem.detailsLabel')}</Text>
+      <View style={[styles.section, styles.sectionFirstTop]}>
+        <Text style={styles.sectionTitleLarge}>{t('addItem.detailsLabel')}</Text>
         <Input placeholder={t('addItem.namePlaceholder')} value={title} onChangeText={setTitle} />
         <Input placeholder={t('addItem.brandPlaceholder')} value={brand} onChangeText={setBrand} />
         <Input
@@ -383,26 +394,53 @@ export default function AddItemScreen() {
         />
       </View>
 
-      {/* Styles */}
-      <View style={[styles.section, styles.sectionTight]}>
-        <Text style={styles.sectionTitle}>{t('addItem.styleLabel')}</Text>
-        <SelectionGrid
-          items={STYLES}
-          selectedItems={selectedStyles}
-          onSelect={handleStyleSelect}
-          multiSelect={true}
-        />
+      {/* Styles - Square containers with stickers */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitleLarge}>{t('addItem.styleLabel')}</Text>
+        <View style={styles.stylesContainer}>
+          {STYLES.map((style) => {
+            const selected = selectedStyles.includes(style.value);
+            return (
+              <TouchableOpacity
+                key={style.value}
+                style={[styles.styleCard, selected && styles.styleCardSelected]}
+                onPress={() => handleStyleSelect(style.value)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.styleSticker}>{style.sticker}</Text>
+                <Text
+                  style={[styles.styleText, selected && styles.styleTextSelected]}
+                  numberOfLines={1}
+                >
+                  {style.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
-      {/* Seasons */}
+      {/* Seasons - Square containers */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('addItem.seasonLabel')}</Text>
-        <SelectionGrid
-          items={SEASONS}
-          selectedItems={selectedSeasons}
-          onSelect={handleSeasonSelect}
-          multiSelect={true}
-        />
+        <Text style={styles.sectionTitleLarge}>{t('addItem.seasonLabel')}</Text>
+        <View style={styles.seasonsContainer}>
+          {SEASONS.map((season) => {
+            const selected = selectedSeasons.includes(season.value);
+            return (
+              <TouchableOpacity
+                key={season.value}
+                style={[styles.seasonCard, selected && styles.seasonCardSelected]}
+                onPress={() => handleSeasonSelect(season.value)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.seasonSticker}>{season.sticker}</Text>
+                <Text style={[styles.seasonText, selected && styles.seasonTextSelected]}>
+                  {season.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </>
   );
@@ -500,12 +538,22 @@ const styles = StyleSheet.create({
     marginBottom: Platform.OS === 'android' ? 18 : 24,
     paddingHorizontal: 16,
   },
+  sectionFirstTop: {
+    paddingTop: 16,
+  },
   sectionTight: {
     marginBottom: Platform.OS === 'android' ? 8 : 12,
   },
   sectionTitle: {
     color: '#000',
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  sectionTitleLarge: {
+    color: '#000',
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
     marginTop: 8,
@@ -568,5 +616,73 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Seasons square containers
+  seasonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  seasonCard: {
+    width: '23%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F8F8',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  seasonCardSelected: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  seasonSticker: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  seasonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000',
+    textTransform: 'capitalize',
+  },
+  seasonTextSelected: {
+    color: '#FFF',
+  },
+  // Styles square containers
+  stylesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  styleCard: {
+    width: '23%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F8F8',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 4,
+  },
+  styleCardSelected: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  styleSticker: {
+    fontSize: 24,
+    marginBottom: 2,
+  },
+  styleText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#000',
+    textTransform: 'capitalize',
+    textAlign: 'center',
+  },
+  styleTextSelected: {
+    color: '#FFF',
   },
 });

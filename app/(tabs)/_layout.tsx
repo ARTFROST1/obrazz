@@ -8,6 +8,20 @@ import { Platform, PlatformColor, useColorScheme } from 'react-native';
 
 import Colors from '../../constants/Colors';
 
+// Check if iOS version supports liquid glass (iOS 26+)
+// For iOS < 26, blurEffect still works but may need explicit background
+const getIOSVersion = (): number => {
+  if (Platform.OS !== 'ios') return 0;
+  const version = Platform.Version;
+  if (typeof version === 'string') {
+    return parseInt(version.split('.')[0], 10);
+  }
+  return version;
+};
+
+const iosVersion = getIOSVersion();
+const supportsLiquidGlass = Platform.OS === 'ios' && iosVersion >= 26;
+
 // Tab bar icon component for Android
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -111,15 +125,18 @@ export default function TabLayout() {
   }
 
   // iOS: Native liquid glass tabs with SF Symbols and blur effect
+  // For iOS 26+: Full liquid glass with minimizeBehavior
+  // For iOS 13-25: Blur effect works, but we ensure explicit styling for visibility
   return (
     <NativeTabs
       // Liquid glass blur effect - works on all iOS versions (13+)
+      // Using systemChromeMaterial for best translucent glass effect
       blurEffect={isDark ? 'systemChromeMaterialDark' : 'systemChromeMaterial'}
-      // Shadow for depth
+      // Shadow for depth - ensures tab bar is visible
       shadowColor={PlatformColor('separator')}
-      // Minimize behavior on scroll (gracefully ignored on iOS < 26)
-      minimizeBehavior="onScrollDown"
-      // Color scheme
+      // Minimize behavior on scroll (iOS 26+ only, gracefully ignored on older versions)
+      minimizeBehavior={supportsLiquidGlass ? 'onScrollDown' : undefined}
+      // Color scheme - using platform colors for proper contrast
       iconColor={PlatformColor('systemGray')}
       tintColor={PlatformColor('label')}
       // Badge styling
@@ -130,7 +147,8 @@ export default function TabLayout() {
         fontWeight: '500',
       }}
       // Keep blur consistent when scrolling
-      disableTransparentOnScrollEdge={false}
+      // Setting to true for older iOS ensures the background stays visible
+      disableTransparentOnScrollEdge={!supportsLiquidGlass}
     >
       <NativeTabs.Trigger name="index">
         <Label>{t('tabs.home')}</Label>

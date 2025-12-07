@@ -227,7 +227,7 @@ export function CategorySelectorWithSmooth({
     [containerHeight],
   );
 
-  const totalHeight = carouselHeight * visibleCategories.length;
+  const totalHeight = carouselHeight * visibleCategories.length + VERTICAL_PADDING * 2;
   const CarouselsContent = (
     <View style={[styles.carouselsContainer, { height: totalHeight }]}>
       {visibleCategories.map((category, slotIndex) => {
@@ -283,6 +283,8 @@ export function CategorySelectorWithSmooth({
   );
 }
 
+const VERTICAL_PADDING = 12;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -293,6 +295,8 @@ const styles = StyleSheet.create({
   },
   carouselsContainer: {
     width: SCREEN_WIDTH,
+    paddingTop: VERTICAL_PADDING,
+    paddingBottom: VERTICAL_PADDING,
     // Removed overflow: 'hidden' - conflicts with Android rendering
   },
   carouselWrapper: {

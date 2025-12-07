@@ -652,8 +652,8 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: '#F8F8F8',
     gap: 6,
@@ -677,8 +677,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   clearFilterButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
   clearFilterText: {
     fontSize: 13,
@@ -734,8 +734,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 16,
   },
   selectButtonText: {
     color: '#007AFF',

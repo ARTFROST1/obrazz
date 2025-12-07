@@ -3,6 +3,7 @@ import { useTranslation } from '@hooks/useTranslation';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { OccasionTag, Season, StyleTag } from '../../types/models';
+import { STYLE_STICKERS, SEASON_STICKERS } from '../../constants/categories';
 
 interface OutfitFilterProps {
   visible: boolean;
@@ -31,6 +32,20 @@ const OCCASIONS: OccasionTag[] = [
   'home',
   'special',
 ];
+
+// Occasion stickers/emojis
+const OCCASION_STICKERS: Record<OccasionTag, string> = {
+  casual: '☕',
+  work: '💼',
+  party: '🎉',
+  date: '❤️',
+  sport: '🏃',
+  beach: '🏖️',
+  wedding: '💒',
+  travel: '✈️',
+  home: '🏠',
+  special: '✨',
+};
 
 const STYLES: StyleTag[] = [
   'casual',
@@ -131,6 +146,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     style={[styles.chip, selected && styles.chipSelected]}
                     onPress={() => handleOccasionSelect(occasion)}
                   >
+                    <Text style={styles.chipSticker}>{OCCASION_STICKERS[occasion]}</Text>
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                       {t(`categories:occasions.${occasion}`)}
                     </Text>
@@ -152,6 +168,7 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
                     style={[styles.chip, selected && styles.chipSelected]}
                     onPress={() => handleStyleSelect(style)}
                   >
+                    <Text style={styles.chipSticker}>{STYLE_STICKERS[style]}</Text>
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                       {t(`categories:styles.${style}`)}
                     </Text>
@@ -164,16 +181,17 @@ export const OutfitFilter: React.FC<OutfitFilterProps> = ({
           {/* Seasons */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('filter.seasons')}</Text>
-            <View style={styles.chipContainer}>
+            <View style={styles.seasonsContainer}>
               {SEASONS.map((season) => {
                 const selected = filters.seasons.includes(season);
                 return (
                   <TouchableOpacity
                     key={season}
-                    style={[styles.chip, selected && styles.chipSelected]}
+                    style={[styles.seasonCard, selected && styles.seasonCardSelected]}
                     onPress={() => handleSeasonSelect(season)}
                   >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    <Text style={styles.seasonSticker}>{SEASON_STICKERS[season]}</Text>
+                    <Text style={[styles.seasonText, selected && styles.seasonTextSelected]}>
                       {t(`categories:seasons.${season}`)}
                     </Text>
                   </TouchableOpacity>
@@ -308,6 +326,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   chipContainer: {
     flexDirection: 'row',
@@ -317,6 +338,9 @@ const styles = StyleSheet.create({
   chipSelected: {
     backgroundColor: '#000',
     borderColor: '#000',
+  },
+  chipSticker: {
+    fontSize: 14,
   },
   chipText: {
     color: '#000',
@@ -418,5 +442,38 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
+  },
+  // Seasons square containers
+  seasonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  seasonCard: {
+    width: '23%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F8F8',
+    borderColor: '#E5E5E5',
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  seasonCardSelected: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  seasonSticker: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  seasonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000',
+    textTransform: 'capitalize',
+  },
+  seasonTextSelected: {
+    color: '#FFF',
   },
 });

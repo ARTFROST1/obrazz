@@ -562,23 +562,35 @@ class ItemService {
   private mapSupabaseItemToWardrobeItem(data: ItemDbRecord): WardrobeItem {
     const metadata = data.metadata || ({} as ItemMetadata);
 
+    // Get colors from metadata first, then from data (for backwards compatibility)
+    const colors = metadata.colors || data.colors || (data.color ? [{ hex: data.color }] : []);
+    const primaryColor =
+      metadata.primaryColor ||
+      data.primary_color ||
+      (data.color ? { hex: data.color } : { hex: '#CCCCCC' });
+
+    // Get brand/size from metadata first (where they are saved on update), then from data.brand/size
+    const brand = metadata.brand || data.brand;
+    const size = metadata.size || data.size;
+    const price = metadata.price || data.price;
+
     return {
       id: data.id,
       userId: data.user_id,
       title: data.name,
       category: data.category,
       subcategory: data.subcategory,
-      colors: data.colors || (data.color ? [{ hex: data.color }] : []),
-      primaryColor: data.primary_color || (data.color ? { hex: data.color } : { hex: '#CCCCCC' }),
+      colors: colors,
+      primaryColor: primaryColor,
       material: data.material,
       styles: data.style || [],
       seasons: data.season || [],
       imageLocalPath: data.image_url,
       imageUrl: data.image_url,
       isBuiltin: data.is_default || false,
-      brand: data.brand,
-      size: data.size,
-      price: data.price,
+      brand: brand,
+      size: size,
+      price: price,
       tags: data.tags || [],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),

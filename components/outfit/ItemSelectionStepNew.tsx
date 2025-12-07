@@ -200,11 +200,15 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
       />
 
       {/* Category Carousels OR Edit Content */}
-      {activeTab === 'custom' && isCustomTabEditing ? (
-        // Edit mode - show category management
+      {/* Edit mode - show category management */}
+      {activeTab === 'custom' && (
         <ScrollView
-          style={styles.editContainer}
+          style={[
+            styles.editContainer,
+            !isCustomTabEditing && styles.hiddenView, // Hide instead of unmount when not editing
+          ]}
           contentContainerStyle={styles.editContentContainer}
+          pointerEvents={isCustomTabEditing ? 'auto' : 'none'}
         >
           {/* Header */}
           <View style={styles.editHeader}>
@@ -293,8 +297,16 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
             </View>
           </View>
         </ScrollView>
-      ) : (
-        // Normal mode - show carousels
+      )}
+
+      {/* Carousels - Always mounted to prevent image reload */}
+      <View
+        style={[
+          styles.carouselsWrapper,
+          activeTab === 'custom' && isCustomTabEditing && styles.hiddenView,
+        ]}
+        pointerEvents={activeTab === 'custom' && isCustomTabEditing ? 'none' : 'auto'}
+      >
         <CategorySelectorWithSmooth
           categories={currentTabCategories}
           wardrobeItems={wardrobeItems}
@@ -303,7 +315,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
           onItemSelect={handleItemSelect}
           outfitId={currentOutfit?.id} // ✅ FIX: Pass outfit ID for cache isolation
         />
-      )}
+      </View>
 
       {/* Footer with action buttons - Hide in custom tab edit mode */}
       {!(activeTab === 'custom' && isCustomTabEditing) && (
@@ -507,6 +519,19 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     padding: 4,
+  },
+  // Hidden view for keeping components mounted but invisible
+  hiddenView: {
+    position: 'absolute',
+    opacity: 0,
+    zIndex: -1,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  carouselsWrapper: {
+    flex: 1,
   },
 });
 
