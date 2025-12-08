@@ -221,10 +221,6 @@ export default function OutfitsScreen() {
     setSearchQuery(query);
   };
 
-  const handleFilterChange = (filter: typeof filterBy) => {
-    setFilterBy(filter);
-  };
-
   const handleApplyFilters = (filters: OutfitFilterState) => {
     setOutfitFilters(filters);
   };

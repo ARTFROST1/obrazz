@@ -213,6 +213,8 @@ function enhanceTextInputs(
   const isTextInput =
     element.type === TextInput ||
     (element.props &&
+      typeof element.props === 'object' &&
+      element.props !== null &&
       'onChangeText' in element.props &&
       typeof element.props.onChangeText === 'function');
 
@@ -230,7 +232,12 @@ function enhanceTextInputs(
   }
 
   // Recursively process children
-  if (element.props && 'children' in element.props) {
+  if (
+    element.props &&
+    typeof element.props === 'object' &&
+    element.props !== null &&
+    'children' in element.props
+  ) {
     const props = element.props as InputLikeProps;
     const children = React.Children.map(props.children, (child) => {
       if (React.isValidElement(child)) {

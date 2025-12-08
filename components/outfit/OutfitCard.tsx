@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useRef } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  useColorScheme,
+  Animated,
   Dimensions,
   Platform,
-  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Outfit } from '../../types/models/outfit';
 import { OutfitPreview } from './OutfitPreview';
 
@@ -60,7 +60,6 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const [showMenu, setShowMenu] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {

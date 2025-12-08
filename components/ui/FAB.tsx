@@ -1,12 +1,7 @@
-import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle, Platform, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import React from 'react';
+import { Platform, StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 export interface FABProps {
   icon: string;

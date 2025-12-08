@@ -77,7 +77,7 @@ export function OutfitPreview({
             style={[StyleSheet.absoluteFill, { opacity: background.opacity || 1 }]}
           />
         );
-      } catch (e) {
+      } catch {
         // Fallback if JSON parse fails
         return null;
       }

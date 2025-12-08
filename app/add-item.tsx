@@ -12,7 +12,7 @@ import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -74,14 +74,7 @@ export default function AddItemScreen() {
     { label: t('categories:seasons.winter'), value: 'winter', sticker: '❄️' },
   ];
 
-  // Load item data if in edit mode
-  useEffect(() => {
-    if (isEditMode && itemId) {
-      loadItemData();
-    }
-  }, [itemId, isEditMode, loadItemData]);
-
-  const loadItemData = async () => {
+  const loadItemData = useCallback(async () => {
     try {
       setLoadingItem(true);
       const item = await itemService.getItemById(itemId!);
@@ -104,7 +97,13 @@ export default function AddItemScreen() {
     } finally {
       setLoadingItem(false);
     }
-  };
+  }, [itemId, t]);
+
+  useEffect(() => {
+    if (isEditMode && itemId) {
+      loadItemData();
+    }
+  }, [isEditMode, itemId, loadItemData]);
 
   const requestPermissions = async () => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();

@@ -69,7 +69,7 @@ export function OutfitCanvas({
             style={[StyleSheet.absoluteFill, { opacity: background.opacity || 1 }]}
           />
         );
-      } catch (e) {
+      } catch {
         // Fallback to solid color if JSON parse fails
         return null;
       }
@@ -237,7 +237,6 @@ function CanvasItem({
     })
     .onUpdate((event) => {
       const currentScale = scale.value;
-      const baseSize = ITEM_BASE_SIZE;
       const halfBase = ITEM_BASE_SIZE / 2;
 
       // Element is sized based on ITEM_BASE_SIZE, positioned by top-left corner, scaled from center

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { ItemCategory } from '../../types/models/item';
 import { getAllCategoriesInfo } from '@constants/categories';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { ItemCategory } from '../../types/models/item';
 
 interface CategoryPickerProps {
   selectedCategories: ItemCategory[];

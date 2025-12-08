@@ -54,22 +54,7 @@ export default function WardrobeScreen() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [gridColumns, setGridColumns] = useState<2 | 3>(3); // Default to 3 columns
 
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  // Update StatusBar when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      StatusBar.setBarStyle('dark-content', true);
-      if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor('transparent', true);
-        StatusBar.setTranslucent(true);
-      }
-    }, []),
-  );
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -83,13 +68,28 @@ export default function WardrobeScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  // Update StatusBar when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('dark-content', true);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('transparent', true);
+        StatusBar.setTranslucent(true);
+      }
+    }, []),
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadItems();
     setRefreshing(false);
-  }, [user?.id]);
+  }, [loadItems]);
 
   const handleItemPress = (item: WardrobeItem) => {
     if (isSelectionMode) {

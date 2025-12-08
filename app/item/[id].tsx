@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { itemService } from '@services/wardrobe/itemService';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,9 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WardrobeItem } from '../../types/models/item';
+import { ItemCategory, WardrobeItem } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
-import { ItemCategory } from '../../types/models/item';
 
 // Helper function for category stickers
 const getCategorySticker = (category?: string): string => {
@@ -107,11 +106,7 @@ export default function ItemDetailScreen() {
   const [editingBrand, setEditingBrand] = useState('');
   const [editingSize, setEditingSize] = useState('');
 
-  useEffect(() => {
-    loadItem();
-  }, [id, loadItem]);
-
-  const loadItem = async () => {
+  const loadItem = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -125,7 +120,11 @@ export default function ItemDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadItem();
+  }, [loadItem]);
 
   const handleToggleFavorite = async () => {
     if (!item) return;

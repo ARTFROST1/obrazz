@@ -38,6 +38,10 @@ export interface ItemMetadata {
   source?: 'camera' | 'gallery' | 'web' | 'builtin';
   sourceUrl?: string;
   price?: number;
+  colors?: Color[];
+  primaryColor?: Color;
+  brand?: string;
+  size?: string;
 }
 
 export type ItemCategory =

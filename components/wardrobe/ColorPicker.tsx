@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   UIManager,
   View,
-  Text,
 } from 'react-native';
 
 // Enable LayoutAnimation on Android

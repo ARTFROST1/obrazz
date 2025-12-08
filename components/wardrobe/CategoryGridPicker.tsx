@@ -1,5 +1,4 @@
 import { getAllCategoriesInfo } from '@constants/categories';
-import { useTranslation } from '@hooks/useTranslation';
 import { useSettingsStore } from '@store/settings/settingsStore';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -16,7 +15,6 @@ export const CategoryGridPicker: React.FC<CategoryGridPickerProps> = ({
   onCategorySelect,
   multiSelect = true,
 }) => {
-  const { t } = useTranslation('categories');
   const { language } = useSettingsStore();
   const CATEGORIES = getAllCategoriesInfo(language);
 
