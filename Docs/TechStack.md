@@ -99,7 +99,39 @@
 
 ---
 
-## 🗄️ Backend - Supabase & Node.js
+## 🗄️ Backend - Rails & Supabase & Node.js
+
+### Ruby on Rails Backend (Fullstack - Бизнес-логика)
+
+**📋 Для Stage 8 (Подписки и биллинг):**
+
+```ruby
+# Gemfile - основные зависимости
+gem 'rails', '~> 7.2'
+gem 'puma', '~> 6.0'
+gem 'pg', '~> 1.5'                # PostgreSQL
+gem 'redis', '~> 5.0'             # Кэш и очереди
+gem 'sidekiq', '~> 7.2'           # Background jobs
+
+# Auth (интеграция с Supabase)
+gem 'jwt'                          # JWT валидация
+
+# Payments
+gem 'pay', '~> 7.0'               # Абстракция платежей
+gem 'stripe', '~> 10.0'           # Stripe
+gem 'yookassa', '~> 0.3'          # YooMoney/YooKassa для РФ
+
+# Frontend (Dashboard)
+gem 'turbo-rails'                 # Hotwire Turbo
+gem 'stimulus-rails'              # Hotwire Stimulus
+gem 'tailwindcss-rails'           # Стили
+
+# Admin & Monitoring
+gem 'administrate'                # Admin панель
+gem 'sentry-ruby'                 # Error tracking
+```
+
+**Документация:** [Backend.md](./Backend.md)
 
 ### Supabase клиент и библиотеки
 
@@ -123,7 +155,7 @@
 }
 ```
 
-### Node.js Backend (для AI сервисов)
+### Node.js Microservice (AI сервисы)
 
 ```json
 {

@@ -2,7 +2,22 @@
 
 **Project:** Obrazz - Personal Wardrobe & AI Styling Mobile App  
 **Tech Stack:** React Native 0.81.4 + Expo 54 + TypeScript + Zustand + Supabase  
-**Stage:** 4.10 (Manual Outfit Creator complete, AI Outfit Generation planned)
+**Stage:** 4.10 Complete (базовый функционал завершён)  
+**Next:** Stage 5 - AI-анализ вещей при загрузке
+
+## Project Vision
+
+Obrazz - персональный гардероб с AI-стилистом. Основные функции:
+
+- ✅ Управление гардеробом (добавление вещей, удаление фона)
+- ✅ Ручное создание образов (4-Tab System, drag&drop canvas)
+- 🚧 AI-анализ вещей при загрузке (Mistral Small)
+- 🚧 AI-стилист для подбора образов (Mistral Nemo)
+- 🚧 AI-примерка на фото пользователя (Gemini 2.5 Flash)
+- 🚧 Геймификация (streak, челленджи)
+- 🚧 Подписки (YooMoney для РФ, IAP глобально)
+
+**❌ НЕТ в проекте:** Community Feed, социальные функции, публичный шеринг
 
 ## Architecture Overview
 
@@ -228,7 +243,7 @@ EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
 
 - **Architecture details:** `Docs/AppMapobrazz.md` - Complete screen flows & data model
 - **Project structure:** `Docs/project_structure.md` - Folder organization & conventions
-- **Roadmap:** `Docs/Implementation.md` - 10-stage implementation plan
+- **Roadmap:** `Docs/Implementation.md` - Stage-based implementation plan
 - **Tech specs:** `Docs/TechStack.md` - All dependencies & versions
 - **UI/UX:** `Docs/UI_UX_doc.md` - Design system & component specs
 - **Bug tracking:** `Docs/Bug_tracking.md` - Known issues & solutions
@@ -239,7 +254,7 @@ EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
 1. **No real AI generation yet** - Placeholder screens exist, microservice not integrated
 2. **Image handling** - Uses Pixian.ai for background removal; stored in Supabase Storage
 3. **Carousel system** - SmoothCarousel component has custom scroll behavior (Stage 4.7)
-4. **Community feed** - Placeholder only, not implemented
+4. **Community feed** - NOT PLANNED (removed from scope)
 5. **Mobile-first design** - Web support via Expo Web but not optimized
 6. **i18n** - Structure ready but not fully implemented (Russian + English planned)
 

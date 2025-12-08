@@ -4,9 +4,17 @@ This document provides guidance for AI assistants working with the Obrazz codeba
 
 ## Project Overview
 
-Obrazz is a React Native/Expo mobile application for personal wardrobe management and outfit creation. It features AI-powered outfit suggestions, manual outfit creation, and a community feed for sharing outfits.
+Obrazz is a React Native/Expo mobile application for personal wardrobe management and AI-powered outfit creation. Key features:
 
-**Current Development Stage:** Stage 3 - Wardrobe Management (in progress)
+- ✅ Personal wardrobe with background removal
+- ✅ Manual outfit creation (4-Tab System, drag&drop canvas)
+- 🚧 AI item analysis on upload (Mistral Small)
+- 🚧 AI Stylist for outfit suggestions (Mistral Nemo)
+- 🚧 AI Try-On on user photos (Gemini 2.5 Flash)
+- 🚧 Gamification (streak, challenges)
+- 🚧 Subscriptions (YooMoney RU, IAP global)
+
+**Current Development Stage:** Stage 4.10 Complete → Next: Stage 5 (AI Item Analysis)
 
 ## Tech Stack
 

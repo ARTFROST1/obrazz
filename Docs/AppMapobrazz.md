@@ -2,10 +2,10 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** December 6, 2025
-**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
+**Latest Update:** December 9, 2025
+**Current Stage:** Stage 4.10 Complete ✅ (Базовый функционал завершён)
 **Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED
-**Last Scan:** Full codebase verification completed (December 6, 2025)
+**Next Stage:** Stage 5 - AI-анализ вещей при загрузке
 **Documentation Status:** ✅ Synchronized with actual implementation
 
 ---
@@ -16,34 +16,43 @@
 2. Implementation status & current features
 3. High-level architecture & data model
 4. Global UI patterns and components
-5. Full screen list and detailed behavior (UPDATED WITH ACTUAL IMPLEMENTATION)
+5. Full screen list and detailed behavior
    - Authentication & Onboarding ✅
-   - Main (Home / Community feed) 🚧
+   - Home (AI Hub) 🚧
    - Wardrobe (library) ✅
    - Item Add / Edit / Detail ✅ (with ImageCropper)
    - Outfit Creator (manual) ✅ (4-Tab System + SmoothCarousel)
    - Outfit Detail / View ✅
    - Saved Outfits (collection) ✅
-   - AI Outfit Generator 🚧
+   - AI-стилист (подбор образов) 🚧
+   - AI-примерка на фото 🚧
    - Profile ✅
    - Settings 🚧
-   - Web Capture (in-app browser + item grab) 🚧
-   - Subscription & Payments 🚧
-   - Admin & content automation notes 🚧
-6. Navigation flow & screen transitions (DETAILED)
-7. API endpoints / backend responsibilities (Supabase + microservices)
+   - Subscription & Billing 🚧
+   - Onboarding & Paywall 🚧
+6. Navigation flow & screen transitions
+7. API endpoints / backend responsibilities
 8. Data flows and storage details
 9. Edge cases, errors & validation
 10. Security, permissions, privacy
 11. Accessibility & localization
 12. Analytics and instrumentation
-13. Appendix: assets / visuals / export formats
+13. Appendix
 
 ---
 
 ## 1. Product summary
 
-**Obrazz** is a mobile-first application for users to upload and organize their clothing items, build outfits manually with an editor (collage), and generate outfits automatically using an AI assistant that picks items from the user's wardrobe and built-in presets. The app contains a community feed where users share looks and like each other's outfits. The MVP focuses on email-based authentication, local image storage, metadata persistence (Supabase), manual outfit editor and basic AI generation (server or third-party API). Subscription unlocks higher quotas and premium features.
+**Obrazz** is a mobile-first application for users to upload and organize their clothing items, build outfits manually with an editor (collage), and generate outfits automatically using an AI stylist that picks items from the user's wardrobe. The app includes AI-powered try-on feature allowing users to see how outfits look on their photos.
+
+**Key Features:**
+
+- 📦 Personal wardrobe management with auto background removal
+- 🎨 Manual outfit creator with 4-tab system and drag-drop canvas
+- 🤖 AI-stylist for automatic outfit generation (planned)
+- 👗 AI try-on on user photos (planned)
+- 🎮 Gamification with streak and challenges (planned)
+- 💳 Subscription model with YooMoney (RU) and IAP (global)
 
 ---
 
@@ -213,29 +222,55 @@
 - `outfitService.ts` - Full item data loading
 - `outfitStore.ts` - Priority-based config restoration
 
-### 🚧 In Progress / Planned
+### 🚧 Planned (Stage 5+)
 
-#### Stage 5: AI Outfit Generation (Planned)
+#### Stage 5: AI-анализ вещей при загрузке
 
-- AI microservice setup
-- Style and season-based outfit generation
-- Color harmony algorithms
-- 3 outfit variant generation
+- Auto-detection of category, color, style, season
+- Mistral Small API integration
+- User confirmation/correction flow
 
-#### Stage 6: Community & Social Features (Planned)
+#### Stage 6: AI-стилист (подбор образов)
 
-- Community feed implementation
-- Post creation and sharing
-- Like/reaction system
-- Copy outfit functionality
+- Style/season/occasion parameter selection
+- NestJS microservice for outfit generation
+- 3 outfit variants visualization
+- Mistral Nemo API (~0.03₽/request)
+- Rate limits: FREE 30/mo, PRO 60/mo, MAX 100/mo
 
-#### Stage 7-10: Remaining stages as per Implementation.md
+#### Stage 7: AI-примерка на фото
+
+- User photo upload
+- Single outfit image generation (not collage)
+- Gemini 2.5 Flash API (~3₽/generation)
+- Temporary storage (create on try-on, delete after)
+- Rate limits: FREE 5 bonus, PRO 30/mo, MAX 50/mo
+
+#### Stage 8: Subscription & Billing
+
+- YooMoney integration (Russia) via website
+- IAP integration (global) via RevenueCat
+- Plans: PRO (399₽/mo), MAX (799₽/mo)
+- Website user account & subscription management
+
+#### Stage 9: Push Notifications & Gamification
+
+- expo-notifications integration
+- Streak system (daily usage tracking)
+- Challenges and achievements
+- Push reminders
+
+#### Stage 10: Onboarding, Paywall & Ads
+
+- Interactive onboarding tour
+- Soft paywall after free limits
+- VK Ads, РСЯ (Russia), Google AdMob (global)
 
 ### Current Application Structure
 
 **Main Navigation Tabs (Bottom Tab Bar):**
 
-1. 🏠 **Home/Feed** (`/(tabs)/index.tsx`) - Placeholder for community feed
+1. 🏠 **Home** (`/(tabs)/index.tsx`) - AI Hub (streak, quick actions)
 2. 👔 **Wardrobe** (`/(tabs)/wardrobe.tsx`) - Fully functional wardrobe management
 3. 📸 **Outfits** (`/(tabs)/outfits.tsx`) - Collection of saved outfits
 4. 👤 **Profile** (`/(tabs)/profile.tsx`) - User profile and settings
@@ -247,6 +282,8 @@
 - 📝 Item Detail (`/item/[id].tsx`)
 - ✨ Create Outfit (`/outfit/create.tsx`)
 - 👁️ Outfit Detail (`/outfit/[id].tsx`)
+- 🤖 AI Stylist (planned)
+- 👗 AI Try-On (planned)
 
 ---
 
@@ -486,23 +523,22 @@ Below are the pages with full, explicit behavior and each function described bas
 
 ---
 
-### B. Main (Home / Community Feed)
+### B. Home (AI Hub) PLANNED
 
 #### Purpose
 
-The social hub and discovery page. Users see community posts, curated picks, trending looks and “Outfit of the day” blocks.
+The main hub for AI features, quick actions, and gamification. Personal dashboard, NOT a social feed.
 
 #### Key components
 
-- **Top carousel**: Featured cards or editorial picks (from built-in content). Tappable to open Outfit detail.
-- **Feed**: Infinite scroll of PostCards. Each post includes author, outfit preview (compact collage), caption, reaction count, and actions: like, save to my outfits (copies metadata into user’s outfits), view full outfit.
-- **Create buttons**: Quick actions to open Create Outfit or AI Outfit screens.
-- **Filters / tabs**: All / Following (future) / Trending (MVP only All + Trending can be toggles)
+- **Streak Display**: Current streak days, calendar view
+- **Quick Actions**: AI Stylist, AI Try-On, Create Outfit buttons
+- **Recent Outfits**: Horizontal scroll of last created outfits
 
-#### Interactions
+#### Gamification
 
-- Liking a post increments reactions_count (client calls Supabase). Liking does not affect AI in MVP.
-- Tapping on outfit opens Outfit Detail screen (same as Saved Outfit detail). If the outfit belongs to another user and was created using built-in items, user can copy the outfit into their collection: this creates new outfit with item references swapped to the user's local items where possible (best-effort matching by category & color) or to built-in items.
+- Streak system with milestone rewards
+- Weekly challenges with points and badges
 
 ---
 
@@ -752,34 +788,80 @@ Edit previously saved outfits with full access to replace items and re-arrange e
 
 ---
 
-### G. AI Outfit Generator
+### G. AI-стилист (подбор образов) 🚧 PLANNED
 
 #### Purpose
 
-Automatically select items from the user's wardrobe (and built-in items) that match the selected style & season and output 3 candidate outfits rendered as collages.
+Автоматический подбор сочетаний вещей из гардероба пользователя с учётом цветовой гармонии, стиля и сезона.
 
 #### Inputs (UI)
 
-- Choose style (picker) — optional (e.g., casual, formal, street, boho)
-- Choose season(s) — required
-- Constraints (optional): color constraints, must include item IDs, exclude categories
-- Number of variants (1–3 in MVP)
+- Стиль (picker): casual, formal, street, boho, etc.
+- Сезон (required): весна, лето, осень, зима
+- Событие (optional): работа, свидание, прогулка
+- Ограничения (optional): обязательно включить вещь, исключить категорию
 
 #### Process (high level)
 
-1. Client prepares a request: user_id + list of items metadata (category, color tags, style tags, season) or the backend reads user items from DB.
-2. AI microservice receives request, runs combinatorial scoring (color harmony, style compatibility, diversity), returns ranked outfit candidates. Each candidate is a list of item IDs and recommended transforms (optional). The microservice uses a third-party model or a heuristic algorithm for MVP.
-3. Client receives results and builds collages on the canvas for each candidate.
-4. User can preview, accept and save any generated outfit to their collection (same save behavior as manual outfits).
+1. Client отправляет запрос: user_id + параметры подбора
+2. NestJS микросервис получает метаданные вещей из БД
+3. Mistral Nemo анализирует и подбирает сочетания по:
+   - Цветовой гармонии
+   - Совместимости стилей
+   - Сезонности
+4. Возвращает 3 варианта образов с item IDs
+5. Client визуализирует образы на canvas
 
 #### UX
 
-- Show loading states and an explanation of why items were selected (color harmony, style match). For MVP, keep explanation simple, e.g., "selected for color contrast".
-- If the AI chooses a built-in item when user lacks a matching item, allow quick replacement by tapping the slot and choosing an alternative from the user's wardrobe.
+- Загрузка с объяснением логики подбора
+- 3 варианта образов в карусели
+- Возможность заменить отдельные элементы
+- Сохранение понравившегося образа
 
-#### Rate limits & quota
+#### Rate limits
 
-- Free tier: 3 AI outfit runs total. Warn users near quota. Subscription unlocks unlimited runs.
+| План | Лимит/мес   |
+| ---- | ----------- |
+| FREE | 30 (1/день) |
+| PRO  | 60          |
+| MAX  | 100         |
+
+**API:** Mistral Nemo (~0.03₽/запрос на 100 вещей)
+
+---
+
+### G.2. AI-примерка на фото 🚧 PLANNED
+
+#### Purpose
+
+Виртуальная примерка полного образа на фото пользователя.
+
+#### Flow
+
+1. Пользователь загружает своё фото
+2. Выбирает образ для примерки
+3. Система генерирует единое изображение образа (не коллаж)
+4. Gemini 2.5 Flash накладывает образ на фото
+5. Результат показывается пользователю
+6. Временное хранение: файл удаляется после просмотра
+
+#### Technical
+
+- **Input**: фото пользователя + список вещей образа
+- **Process**: генерация single outfit image → AI-наложение
+- **Output**: фото с примеркой
+- **Storage**: временный файл, удаляется после сессии
+
+#### Rate limits
+
+| План | Лимит/мес |
+| ---- | --------- |
+| FREE | 5 (бонус) |
+| PRO  | 30        |
+| MAX  | 50        |
+
+**API:** Gemini 2.5 Flash (~3₽/генерация)
 
 ---
 
@@ -792,16 +874,16 @@ Primary navigation tab for viewing all outfits created or generated by the user.
 #### Layout
 
 - Grid of OutfitCards (2 columns on mobile, 3-4 on tablet)
-- OutfitCard shows a preview collage (3–4 items composited), name, visibility badge (private/shared), likes (if shared)
-- Top bar: Search (by name), filter chips (all/private/shared), sort dropdown (newest, most used, favorite)
+- OutfitCard shows a preview collage (3–4 items composited), name, favorite badge
+- Top bar: Search (by name), filter chips (all/favorites), sort dropdown (newest, most used, favorite)
 - **Floating Action Button (FAB)**: Bottom-right corner, navigates to Create Outfit screen
 - **Header action**: Plus icon button in top-right, alternative way to navigate to Create Outfit
 
 #### Actions
 
 - Tap OutfitCard -> Outfit Detail (full canvas view)
-- Outfit Detail actions: Edit, Duplicate, Share (export image), Add to Community (if not already), Delete
-- Long press OutfitCard -> Quick actions: Edit, Duplicate, Share, Delete
+- Outfit Detail actions: Edit, Duplicate, Delete
+- Long press OutfitCard -> Quick actions: Edit, Duplicate, Delete
 
 #### Empty State
 
@@ -847,46 +929,85 @@ User center: view account details, manage subscriptions, review created content.
 
 ---
 
-### K. Web Capture (In-app browser + grab)
+### K. Web Capture ❌ REMOVED FROM SCOPE
 
-#### Purpose
-
-Allow users to browse a web page (Pinterest, stores) inside an in-app WebView and capture product images into their wardrobe.
-
-#### Flow
-
-1. User opens Web Capture and navigates to URL inside a WKWebView/Android WebView.
-2. User taps a floating "Capture" button; the app runs a small script to detect visible image elements (or user taps an image directly).
-3. Selected image is downloaded locally; background removal runs; user completes metadata form to save.
-
-#### Notes
-
-- Respect CORS and copyright: only provide an image saving helper, but do not claim content ownership. Add a short notice about copyright if saving images from external sites.
+> Web Capture функционал перенесён на post-MVP. Возможно будет реализован позже.
 
 ---
 
-### L. Subscription & Payments
+### L. Subscription & Billing 🚧 PLANNED
 
-#### Plans
+#### Тарифные планы
 
-- Free: limited 3 saved outfits + 3 AI runs
-- Premium (monthly/yearly): unlimited outfits, unlimited AI, premium backgrounds
+| Параметр              | FREE        | PRO (399₽/мес) | MAX (799₽/мес) |
+| --------------------- | ----------- | -------------- | -------------- |
+| **Вещи в каталоге**   | 100         | 250            | 500            |
+| **Удаление фона/мес** | 50          | 100            | 200            |
+| **AI-подборы/мес**    | 30 (1/день) | 60             | 100            |
+| **AI-примерки/мес**   | 5 (бонус)   | 30             | 50             |
+| **Реклама**           | Да          | Нет            | Нет            |
+| **Годовая цена**      | —           | 3,299₽ (–17%)  | 5,699₽ (–41%)  |
 
-#### Flows
+#### Биллинг для РФ (веб-биллинг)
 
-- In-app purchases via App Store / Google Play for mobile platforms.
-- In Russia allow a local payment provider integration (e.g., YooMoney / Moneta / Sberbank SDK) for direct payments if required by business. Implementation note: mobile platforms are strict about in-app purchases — review platform policies before enabling alternative payment channels for purchases related to digital content.
+- **Метод оплаты:** YooMoney (комиссия ~3.5% + 45₽)
+- **Реализация через сайт:**
+  - Регистрация/логин на сайте
+  - Личный кабинет с управлением подпиской
+  - Webhook для подтверждения платежей
+  - Синхронизация статуса с приложением через Supabase
+
+#### Биллинг для глобального рынка
+
+- **iOS:** Apple In-App Purchase
+- **Android:** Google Play Billing
+- **Реализация:** RevenueCat или expo-in-app-purchases
 
 #### Edge cases
 
-- If subscription is active on server but not reflected client-side, revalidate on app start (call Supabase and restore state).
+- Проверка статуса подписки при запуске приложения
+- Восстановление покупок при переустановке
+- Grace period при истечении подписки
 
 ---
 
-### M. Admin & automation
+### M. Onboarding & Paywall 🚧 PLANNED
 
-- Admin panel (not in MVP) — manage built-in items, curated outfits, featured posts.
-- Automation for feed: if a user marks outfit as "shared", it appears automatically in the feed. Add moderation queue if you plan to allow public sharing widely.
+#### Onboarding
+
+- 3-5 экранов интерактивного тура
+- Демонстрация AI-возможностей
+- Настройка предпочтений (стиль, сезон)
+- Skip для повторных пользователей
+
+#### Paywall
+
+- Показ после исчерпания бесплатных лимитов
+- Soft paywall с возможностью пропуска (X раз)
+- Отображение преимуществ PRO/MAX
+- A/B тестирование вариантов
+
+---
+
+### N. Реклама 🚧 PLANNED
+
+#### Для FREE пользователей
+
+**Платформы:**
+
+- VK Ads (РФ)
+- РСЯ - Рекламная сеть Яндекса (РФ)
+- Google AdMob (глобально)
+
+**Форматы:**
+
+- Баннерная реклама в нижней части экрана
+- Interstitial между действиями (после сохранения образа)
+- Rewarded video за бонусы (доп. AI-запросы)
+
+**Примерный доход:** ~15₽/мес на FREE пользователя
+
+---
 
 ## 5. API endpoints / backend responsibilities (Supabase + microservice)
 
@@ -911,31 +1032,39 @@ This is a recommended concise set of endpoints or DB actions. Supabase handles m
 - GET /outfits?user_id=...
 - POST /outfits — save outfit metadata (items + transforms)
 - PATCH /outfits/:id
-- POST /outfits/:id/share -> create community post
 
-### Community
-
-- GET /posts?cursor=...
-- POST /posts -> create post when user shares an outfit
-- POST /posts/:id/react -> like a post
-
-### AI microservice (Node.js)
-
-- POST /ai/generate-outfits
-  - Body: { user_id, style, seasons, constraints }
-  - Response: candidates: [{items: [{item_id, score}], explanation, layout_hints}]
+### AI microservice (NestJS)
 
 - POST /ai/analyze-item
-  - (optional) Accepts an image or metadata and returns primary colors, dominant features
+  - Body: { image_url or image_base64 }
+  - Response: { category, colors[], styles[], seasons[] }
+  - API: Mistral Small
 
-Security: AI endpoints require valid JWT and rate-limiting.
+- POST /ai/generate-outfits
+  - Body: { user_id, style, seasons, occasion, constraints }
+  - Response: { candidates: [{ items: [{item_id, score}], explanation }] }
+  - API: Mistral Nemo
+
+- POST /ai/try-on
+  - Body: { user_photo_url, outfit_items[] }
+  - Response: { result_image_url, temp_expires_at }
+  - API: Gemini 2.5 Flash
+
+Security: AI endpoints require valid JWT and rate-limiting based on subscription tier.
+
+### Subscription (Website + App)
+
+- POST /billing/create-checkout (YooMoney)
+- POST /billing/webhook (YooMoney callback)
+- GET /subscription/status
+- POST /subscription/restore (IAP)
 
 ## 6. Data flows and storage details
 
-- **Add item**: user picks image -> image saved to local FS -> background removal called (remote) -> processed image saved locally -> metadata POSTed to Supabase with local path and attributes.
-- **Create outfit**: client serializes current canvas (list of item IDs + transforms) -> POST to /outfits -> Supabase stores metadata.
-- **AI generation**: client triggers POST /ai/generate-outfits -> AI service reads items metadata from DB or client sends metadata -> AI returns candidates -> client renders canvases.
-- **Share**: when sharing an outfit, server creates a post entry linking to outfit. Post is read in Home feed.
+- **Add item**: user picks image -> ImageCropper (3:4) -> background removal (Pixian.ai) -> AI analysis (Mistral, optional) -> image saved locally -> metadata POSTed to Supabase.
+- **Create outfit**: client serializes canvas (item IDs + transforms + canvasSettings) -> POST to /outfits -> Supabase stores metadata.
+- **AI Stylist**: POST /ai/generate-outfits -> Mistral Nemo -> 3 variants returned -> client renders.
+- **AI Try-On**: POST /ai/try-on -> Gemini generates overlay -> temp image returned -> deleted after session.
 
 ## 7. Edge cases, errors & validation
 
