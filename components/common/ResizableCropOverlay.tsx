@@ -46,7 +46,7 @@ export const ResizableCropOverlay: React.FC<ResizableCropOverlayProps> = ({
   React.useEffect(() => {
     width.value = cropSize.width;
     height.value = cropSize.height;
-  }, [cropSize.width, cropSize.height]);
+  }, [cropSize.width, cropSize.height, width, height]);
 
   /**
    * Clamp value between min and max

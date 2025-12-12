@@ -1,8 +1,17 @@
+import ShoppingStoriesCarousel from '@/components/shopping/ShoppingStoriesCarousel';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Platform, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-export default function FeedScreen() {
+export default function HomeScreen() {
   // Update StatusBar when screen is focused
   useFocusEffect(
     useCallback(() => {
@@ -21,15 +30,22 @@ export default function FeedScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Community</Text>
+            <Text style={styles.headerTitle}>Главная</Text>
           </View>
         </View>
       </SafeAreaView>
 
-      <View style={styles.content}>
-        <Text style={styles.subtitle}>Discover outfits from the community</Text>
-        {/* TODO: Add community feed in Stage 6 */}
-      </View>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Shopping Stories Carousel */}
+        <ShoppingStoriesCarousel />
+
+        {/* Placeholder for other sections */}
+        <View style={styles.content}>
+          <Text style={styles.subtitle}>
+            Streak, AI Actions и другие секции будут добавлены позже
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -59,15 +75,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
     padding: 20,
+    marginTop: 40,
   },
   subtitle: {
     color: '#666',
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
   },
 });

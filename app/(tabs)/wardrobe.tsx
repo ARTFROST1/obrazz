@@ -68,7 +68,7 @@ export default function WardrobeScreen() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, setLoading, setItems, setError]);
 
   useEffect(() => {
     loadItems();

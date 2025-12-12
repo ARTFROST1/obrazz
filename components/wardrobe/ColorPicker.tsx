@@ -59,7 +59,7 @@ const ColorButton: React.FC<{
       friction: 6,
       tension: 100,
     }).start();
-  }, [selected]);
+  }, [selected, scaleAnim]);
 
   return (
     <TouchableOpacity style={styles.colorButton} onPress={onPress} activeOpacity={0.7}>

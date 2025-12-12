@@ -190,11 +190,19 @@ class AuthService {
   }
 
   /**
-   * Get current session
+   * Get current session with timeout protection
    */
   async getSession() {
     try {
-      const { data, error } = await supabase.auth.getSession();
+      // Create timeout promise to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Session fetch timeout')), 2500);
+      });
+
+      const sessionPromise = supabase.auth.getSession();
+
+      // Race between session fetch and timeout
+      const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
 
       if (error) {
         // Check if it's a refresh token error
@@ -214,6 +222,12 @@ class AuthService {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Error getting session:', errorMessage);
+
+      // If it's a timeout or network error, just return null
+      if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+        logger.warn('Session fetch timeout/network error - returning null');
+        return null;
+      }
 
       // If it's a refresh token error, ensure storage is cleared
       if (errorMessage.includes('refresh') || errorMessage.includes('Refresh Token')) {

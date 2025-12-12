@@ -29,10 +29,21 @@ import { Season, StyleTag } from '../types/models/user';
 
 export default function AddItemScreen() {
   const { t } = useTranslation('wardrobe');
-  const { id: itemId } = useLocalSearchParams<{ id?: string }>();
+  const {
+    id: itemId,
+    imageUrl: webImageUrl,
+    source: imageSource,
+    manualCrop: manualCropParam,
+  } = useLocalSearchParams<{
+    id?: string;
+    imageUrl?: string;
+    source?: 'web' | 'camera' | 'gallery';
+    manualCrop?: string;
+  }>();
   const { user } = useAuthStore();
   const { addItem, updateItem } = useWardrobeStore();
   const isEditMode = !!itemId;
+  const isFromWeb = imageSource === 'web' && !!webImageUrl;
 
   // State
   const [step, setStep] = useState<1 | 2>(1);
@@ -99,11 +110,49 @@ export default function AddItemScreen() {
     }
   }, [itemId, t]);
 
+  const handleWebCaptureImage = useCallback(
+    async (imageUrl: string, needsCropping: boolean) => {
+      try {
+        if (needsCropping) {
+          // Manual crop mode - show cropper
+          setTempImageUri(imageUrl);
+          setShowCropper(true);
+        } else {
+          // Auto mode - download and use image directly
+          setLoading(true);
+
+          // Download image to local storage
+          const { downloadImageFromUrl } = await import('@/services/shopping/webCaptureService');
+          const localUri = await downloadImageFromUrl(imageUrl);
+
+          setImageUri(localUri);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error handling web capture image:', error);
+        Alert.alert(t('common:states.error'), 'Не удалось загрузить изображение из браузера');
+        setLoading(false);
+      }
+    },
+    [t],
+  );
+
   useEffect(() => {
     if (isEditMode && itemId) {
       loadItemData();
+    } else if (isFromWeb && webImageUrl) {
+      // Load image from web capture
+      handleWebCaptureImage(webImageUrl, manualCropParam === 'true');
     }
-  }, [isEditMode, itemId, loadItemData]);
+  }, [
+    isEditMode,
+    itemId,
+    loadItemData,
+    isFromWeb,
+    webImageUrl,
+    manualCropParam,
+    handleWebCaptureImage,
+  ]);
 
   const requestPermissions = async () => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
@@ -296,6 +345,10 @@ export default function AddItemScreen() {
           brand: brand || undefined,
           size: size || undefined,
           price: price ? parseFloat(price) : undefined,
+          metadata: {
+            source: imageSource || 'camera',
+            sourceUrl: isFromWeb ? webImageUrl : undefined,
+          },
         });
 
         addItem(newItem);

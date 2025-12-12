@@ -5,6 +5,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "@app/*": ["app/*"],
       "@components/*": ["components/*"],
       "@services/*": ["services/*"],

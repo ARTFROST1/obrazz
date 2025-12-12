@@ -83,18 +83,19 @@ function RootLayoutNav() {
       setLoading(true);
 
       try {
-        // Initialize auth state listener
+        // Initialize auth state listener first (non-blocking)
         console.log('[RootLayoutNav] Initializing auth listener...');
         authService.initializeAuthListener();
 
-        // Check for existing session with timeout
+        // Check for existing session with shorter timeout
         console.log('[RootLayoutNav] Getting session...');
         const sessionPromise = authService.getSession();
-        const timeoutPromise = new Promise<null>((resolve) =>
-          setTimeout(() => {
-            console.log('[RootLayoutNav] Session check timeout');
-            resolve(null);
-          }, 5000),
+        const timeoutPromise = new Promise<null>(
+          (resolve) =>
+            setTimeout(() => {
+              console.log('[RootLayoutNav] Session check timeout - continuing without session');
+              resolve(null);
+            }, 3000), // Reduced from 5000ms to 3000ms
         );
 
         const session = await Promise.race([sessionPromise, timeoutPromise]);
@@ -103,21 +104,27 @@ function RootLayoutNav() {
         if (session && typeof session === 'object' && 'user' in session) {
           useAuthStore.getState().initialize(session.user, session);
         } else {
+          // Clear auth but don't treat as error - app can work without auth
           useAuthStore.getState().clearAuth();
         }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown auth error';
         console.error('[RootLayoutNav] Auth initialization error:', errorMessage);
 
-        // Handle auth errors properly
-        useAuthStore.getState().handleAuthError(errorMessage);
+        // Clear auth on error but continue app execution
+        useAuthStore.getState().clearAuth();
       } finally {
         console.log('[RootLayoutNav] Auth initialization complete');
+        // Always set loading to false to unblock UI
         setLoading(false);
       }
     };
 
-    initAuth();
+    // Run async without blocking render
+    initAuth().catch((err) => {
+      console.error('[RootLayoutNav] Unhandled auth init error:', err);
+      setLoading(false);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

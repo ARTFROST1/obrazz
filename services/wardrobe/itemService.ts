@@ -45,6 +45,7 @@ export interface CreateItemInput {
   price?: number;
   tags?: string[];
   isBuiltin?: boolean;
+  metadata?: Partial<ItemMetadata>;
 }
 
 export interface UpdateItemInput {

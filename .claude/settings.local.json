@@ -1,6 +1,11 @@
 {
   "permissions": {
-    "allow": ["Bash(claude mcp add:*)", "Bash(find:*)"],
+    "allow": [
+      "Bash(claude mcp add:*)",
+      "Bash(find:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint)"
+    ],
     "deny": [],
     "ask": []
   }

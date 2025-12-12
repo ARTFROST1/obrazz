@@ -31,7 +31,6 @@ export function OutfitTabBar({
 
   // Animated indicator
   const indicatorAnim = useRef(new Animated.Value(0)).current;
-  const tabRefs = useRef<{ [key: string]: number }>({});
 
   // Animate indicator when tab changes
   useEffect(() => {
@@ -44,7 +43,7 @@ export function OutfitTabBar({
         friction: 26,
       }).start();
     }
-  }, [activeTab, tabs]);
+  }, [activeTab, tabs, indicatorAnim]);
 
   const handleTabPress = (tabId: OutfitTabType) => {
     onTabChange(tabId);
