@@ -1,8 +1,8 @@
 # Obrazz Documentation
 
-**Last Updated:** November 22, 2025  
+**Last Updated:** December 14, 2025  
 **Current Version:** 1.0.0  
-**Stage:** 4.10 Complete (4-Tab System + ImageCropper + Data Persistence)
+**Stage:** 4.11 Complete (Shopping Browser + Web Capture)
 
 ---
 
@@ -186,6 +186,14 @@ Complete documentation audit report:
 - **[Extra/REMOVE_BG_SETUP.md](Extra/REMOVE_BG_SETUP.md)** - Background removal setup
 - **[Extra/DEFAULT_ITEMS_GUIDE.md](Extra/DEFAULT_ITEMS_GUIDE.md)** - Managing default/builtin items
 
+#### Feature Documentation
+
+- **[WEB_CAPTURE_SHOPPING_BROWSER.md](WEB_CAPTURE_SHOPPING_BROWSER.md)** - Shopping Browser feature specs
+- **[WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md](WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md)** - State management fixes
+- **[WEBVIEW_PERFORMANCE_OPTIMIZATION.md](WEBVIEW_PERFORMANCE_OPTIMIZATION.md)** - WebView optimizations
+- **[WEB_CAPTURE_MANUAL_SCAN_UPDATE.md](WEB_CAPTURE_MANUAL_SCAN_UPDATE.md)** - Manual scan implementation
+- **[WEB_CAPTURE_BUGFIXES.md](WEB_CAPTURE_BUGFIXES.md)** - Bug fixes documentation
+
 #### Planning
 
 - **[Extra/ROADMAP_README.md](Extra/ROADMAP_README.md)** - Future roadmap
@@ -218,13 +226,13 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 ## 📊 Project Overview
 
-### Current Status (November 2025)
+### Current Status (December 2025)
 
 **Completed Stages:**
 
 - ✅ Stage 1: Foundation & Setup
 - ✅ Stage 2: Authentication
-- ✅ Stage 3: Wardrobe Management
+- ✅ Stage 3: Wardrobe Management (with Default Items)
 - ✅ Stage 4: Manual Outfit Creator
 - ✅ Stage 4.5: Outfits Collection
 - ✅ Stage 4.6: UX Refactoring
@@ -232,22 +240,26 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 - ✅ Stage 4.8: 4-Tab System
 - ✅ Stage 4.9: ImageCropper Refactor
 - ✅ Stage 4.10: Data Persistence Architecture
+- ✅ Stage 4.11: Shopping Browser & Web Capture
 
 **Planned Stages:**
 
-- 🚧 Stage 5: AI Outfit Generation
-- 🚧 Stage 6: Community Features
-- 🚧 Stage 7: Subscription & Monetization
-- 🚧 Stage 8-10: Polish, Testing, Deployment
+- 🚧 Stage 5: AI-анализ вещей при загрузке
+- 🚧 Stage 6: AI-стилист (подбор образов)
+- 🚧 Stage 7: AI-примерка на фото
+- 🚧 Stage 8: Subscription & Billing
+- 🚧 Stage 9-10: Push-уведомления, Геймификация, Onboarding
 
 ### Key Statistics
 
-- **Screens:** 18
-- **Components:** 30 (active)
-- **Services:** 4
-- **Stores:** 4 (with persistence)
+- **Screens:** 20 (added shopping browser & cart)
+- **Components:** 45 (active - added 10 shopping components)
+- **Services:** 6 (added storeService, webCaptureService)
+- **Stores:** 5 (added shoppingBrowserStore)
 - **Categories:** 8 (unified system)
 - **Tab System:** 4 customizable tabs
+- **Default Stores:** 9 (ZARA, H&M, ASOS, Nike, Adidas, Reserved, Mango, Pull&Bear, Bershka)
+- **Default Items:** 24 built-in wardrobe items
 - **Tech Stack:** React Native 0.81.4 + Expo SDK 54.0.13
 
 ### Key Features

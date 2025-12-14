@@ -1,7 +1,7 @@
 # Implementation Plan for Obrazz
 
-**Last Updated:** December 9, 2025  
-**Current Stage:** Stage 4.10 Complete ✅ (Базовый функционал завершён)  
+**Last Updated:** December 14, 2025  
+**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)  
 **Next Stage:** Stage 5 - AI-анализ вещей при загрузке
 
 ---
@@ -15,17 +15,19 @@
 3. ✅ **Профиль и авторизация** - email регистрация, JWT токены
 4. ✅ **Хранение данных** - локальные изображения + Supabase метаданные
 5. ✅ **ImageCropper** - кастомная обрезка 3:4 с pinch-to-zoom
+6. ✅ **Shopping Browser** - добавление вещей из интернет-магазинов (9 default stores)
+7. ✅ **Default Items** - 24 встроенные вещи для новых пользователей
 
 ### Планируемые функции (Stage 5+):
 
-6. 🚧 **AI-анализ вещей** - автозаполнение полей при загрузке
-7. 🚧 **AI-стилист** - автоматический подбор образов
-8. 🚧 **AI-примерка** - примерка образа на фото пользователя
-9. 🚧 **Подписки и биллинг** - YooMoney (РФ), IAP (глобально)
-10. 🚧 **Push-уведомления** - напоминания, streak, новости
-11. 🚧 **Геймификация** - streak, челленджи, достижения
-12. 🚧 **Onboarding & Paywall** - первичный тур, конверсия
-13. 🚧 **Реклама** - VK Ads, РСЯ, Google AdMob
+8. 🚧 **AI-анализ вещей** - автозаполнение полей при загрузке
+9. 🚧 **AI-стилист** - автоматический подбор образов
+10. 🚧 **AI-примерка** - примерка образа на фото пользователя
+11. 🚧 **Подписки и биллинг** - YooMoney (РФ), IAP (глобально)
+12. 🚧 **Push-уведомления** - напоминания, streak, новости
+13. 🚧 **Геймификация** - streak, челленджи, достижения
+14. 🚧 **Onboarding & Paywall** - первичный тур, конверсия
+15. 🚧 **Реклама** - VK Ads, РСЯ, Google AdMob
 
 ### ❌ Убрано из планов:
 
@@ -155,8 +157,35 @@
 - [x] Реализация удаления вещей с подтверждением
 - [x] Фильтрация и сортировка вещей по категориям/цветам
 - [x] Оптимизация производительности для больших коллекций (>100 items)
-- [ ] Web Capture — добавление вещей из интернет-магазинов (Stage 4.11)
-- [ ] Добавление встроенных базовых вещей для новых пользователей (опционально)
+- [x] Добавление встроенных базовых вещей для новых пользователей (Default Items)
+
+#### Default Items Feature (November 2025) ✅
+
+**Purpose:** Предоставить новым пользователям 24 готовых вещи для быстрого старта
+
+**Key Features:**
+
+- 24 встроенные вещи с изображениями в Supabase Storage
+- Видимы всем пользователям автоматически
+- Пользователи могут скрыть (не удалить) default items
+- Отслеживание скрытых вещей в таблице `hidden_default_items`
+
+**Implemented Components:**
+
+- Database migrations:
+  - `001_create_hidden_default_items.sql` - таблица для отслеживания скрытых вещей
+  - `002_insert_default_items.sql` - вставка 24 default items
+- Service methods (`itemService.ts`):
+  - `getUserItems()` - загрузка с учетом видимых default items
+  - `getDefaultItems()`, `hideDefaultItem()`, `unhideDefaultItem()`
+- State management (`wardrobeStore.ts`):
+  - `hiddenDefaultItemIds` state
+  - Actions для управления скрытыми вещами
+- UI updates (`wardrobe.tsx`):
+  - Разное поведение удаления для default vs user items
+  - "Hide Items" vs "Delete Items" confirmations
+
+**Documentation:** `Docs/Extra/DEFAULT_ITEMS_GUIDE.md`
 
 ### Stage 4: Manual Outfit Creator ✅
 
@@ -558,6 +587,154 @@ setCurrentOutfit: (outfit) => {
 - [x] Тестирование edit mode
 - [x] Документация архитектуры
 
+---
+
+### Stage 4.11: Shopping Browser & Web Capture ✅
+
+**Dependencies:** Stage 4.10 completion
+**Timeline:** 2-3 недели
+**Status:** COMPLETED (December 2025)
+
+**Цель:** Добавление вещей в гардероб напрямую из интернет-магазинов с автоматическим определением изображений
+
+**Documentation:**
+
+- `Docs/WEB_CAPTURE_SHOPPING_BROWSER.md`
+- `Docs/WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md`
+- `Docs/WEBVIEW_PERFORMANCE_OPTIMIZATION.md`
+
+#### Key Features:
+
+**Shopping Browser Screen** (`/shopping/browser.tsx`):
+
+- Full WebView integration с mobile user-agent
+- Multi-tab system (до 5 tabs одновременно)
+- Автоматическое определение изображений при загрузке страницы
+- Кнопка "Scan" для manual detection
+- Forward/backward навигация с жестами
+- Tab carousel с favicons
+
+**Intelligent Image Detection**:
+
+- JavaScript injection для автоматического сканирования product images
+- Фильтрация по размеру (min 200x200px, max 2000x2000px)
+- Дедупликация по URL и dimensions
+- Category confidence scoring
+- Gallery bottom sheet с detected items
+
+**Shopping Cart** (`/shopping/cart.tsx`):
+
+- Persistent cart storage через AsyncStorage
+- Добавление detected items в корзину для последующего использования
+- Batch upload - добавление всех вещей из корзины за раз
+- Individual item management (delete, add to wardrobe)
+- Clear cart функционал
+
+**Manual Crop Mode**:
+
+- WebViewCropOverlay для manual screenshot capture
+- Fallback когда auto-detection ничего не находит
+- Прямая интеграция с add-item screen
+
+**Default Stores** (9 интернет-магазинов):
+
+- ZARA, H&M, ASOS, Nike, Adidas
+- Reserved, Mango, Pull&Bear, Bershka
+- Favicon support для визуальной идентификации
+- Возможность добавления custom stores
+
+#### Implemented Components:
+
+**Components:**
+
+- `components/shopping/GalleryBottomSheet.tsx` ✅ - Gallery с detected items
+- `components/shopping/MasonryGallery.tsx` ✅ - Masonry grid layout
+- `components/shopping/DetectedItemSheet.tsx` ✅ - Bottom sheet для item details
+- `components/shopping/WebViewCropOverlay.tsx` ✅ - Manual crop overlay
+- `components/shopping/CartItemRow.tsx` ✅ - Cart item display
+- `components/shopping/CartButton.tsx` ✅ - Header cart button
+- `components/shopping/TabsCarousel.tsx` ✅ - Tab switching carousel
+- `components/shopping/ShoppingStoriesCarousel.tsx` ✅ - Store carousel
+- `components/shopping/DetectionFAB.tsx` ✅ - Floating action button
+- `components/shopping/GalleryImageItem.tsx` ✅ - Gallery item component
+
+**Services & State:**
+
+- `services/shopping/storeService.ts` ✅ - Store management (CRUD, history)
+- `services/shopping/webCaptureService.ts` ✅ - Screenshot capture
+- `store/shoppingBrowserStore.ts` ✅ - Full state management:
+  - Tabs, active tab, detected images
+  - Cart items с AsyncStorage persistence
+  - Scan state (isScanning, hasScanned)
+  - Batch upload queue management
+  - Selection state для multi-select
+
+**Utilities:**
+
+- `utils/shopping/imageDetection.ts` ✅ - Image detection script injection
+- `utils/shopping/webviewOptimization.ts` ✅ - Performance optimizations
+
+**Types:**
+
+- `types/models/store.ts` ✅ - Store, BrowserTab, DetectedImage, CartItem
+
+#### Technical Implementation:
+
+```typescript
+// WebView с injected JavaScript для detection
+<WebView
+  source={{ uri: activeTab.url }}
+  injectedJavaScript={imageDetectionScript}
+  onMessage={handleDetectedImages}
+  userAgent="Mozilla/5.0..." // Mobile user-agent
+/>
+
+// Auto-detection на page load
+onLoadEnd={() => {
+  if (!hasScanned) {
+    injectImageDetectionScript();
+  }
+}}
+
+// Cart persistence
+AsyncStorage.setItem('@shopping_cart', JSON.stringify(cartItems));
+```
+
+#### User Flow:
+
+1. User открывает Shopping Browser из home/wardrobe
+2. Tabs открываются для всех 9 default stores
+3. User выбирает store и просматривает товары
+4. Изображения auto-detected при загрузке страницы
+5. User кликает "Scan" для manual detection (если нужно)
+6. Gallery sheet открывается с detected items
+7. User может:
+   - Добавить selected items в cart
+   - Добавить напрямую в wardrobe (открывает add-item screen)
+   - Использовать manual crop если detection не сработал
+8. Cart сохраняется между сессиями
+9. Batch upload всех cart items одной кнопкой
+
+#### Sub-steps:
+
+- [x] Создание Shopping Browser screen с WebView
+- [x] Multi-tab architecture с tab carousel
+- [x] Автоматическое image detection при page load
+- [x] Manual scan button с JavaScript injection
+- [x] Gallery bottom sheet с masonry grid
+- [x] Cart system с AsyncStorage persistence
+- [x] Batch upload functionality
+- [x] Manual crop fallback
+- [x] 9 default stores с favicons
+- [x] Store service (CRUD, history)
+- [x] WebView optimization для performance
+- [x] Integration с add-item flow
+- [x] State management с shoppingBrowserStore
+- [x] Comprehensive documentation
+- [x] Bug fixing и state management improvements
+
+---
+
 ### Stage 5: AI-анализ вещей при загрузке
 
 **Dependencies:** Stage 4 completion
@@ -890,21 +1067,23 @@ setCurrentOutfit: (outfit) => {
 - [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
 - [Pixian.ai API](https://ru.pixian.ai/api)
 
-## **Current Project Statistics (November 20, 2025)**
+## **Current Project Statistics (December 14, 2025)**
 
 **Code Metrics:**
 
-- Total Screens: 18
-- Total Components: 33 (active)
+- Total Screens: 20 (added shopping/browser.tsx, shopping/cart.tsx)
+- Total Components: 43+ (active)
   - 4 UI components (Button, Input, Loader, FAB)
   - 5 common components (ImageCropper, CropOverlay, ResizableCropOverlay, DismissKeyboardView, KeyboardAwareScrollView)
-  - 6 wardrobe components
+  - 7 wardrobe components
   - 14 outfit components
+  - 10 shopping components (NEW - Stage 4.11)
   - 4 root/utility components
-- Total Services: 4
-- Total Stores: 4 (with advanced state management)
-- Total Type Definitions: 12 files
+- Total Services: 6 (added storeService, webCaptureService)
+- Total Stores: 6 (added shoppingBrowserStore, settingsStore)
+- Total Type Definitions: 13 files (added store.ts)
 - Categories: 8 (unified system)
+- Default Stores: 9 (ZARA, H&M, ASOS, Nike, Adidas, Reserved, Mango, Pull&Bear, Bershka)
 
 **Tech Stack Versions:**
 
@@ -920,7 +1099,7 @@ setCurrentOutfit: (outfit) => {
 
 **Implementation Status:**
 
-- Stages 1-4.10: ✅ Completed (All core functionality)
+- Stages 1-4.11: ✅ Completed (All core functionality + Shopping Browser)
 - Stages 5-10: 🚧 Planned (AI, Community, Monetization)
 
 **Key Completed Features:**
@@ -930,8 +1109,9 @@ setCurrentOutfit: (outfit) => {
 - ✅ 4-Tab outfit creator with SmoothCarousel
 - ✅ Outfit collection and management
 - ✅ Data persistence architecture
+- ✅ Shopping Browser with auto-detection & cart (Stage 4.11)
 
-**Recent Improvements (November 2025):**
+**Recent Improvements (November-December 2025):**
 
 1. **SmoothCarousel System** (Stage 4.7)
    - 5 obsolete components removed (31KB)
@@ -955,10 +1135,21 @@ setCurrentOutfit: (outfit) => {
    - Proper canvasSettings persistence
    - Backward compatibility для старых образов
 
+5. **Shopping Browser & Web Capture** (Stage 4.11)
+   - Multi-tab WebView browser (9 default stores)
+   - Automatic image detection with JavaScript injection
+   - Shopping cart with AsyncStorage persistence
+   - Batch upload functionality
+   - Manual crop fallback mode
+   - 10 new shopping components
+   - Full integration with add-item flow
+
 **Dependencies Added:**
 
 - `react-native-zoom-toolkit` - для ImageCropper
-- Custom utilities: `customTabStorage.ts`
+- `react-native-webview` - для Shopping Browser
+- `react-native-view-shot` - для screenshot capture
+- Custom utilities: `customTabStorage.ts`, `imageDetection.ts`, `webviewOptimization.ts`
 
 ## Important Notes
 
@@ -967,11 +1158,10 @@ setCurrentOutfit: (outfit) => {
 - Фокус на производительности при работе с большими коллекциями
 - Обязательная типизация всего кода с TypeScript
 - Следование принципам React Native best practices
-- SmoothCarousel - единственная активная система каруселей
-- **4-Tab System** - новая архитектура создания образов
-- **ImageCropper** - нативный UX для обрезки изображений
-- Документация синхронизирована с кодовой базой (November 11, 2025)
-- **SmoothCarousel** - единственная активная система каруселей
+- **SmoothCarousel** - единственная активная система каруселей (Stage 4.7)
 - **4-Tab System** - актуальная архитектура создания образов (Stage 4.8)
 - **ImageCropper** - нативный UX для обрезки изображений (Stage 4.9)
 - **Data Persistence** - исправлена критическая проблема с edit mode (Stage 4.10)
+- **Shopping Browser** - добавление вещей из интернет-магазинов (Stage 4.11)
+- **Default Items** - 24 встроенные вещи для новых пользователей
+- Документация синхронизирована с кодовой базой (December 14, 2025)

@@ -1,7 +1,7 @@
 # Project Structure - Obrazz
 
-**Last Updated:** December 6, 2025
-**Current Stage:** Stage 4.10 Complete ✅ (4-Tab System + ImageCropper + Data Persistence)
+**Last Updated:** December 14, 2025
+**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)
 **Documentation Status:** ✅ Synchronized with codebase
 
 ## Overview
@@ -92,6 +92,9 @@ obrazz/
 ├── utils/ ✅                  # Utility functions
 │   ├── storage/ ✅           # Storage utilities (Stage 4.8)
 │   │   └── customTabStorage.ts ✅ # AsyncStorage for custom tab
+│   ├── shopping/ ✅          # Shopping utilities (Stage 4.11 - NEW)
+│   │   ├── imageDetection.ts ✅   # Image detection script injection
+│   │   └── webviewOptimization.ts ✅ # Performance optimizations
 │   ├── validation/ ✅       # Validation utilities
 │   │   └── authValidation.ts ✅  # Auth validation
 │   ├── image/ ✅             # Image utilities
@@ -158,6 +161,9 @@ app/
 ├── outfit/ ✅              # Outfit screens (Stage 4 + 4.5)
 │   ├── create.tsx ✅        # Create/edit outfit screen (Stage 4)
 │   └── [id].tsx ✅          # Outfit detail/view screen (Stage 4.5)
+├── shopping/ ✅            # Shopping screens (Stage 4.11 - NEW)
+│   ├── browser.tsx ✅       # Shopping Browser with WebView
+│   └── cart.tsx ✅          # Shopping Cart screen
 ├── item/ ✅                # Item screens
 │   └── [id].tsx ✅          # Item detail screen (Stage 3)
 ├── add-item.tsx ✅          # Add wardrobe item screen (Stage 3)
@@ -167,7 +173,7 @@ app/
 └── _layout.tsx ✅           # Root layout with providers
 ```
 
-### `/components` - Reusable Components (35 total)
+### `/components` - Reusable Components (45 total)
 
 ```
 components/
@@ -206,6 +212,17 @@ components/
 │   ├── OutfitEmptyState.tsx ✅ # Empty outfit state
 │   ├── OutfitFilter.tsx ✅    # Filter component
 │   └── OutfitPreview.tsx ✅   # Outfit detail preview
+├── shopping/ ✅               # Shopping components (Stage 4.11) - 10 components (NEW)
+│   ├── GalleryBottomSheet.tsx ✅ # Gallery with detected items
+│   ├── MasonryGallery.tsx ✅  # Masonry grid layout
+│   ├── DetectedItemSheet.tsx ✅ # Bottom sheet for item details
+│   ├── WebViewCropOverlay.tsx ✅ # Manual crop overlay for WebView
+│   ├── CartItemRow.tsx ✅     # Cart item display component
+│   ├── CartButton.tsx ✅      # Header cart button with count badge
+│   ├── TabsCarousel.tsx ✅    # Tab switching carousel
+│   ├── ShoppingStoriesCarousel.tsx ✅ # Store carousel (9 default stores)
+│   ├── DetectionFAB.tsx ✅    # Floating action button for scan
+│   └── GalleryImageItem.tsx ✅ # Gallery item component
 ├── Root components ✅         # Expo template & utility components - 4 components
 │   ├── EditScreenInfo.tsx ✅  # Development info component
 │   ├── ExternalLink.tsx ✅    # External link handler
@@ -230,10 +247,13 @@ services/
 ├── auth/ ✅                   # Authentication (Stage 2)
 │   └── authService.ts ✅      # Complete auth logic (signUp, signIn, signOut, reset)
 ├── wardrobe/ ✅             # Wardrobe services (Stage 3)
-│   ├── itemService.ts ✅      # Item CRUD operations
+│   ├── itemService.ts ✅      # Item CRUD operations + Default Items management
 │   └── backgroundRemover.ts ✅ # Remove.bg API integration
 ├── outfit/ ✅               # Outfit services (Stage 4)
 │   └── outfitService.ts ✅    # Outfit CRUD with canvasSettings
+├── shopping/ ✅             # Shopping services (Stage 4.11 - NEW)
+│   ├── storeService.ts ✅     # Store management (CRUD, history tracking)
+│   └── webCaptureService.ts ✅ # Screenshot capture service
 └── Future services 🚧      # Planned services
     ├── aiGenerator.ts 🚧      # AI outfit generation
     ├── canvasManager.ts 🚧     # Canvas state management
@@ -248,11 +268,13 @@ store/
 ├── auth/ ✅
 │   └── authStore.ts ✅        # User auth state with persistence
 ├── wardrobe/ ✅
-│   └── wardrobeStore.ts ✅    # Items and categories state
+│   └── wardrobeStore.ts ✅    # Items and categories state + hidden default items
 ├── outfit/ ✅
 │   └── outfitStore.ts ✅      # Outfit state with tab system (Stage 4.8-4.10)
 ├── settings/ ✅
 │   └── settingsStore.ts ✅    # App settings state
+├── shoppingBrowserStore.ts ✅ # Shopping browser state (Stage 4.11 - NEW)
+│                              # Tabs, cart, detected images, scan state
 ├── storage.ts ✅              # Storage utilities
 └── Future stores 🚧           # Planned stores
     ├── themeStore.ts 🚧       # Theme preferences
@@ -272,29 +294,49 @@ types/
 │   ├── item.ts ✅            # Item model with ItemCategory
 │   ├── outfit.ts ✅          # Outfit model with CanvasSettings
 │   ├── post.ts ✅            # Post model
+│   ├── store.ts ✅           # Store model (Stage 4.11 - NEW)
+│   │                         # Store, BrowserTab, DetectedImage, CartItem
 │   └── subscription.ts ✅    # Subscription model
 ├── components/ ✅            # Component-specific types (Stage 4.8)
-│   ├── FAB.ts ✅            # FAB types
-│   ├── OutfitCard.ts ✅     # OutfitCard types
-│   └── OutfitCreator.ts ✅  # OutfitTabType, CustomTabState (NEW)
+│   ├── FAB.ts ✅             # FAB types
+│   ├── OutfitCard.ts ✅      # OutfitCard types
+│   └── OutfitCreator.ts ✅   # OutfitTabType, CustomTabState
 └── navigation/ ✅
     └── types.ts ✅           # Navigation param lists
+```
+
+├── models/ ✅
+│ ├── index.ts ✅ # Barrel export
+│ ├── user.ts ✅ # User model
+│ ├── item.ts ✅ # Item model with ItemCategory
+│ ├── outfit.ts ✅ # Outfit model with CanvasSettings
+│ ├── post.ts ✅ # Post model
+│ └── subscription.ts ✅ # Subscription model
+├── components/ ✅ # Component-specific types (Stage 4.8)
+│ ├── FAB.ts ✅ # FAB types
+│ ├── OutfitCard.ts ✅ # OutfitCard types
+│ └── OutfitCreator.ts ✅ # OutfitTabType, CustomTabState (NEW)
+└── navigation/ ✅
+└── types.ts ✅ # Navigation param lists
+
 ```
 
 ### `/lib` - External Libraries Config
 
 ```
+
 lib/
-├── i18n/ ✅                   # Internationalization
-│   └── config.ts ✅          # i18next configuration
+├── i18n/ ✅ # Internationalization
+│ └── config.ts ✅ # i18next configuration
 ├── supabase/ ✅
-│   ├── client.ts ✅          # Supabase client configured
-│   ├── schema.sql ✅         # Complete DB schema
-│   └── migrations/ ✅        # Database migrations
-└── api/ 🚧                   # API client (future)
-    ├── client.ts 🚧         # API client setup
-    └── endpoints.ts 🚧      # API endpoints
-```
+│ ├── client.ts ✅ # Supabase client configured
+│ ├── schema.sql ✅ # Complete DB schema
+│ └── migrations/ ✅ # Database migrations
+└── api/ 🚧 # API client (future)
+├── client.ts 🚧 # API client setup
+└── endpoints.ts 🚧 # API endpoints
+
+````
 
 ## Naming Conventions
 
@@ -336,7 +378,7 @@ Configure these path aliases in `tsconfig.json`, `babel.config.js`, and `metro.c
   "@lib/*": ["lib/*"],
   "@config/*": ["config/*"]
 }
-```
+````
 
 ## Best Practices
 

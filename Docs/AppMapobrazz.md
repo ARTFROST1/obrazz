@@ -2,9 +2,9 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** December 9, 2025
-**Current Stage:** Stage 4.10 Complete ✅ (Базовый функционал завершён)
-**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection - FULLY IMPLEMENTED
+**Latest Update:** December 14, 2025
+**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)
+**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection, Shopping Browser - FULLY IMPLEMENTED
 **Next Stage:** Stage 5 - AI-анализ вещей при загрузке
 **Documentation Status:** ✅ Synchronized with actual implementation
 
@@ -24,6 +24,7 @@
    - Outfit Creator (manual) ✅ (4-Tab System + SmoothCarousel)
    - Outfit Detail / View ✅
    - Saved Outfits (collection) ✅
+   - Shopping Browser ✅ (Multi-tab, Auto-detection, Cart)
    - AI-стилист (подбор образов) 🚧
    - AI-примерка на фото 🚧
    - Profile ✅
@@ -49,6 +50,7 @@
 
 - 📦 Personal wardrobe management with auto background removal
 - 🎨 Manual outfit creator with 4-tab system and drag-drop canvas
+- 🛒 Shopping Browser - добавление вещей из интернет-магазинов (9 default stores)
 - 🤖 AI-stylist for automatic outfit generation (planned)
 - 👗 AI try-on on user photos (planned)
 - 🎮 Gamification with streak and challenges (planned)
@@ -222,6 +224,108 @@
 - `outfitService.ts` - Full item data loading
 - `outfitStore.ts` - Priority-based config restoration
 
+---
+
+#### ✅ Stage 4.11: Shopping Browser & Web Capture
+
+**Complete shopping integration with multi-tab browser and intelligent image detection**
+
+**Purpose:** Добавление вещей в гардероб напрямую из интернет-магазинов
+
+**Key Features:**
+
+- **Shopping Browser Screen** (`/shopping/browser.tsx`) ✅
+  - Full WebView integration with mobile user-agent
+  - Multi-tab system (up to 5 tabs simultaneously)
+  - Automatic image detection on page load
+  - Manual scan button for on-demand detection
+  - Forward/backward navigation with gestures
+  - Tab carousel with favicons
+
+- **Intelligent Image Detection** ✅
+  - JavaScript injection for automatic product image scanning
+  - Filters images by size (min 200x200px, max 2000x2000px)
+  - Deduplication by URL and dimensions
+  - Category confidence scoring
+  - Gallery bottom sheet with detected items
+
+- **Shopping Cart** (`/shopping/cart.tsx`) ✅
+  - Persistent cart storage via AsyncStorage
+  - Add detected items to cart for later
+  - Batch upload - add all cart items at once
+  - Individual item management (delete, add to wardrobe)
+  - Clear cart functionality
+
+- **Manual Crop Mode** ✅
+  - WebViewCropOverlay for manual screenshot capture
+  - Falls back when auto-detection finds nothing
+  - Direct integration with add-item screen
+
+- **Default Stores** (9 интернет-магазинов) ✅
+  - ZARA, H&M, ASOS, Nike, Adidas
+  - Reserved, Mango, Pull&Bear, Bershka
+  - Favicon support for visual identification
+  - Custom store addition capability
+
+**Components Created:**
+
+- `components/shopping/GalleryBottomSheet.tsx` ✅ - Gallery with detected items
+- `components/shopping/MasonryGallery.tsx` ✅ - Masonry grid layout
+- `components/shopping/DetectedItemSheet.tsx` ✅ - Bottom sheet for item details
+- `components/shopping/WebViewCropOverlay.tsx` ✅ - Manual crop overlay
+- `components/shopping/CartItemRow.tsx` ✅ - Cart item display
+- `components/shopping/CartButton.tsx` ✅ - Header cart button
+- `components/shopping/TabsCarousel.tsx` ✅ - Tab switching carousel
+- `components/shopping/ShoppingStoriesCarousel.tsx` ✅ - Store carousel
+- `components/shopping/DetectionFAB.tsx` ✅ - Floating action button
+
+**Services & State:**
+
+- `services/shopping/storeService.ts` ✅ - Store management (CRUD, history)
+- `services/shopping/webCaptureService.ts` ✅ - Screenshot capture
+- `store/shoppingBrowserStore.ts` ✅ - Full state management:
+  - Tabs, active tab, detected images
+  - Cart items with AsyncStorage persistence
+  - Scan state (isScanning, hasScanned)
+  - Batch upload queue management
+  - Selection state for multi-select
+
+**Utilities:**
+
+- `utils/shopping/imageDetection.ts` ✅ - Image detection script injection
+- `utils/shopping/webviewOptimization.ts` ✅ - Performance optimizations
+
+**Types:**
+
+- `types/models/store.ts` ✅
+  - Store, BrowserTab, DetectedImage
+  - CartItem, BrowserHistoryItem
+  - BatchProcessingState
+
+**Technical Implementation:**
+
+- WebView with injected JavaScript for image detection
+- AsyncStorage for cart persistence
+- Multi-tab architecture with tab switching
+- Batch processing for multiple items
+- Integration with existing add-item flow
+
+**User Flow:**
+
+1. User opens Shopping Browser from home/wardrobe
+2. Tabs open for all 9 default stores
+3. User browses store, images auto-detected on page load
+4. User clicks "Scan" for manual detection
+5. Gallery sheet opens with detected items
+6. User can:
+   - Add selected items to cart
+   - Add directly to wardrobe (opens add-item screen)
+   - Use manual crop if no items detected
+7. Cart persists across sessions
+8. Batch upload all cart items with one button
+
+---
+
 ### 🚧 Planned (Stage 5+)
 
 #### Stage 5: AI-анализ вещей при загрузке
@@ -282,6 +386,8 @@
 - 📝 Item Detail (`/item/[id].tsx`)
 - ✨ Create Outfit (`/outfit/create.tsx`)
 - 👁️ Outfit Detail (`/outfit/[id].tsx`)
+- 🛒 Shopping Browser (`/shopping/browser.tsx`) ✅
+- 🛍️ Shopping Cart (`/shopping/cart.tsx`) ✅
 - 🤖 AI Stylist (planned)
 - 👗 AI Try-On (planned)
 
@@ -323,6 +429,16 @@
 - **users**: id, email, name, avatar_url, created_at, updated_at, subscription_plan, locale
 - **items**: id, user_id, title, category (8 unified categories), colors (array), styles (array), seasons (array), brand, size, material, image_local_path, image_url, created_at, updated_at, is_favorite
 - **outfits**: id, user_id, title, description, items (jsonb with transforms), background, visibility, occasions (array), styles (array), seasons (array), created_at, updated_at, times_worn, is_favorite
+
+**Shopping Browser Types (AsyncStorage only - Stage 4.11):**
+
+- **Store**: id, name, url, faviconUrl, isDefault, order
+- **BrowserTab**: id, shopName, shopUrl, favicon, currentUrl, scrollPosition
+- **DetectedImage**: id, url, width, height, alt, category, confidence
+- **CartItem**: id, image (DetectedImage), sourceUrl, sourceName, addedAt, fromCart
+- **BrowserHistoryItem**: url, title, timestamp, shopName
+
+> Note: Shopping data stored locally via AsyncStorage. No Supabase tables needed. Cart and tabs persist across app restarts.
 
 **Prepared Tables (Stage 6+):**
 
@@ -929,9 +1045,350 @@ User center: view account details, manage subscriptions, review created content.
 
 ---
 
-### K. Web Capture ❌ REMOVED FROM SCOPE
+### K. Shopping Browser ✅ IMPLEMENTED
 
-> Web Capture функционал перенесён на post-MVP. Возможно будет реализован позже.
+#### Purpose
+
+Добавление вещей в гардероб напрямую из интернет-магазинов с автоматическим обнаружением товаров и корзиной для отложенных покупок.
+
+#### Entry Points
+
+- Home screen - Shopping button (9 store icons carousel)
+- Wardrobe screen - "Add from Store" action
+- Floating Shopping icon (global access)
+
+#### Layout & Navigation
+
+**Shopping Browser Screen** (`/shopping/browser.tsx`)
+
+- **Top Bar:**
+  - Exit button (X) - closes browser, returns to previous screen
+  - Tabs carousel with store favicons (swipeable)
+  - Cart button with badge (shows item count)
+
+- **Main Area:**
+  - Full WebView with mobile user-agent
+  - Automatic image detection on page load
+  - Navigation controls (back/forward)
+  - Loading indicator
+
+- **Bottom Bar:**
+  - Navigation buttons (back/forward with disable states)
+  - Scan button (3 states):
+    - Default: "Сканировать" with search icon
+    - Scanning: Loading spinner + "Скан..."
+    - No items found: "Вырезать" with scissors icon (manual crop)
+
+- **Overlays:**
+  - Gallery Bottom Sheet - shows detected items in masonry grid
+  - WebView Crop Overlay - manual screenshot + crop
+
+#### Tab Management
+
+**Multi-Tab System:**
+
+- Up to 5 tabs simultaneously open
+- Each tab maintains:
+  - Current URL
+  - Scroll position
+  - Favicon
+  - Shop name
+- Tab switching via carousel (swipe left/right)
+- Each tab isolated - separate WebView instance
+
+**Default Stores (9):**
+
+1. ZARA - `https://www.zara.com`
+2. H&M - `https://www2.hm.com`
+3. ASOS - `https://www.asos.com`
+4. Nike - `https://www.nike.com`
+5. Adidas - `https://www.adidas.com`
+6. Reserved - `https://www.reserved.com`
+7. Mango - `https://shop.mango.com`
+8. Pull&Bear - `https://www.pullandbear.com`
+9. Bershka - `https://www.bershka.com`
+
+#### Image Detection
+
+**Automatic Detection (on page load):**
+
+- JavaScript injection scans all `<img>` tags
+- Filters by:
+  - Minimum size: 200x200px
+  - Maximum size: 2000x2000px
+  - Excludes: icons, banners, decorative images
+- Deduplication by URL and dimensions
+- Confidence scoring for each image
+- Auto-opens gallery sheet when items found
+
+**Manual Detection:**
+
+- User taps "Сканировать" button
+- Triggers detection after 500ms delay
+- Shows scanning state with spinner
+- Opens gallery if items found
+- Falls back to manual crop if nothing detected
+
+**Detection Script Features:**
+
+- Lazy-loaded images support
+- Observes DOM mutations for dynamic content
+- Background-url extraction from CSS
+- Product image pattern recognition
+- Category hints from alt text and class names
+
+#### Gallery Bottom Sheet
+
+**Layout:**
+
+- Masonry grid (2 columns)
+- Each item shows:
+  - Product image (3:4 aspect ratio)
+  - Dimensions badge
+  - Selection checkbox (multi-select mode)
+
+**Actions:**
+
+- **Select All** - toggles all items
+- **Add Selected to Cart** - adds checked items
+- **Add to Wardrobe** - direct add (opens add-item screen)
+- Close sheet - returns to browsing
+
+**Sheet States:**
+
+- Collapsed (hidden)
+- Half-expanded (50% screen height)
+- Full-expanded (90% screen height)
+- Drag handle for resize
+
+#### Shopping Cart Screen
+
+**Purpose:** Persist detected items for batch upload later
+
+**Route:** `/shopping/cart.tsx`
+
+**Layout:**
+
+- Header with cart count and "Очистить" button
+- List of cart items (CartItemRow components):
+  - Product image thumbnail
+  - Source store name
+  - Source URL (truncated)
+  - Delete button
+  - Tap to add individually
+
+- **Bottom Actions Bar:**
+  - "Добавить всё (N) ➕" - batch upload all items
+  - Fixed position, shadow elevation
+
+**Empty State:**
+
+- 🛒 Cart icon
+- "Корзина пуста" title
+- Explanation text
+- "Вернуться к магазинам" CTA
+
+**Cart Features:**
+
+- AsyncStorage persistence
+- Survives app restarts
+- Remove individual items
+- Clear all with confirmation
+- Badge on cart button (top-right)
+
+#### Batch Upload Flow
+
+**From Gallery Sheet:**
+
+1. User selects multiple items (checkboxes)
+2. Taps "Add Selected to Cart"
+3. Items saved to cart with:
+   - Image URL
+   - Source store name
+   - Source page URL
+   - Timestamp
+4. Success toast shown
+5. Cart badge updates
+6. Gallery sheet closes
+
+**From Cart:**
+
+1. User opens cart (`/shopping/cart`)
+2. Reviews items
+3. Taps "Добавить всё (N)"
+4. Batch queue initiated
+5. Navigates to `/add-item` with `source=web`
+6. Items processed one-by-one:
+   - Add-item screen pre-populated with image
+   - User fills metadata
+   - Saves to wardrobe
+   - Auto-advances to next item
+   - Cart item removed on save
+7. When queue empty - returns to cart/wardrobe
+
+**Queue Management:**
+
+- `batchQueue` - array of CartItem
+- `currentBatchIndex` - current position
+- `isBatchMode` - flag for UI changes
+- Skip item - removes from queue
+- Cancel batch - clears queue
+
+#### Manual Crop Mode
+
+**Triggered when:**
+
+- Auto-detection finds 0 items
+- User taps "Вырезать" button
+- User wants custom crop area
+
+**WebViewCropOverlay Component:**
+
+- Captures screenshot of current WebView
+- Displays with crop overlay (3:4 aspect)
+- Pinch to zoom, drag to pan
+- Double-tap to zoom in/out
+- "Готово" button - crops and navigates to add-item
+- "Отмена" - closes overlay
+
+**Technical:**
+
+- Uses `react-native-view-shot` for capture
+- Crop area highlighted (bright)
+- Outside area dimmed (overlay)
+- Final cropped image sent to add-item screen
+
+#### WebView Optimization
+
+**Performance Scripts:**
+
+```javascript
+// Preload optimizations (before content)
+- Disable animations
+- Reduce image quality to 80%
+- Disable autoplay videos
+- Remove tracking scripts
+
+// Page optimizations (after load)
+- Hide popups/modals
+- Remove fixed headers
+- Disable smooth scroll
+- Lazy-load observer
+```
+
+**Cache Strategy:**
+
+- `cacheEnabled={true}` - browser cache active
+- `domStorageEnabled={true}` - localStorage support
+- `sharedCookiesEnabled={true}` - persist login
+- `incognito={false}` - enable cache
+
+#### Integration with Add-Item Screen
+
+**Parameters passed:**
+
+```typescript
+router.push({
+  pathname: '/add-item',
+  params: {
+    imageUrl: string,          // Detected/cropped image URL
+    source: 'web' | 'web_capture_manual',
+    sourceStore?: string,      // Store name
+    sourceUrl?: string,        // Product page URL
+  }
+});
+```
+
+**Add-Item Screen behavior:**
+
+- Pre-loads image from `imageUrl`
+- Shows source badge (store icon + name)
+- Optional: auto-fill category from detection hints
+- Background removal still available
+- Save adds to wardrobe + removes from cart (if batch mode)
+
+#### State Management
+
+**shoppingBrowserStore.ts:**
+
+```typescript
+interface ShoppingBrowserState {
+  // Stores
+  stores: Store[];
+  loadingStores: boolean;
+
+  // Browser tabs
+  tabs: BrowserTab[];
+  activeTabId: string | null;
+
+  // Detection
+  detectedImages: DetectedImage[];
+  selectedImage: DetectedImage | null;
+  isScanning: boolean;
+  hasScanned: boolean;
+
+  // Selection
+  selectedImageIds: Set<string>;
+
+  // Cart
+  cartItems: CartItem[];
+  showGallerySheet: boolean;
+
+  // Batch
+  batchQueue: CartItem[];
+  currentBatchIndex: number;
+  isBatchMode: boolean;
+}
+```
+
+#### Edge Cases
+
+**Network Errors:**
+
+- Alert: "Не удалось загрузить страницу"
+- Options: "Попробовать снова", "Назад"
+- Reload current page or exit
+
+**No Items Detected:**
+
+- Button changes to "Вырезать" (manual crop)
+- User can capture screenshot manually
+- Falls back to ImageCropper flow
+
+**Cart Overflow:**
+
+- No hard limit (unlimited items)
+- Performance tested up to 100+ items
+- Masonry grid virtualizes for large lists
+
+**Tab Limit:**
+
+- Max 5 tabs open simultaneously
+- Warn user: "Maximum 5 tabs allowed"
+- Close existing tab to open new one
+
+**Image Load Failures:**
+
+- Detected image URL invalid
+- Show placeholder in gallery
+- Skip in batch upload
+- User can retry or remove
+
+**Store Unavailable:**
+
+- Page fails to load (timeout, 404, etc.)
+- Error screen with retry option
+- User can navigate to different store
+
+#### Security & Privacy
+
+- No cookies sent to Obrazz backend
+- All browsing data local (AsyncStorage)
+- No tracking of user activity
+- Images downloaded directly (no proxy)
+- HTTPS enforced (`mixedContentMode="never"`)
+- Geolocation disabled
+- Third-party cookies disabled
 
 ---
 
