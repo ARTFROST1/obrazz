@@ -9,6 +9,7 @@ import { useTranslation } from '@hooks/useTranslation';
 import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
 import { itemService } from '@services/wardrobe/itemService';
 import { useAuthStore } from '@store/auth/authStore';
+import { useShoppingBrowserStore } from '@store/shoppingBrowserStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -42,6 +43,17 @@ export default function AddItemScreen() {
   }>();
   const { user } = useAuthStore();
   const { addItem, updateItem } = useWardrobeStore();
+
+  // Batch processing state
+  const {
+    isBatchMode,
+    batchQueue,
+    currentBatchIndex,
+    getNextBatchItem,
+    completeBatchItem,
+    cancelBatchUpload,
+  } = useShoppingBrowserStore();
+
   const isEditMode = !!itemId;
   const isFromWeb = imageSource === 'web' && !!webImageUrl;
 
@@ -52,6 +64,7 @@ export default function AddItemScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [tempImageUri, setTempImageUri] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
+  const [showEditCropper, setShowEditCropper] = useState(false);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<ItemCategory>('tops');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -62,6 +75,8 @@ export default function AddItemScreen() {
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
   const [removingBg, setRemovingBg] = useState(false);
+  const [currentBatchItemId, setCurrentBatchItemId] = useState<string | null>(null);
+  const [downloadingImage, setDownloadingImage] = useState(false); // For web image download indicator
 
   const STYLES: { label: string; value: StyleTag; sticker: string }[] = [
     { label: t('categories:styles.casual'), value: 'casual', sticker: '👕' },
@@ -113,36 +128,78 @@ export default function AddItemScreen() {
   const handleWebCaptureImage = useCallback(
     async (imageUrl: string, needsCropping: boolean) => {
       try {
+        setDownloadingImage(true); // Show loading indicator
+        setLoading(true);
+
+        // Always download image to local storage first (includes compression to 1MP)
+        const { downloadImageFromUrl } = await import('@/services/shopping/webCaptureService');
+        const localUri = await downloadImageFromUrl(imageUrl);
+
+        console.log('[AddItem] Web image downloaded and compressed:', localUri);
+
         if (needsCropping) {
-          // Manual crop mode - show cropper
-          setTempImageUri(imageUrl);
+          // Manual crop mode - show cropper with local image
+          setTempImageUri(localUri);
           setShowCropper(true);
+          setLoading(false);
+          setDownloadingImage(false);
         } else {
-          // Auto mode - download and use image directly
-          setLoading(true);
-
-          // Download image to local storage
-          const { downloadImageFromUrl } = await import('@/services/shopping/webCaptureService');
-          const localUri = await downloadImageFromUrl(imageUrl);
-
+          // Auto mode - use compressed image directly
           setImageUri(localUri);
           setLoading(false);
+          setDownloadingImage(false);
         }
       } catch (error) {
-        console.error('Error handling web capture image:', error);
+        console.error('[AddItem] Error handling web capture image:', error);
         Alert.alert(t('common:states.error'), 'Не удалось загрузить изображение из браузера');
         setLoading(false);
+        setDownloadingImage(false);
       }
     },
     [t],
   );
 
   useEffect(() => {
+    console.log(
+      '[AddItem] Mount - isEditMode:',
+      isEditMode,
+      'isFromWeb:',
+      isFromWeb,
+      'isBatchMode:',
+      isBatchMode,
+    );
+    console.log('[AddItem] webImageUrl:', webImageUrl);
+    console.log(
+      '[AddItem] batchQueue length:',
+      batchQueue.length,
+      'currentIndex:',
+      currentBatchIndex,
+    );
+
     if (isEditMode && itemId) {
       loadItemData();
     } else if (isFromWeb && webImageUrl) {
       // Load image from web capture
       handleWebCaptureImage(webImageUrl, manualCropParam === 'true');
+    } else if (!webImageUrl && isBatchMode) {
+      // Load from batch queue if no URL provided
+      const batchItem = getNextBatchItem();
+      if (batchItem) {
+        // Clean URL from potential Optional() wrapper
+        let cleanUrl = batchItem.image.url;
+        if (typeof cleanUrl === 'string') {
+          // Remove Optional("...") wrapper if present
+          cleanUrl = cleanUrl.replace(/^Optional\(["'](.+)["']\)$/, '$1');
+          // Remove any remaining quotes
+          cleanUrl = cleanUrl.replace(/^["']|["']$/g, '');
+        }
+        console.log('[AddItem] Batch item URL (original):', batchItem.image.url);
+        console.log('[AddItem] Batch item URL (cleaned):', cleanUrl);
+
+        // Download web image using the same method as regular web capture
+        handleWebCaptureImage(cleanUrl, false); // Auto mode for batch
+        setCurrentBatchItemId(batchItem.id);
+      }
     }
   }, [
     isEditMode,
@@ -152,6 +209,8 @@ export default function AddItemScreen() {
     webImageUrl,
     manualCropParam,
     handleWebCaptureImage,
+    isBatchMode,
+    getNextBatchItem,
   ]);
 
   const requestPermissions = async () => {
@@ -255,6 +314,20 @@ export default function AddItemScreen() {
     }
   };
 
+  const handleCropImage = () => {
+    if (!imageUri) return;
+    setShowEditCropper(true);
+  };
+
+  const handleEditCropComplete = (croppedUri: string) => {
+    setImageUri(croppedUri);
+    setShowEditCropper(false);
+  };
+
+  const handleEditCropCancel = () => {
+    setShowEditCropper(false);
+  };
+
   const handleCategorySelect = (selectedCategory: ItemCategory) => {
     setCategory(selectedCategory);
   };
@@ -354,6 +427,33 @@ export default function AddItemScreen() {
         addItem(newItem);
       }
 
+      // Handle batch mode
+      if (isBatchMode && currentBatchItemId) {
+        console.log('[AddItem] Batch mode - completing item:', currentBatchItemId);
+
+        // Complete current batch item (removes from cart if fromCart=true)
+        await completeBatchItem(currentBatchItemId);
+
+        // After completeBatchItem, index is already moved to next
+        // So we just need to get the current item from updated queue
+        const nextItem = getNextBatchItem();
+        console.log('[AddItem] Next batch item:', nextItem?.id);
+
+        if (nextItem) {
+          console.log('[AddItem] Navigating to next item, URL:', nextItem.image.url);
+          // Navigate to next item - no need to pass imageUrl, it will load from queue
+          router.replace({
+            pathname: '/add-item',
+            params: {
+              source: 'web',
+            },
+          });
+          return; // Don't go back
+        } else {
+          console.log('[AddItem] Batch complete, going back');
+        }
+      }
+
       router.back();
     } catch (error) {
       console.error('Error saving item:', error);
@@ -375,6 +475,11 @@ export default function AddItemScreen() {
               style={styles.image}
               resizeMode="contain"
             />
+          ) : downloadingImage ? (
+            <View style={styles.imagePlaceholder}>
+              <ActivityIndicator size="large" color="#007AFF" />
+              <Text style={styles.downloadingText}>Загрузка изображения...</Text>
+            </View>
           ) : (
             <View style={styles.imagePlaceholder}>
               <Ionicons name="image-outline" size={40} color="#CCC" />
@@ -383,12 +488,15 @@ export default function AddItemScreen() {
         </View>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addPhotoButton} onPress={handleImageAction}>
-            <Ionicons name={imageUri ? 'camera-reverse' : 'camera'} size={20} color="#FFF" />
-            <Text style={styles.addPhotoButtonText}>
-              {imageUri ? t('common:buttons.edit') : t('addItem.selectPhoto')}
-            </Text>
-          </TouchableOpacity>
+          {/* Hide "Add Photo" button for web/batch sources */}
+          {!isBatchMode && !isFromWeb && (
+            <TouchableOpacity style={styles.addPhotoButton} onPress={handleImageAction}>
+              <Ionicons name={imageUri ? 'camera-reverse' : 'camera'} size={20} color="#FFF" />
+              <Text style={styles.addPhotoButtonText}>
+                {imageUri ? t('common:buttons.edit') : t('addItem.selectPhoto')}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {imageUri && backgroundRemoverService.isConfigured() && (
             <TouchableOpacity
@@ -404,6 +512,13 @@ export default function AddItemScreen() {
                   <Text style={styles.addPhotoButtonText}>{t('addItem.removeBg')}</Text>
                 </>
               )}
+            </TouchableOpacity>
+          )}
+
+          {imageUri && (
+            <TouchableOpacity style={styles.addPhotoButton} onPress={handleCropImage}>
+              <Ionicons name="crop" size={18} color="#FFF" />
+              <Text style={styles.addPhotoButtonText}>Обрезать</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -509,20 +624,52 @@ export default function AddItemScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => (step === 1 ? router.back() : setStep(1))}
+          onPress={() => {
+            if (step === 1) {
+              // If in batch mode, ask to cancel
+              if (isBatchMode && batchQueue.length > 1) {
+                Alert.alert(
+                  'Выйти из добавления?',
+                  `Осталось ${batchQueue.length - currentBatchIndex} вещей. Вы уверены?`,
+                  [
+                    { text: 'Отмена', style: 'cancel' },
+                    {
+                      text: 'Выйти',
+                      style: 'destructive',
+                      onPress: () => {
+                        cancelBatchUpload();
+                        router.back();
+                      },
+                    },
+                  ],
+                );
+              } else {
+                router.back();
+              }
+            } else {
+              setStep(1);
+            }
+          }}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.title}>
-          {isEditMode
-            ? step === 1
-              ? t('addItem.editItemTitle')
-              : t('addItem.editDetailsTitle')
-            : step === 1
-              ? t('addItem.addItemTitle')
-              : t('addItem.detailsTitle')}
-        </Text>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={styles.title}>
+            {isEditMode
+              ? step === 1
+                ? t('addItem.editItemTitle')
+                : t('addItem.editDetailsTitle')
+              : step === 1
+                ? t('addItem.addItemTitle')
+                : t('addItem.detailsTitle')}
+          </Text>
+          {isBatchMode && batchQueue.length > 1 && (
+            <Text style={styles.batchIndicator}>
+              {currentBatchIndex + 1} / {batchQueue.length}
+            </Text>
+          )}
+        </View>
         <View style={styles.placeholder} />
       </View>
 
@@ -553,6 +700,16 @@ export default function AddItemScreen() {
           onCancel={handleCropCancel}
         />
       )}
+
+      {/* Edit Image Cropper Modal */}
+      {imageUri && (
+        <ImageCropper
+          visible={showEditCropper}
+          imageUri={imageUri}
+          onCropComplete={handleEditCropComplete}
+          onCancel={handleEditCropCancel}
+        />
+      )}
     </View>
   );
 }
@@ -579,6 +736,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 18,
     fontWeight: '600',
+  },
+  batchIndicator: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500',
   },
   placeholder: {
     width: 32,
@@ -641,6 +804,12 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  downloadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
   addPhotoButton: {
     flexDirection: 'row',

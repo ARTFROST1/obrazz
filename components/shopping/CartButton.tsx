@@ -1,4 +1,5 @@
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -14,7 +15,7 @@ export default function CartButton() {
 
   return (
     <TouchableOpacity style={styles.button} onPress={handlePress}>
-      <Text style={styles.icon}>🛒</Text>
+      <Ionicons name="cart" size={20} color="#FFFFFF" />
       {count > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>
@@ -28,12 +29,11 @@ const styles = StyleSheet.create({
   button: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-  },
-  icon: {
-    fontSize: 24,
   },
   badge: {
     position: 'absolute',

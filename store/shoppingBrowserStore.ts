@@ -32,12 +32,10 @@ interface ShoppingBrowserState {
   // NEW: Gallery sheet state
   showGallerySheet: boolean;
 
-  // NEW: Batch processing state
-  isBatchProcessing: boolean;
-  batchProgress: {
-    current: number;
-    total: number;
-  };
+  // Batch upload queue
+  batchQueue: CartItem[];
+  currentBatchIndex: number;
+  isBatchMode: boolean;
 
   // Actions
   loadStores: () => Promise<void>;
@@ -47,6 +45,7 @@ interface ShoppingBrowserState {
 
   // Tab actions
   openTab: (store: Store) => void;
+  openAllTabs: (stores: Store[], activeIndex?: number) => void; // NEW: Open all stores at once
   closeTab: (tabId: string) => void;
   switchTab: (tabId: string) => void;
   updateTabUrl: (tabId: string, url: string) => void;
@@ -77,10 +76,12 @@ interface ShoppingBrowserState {
   // NEW: Gallery sheet actions
   showGallery: (show: boolean) => void;
 
-  // NEW: Batch processing actions
-  startBatchProcessing: (total: number) => void;
-  updateBatchProgress: (current: number) => void;
-  finishBatchProcessing: () => void;
+  // Batch queue actions
+  startBatchUpload: (items: CartItem[], fromCart?: boolean) => void;
+  getNextBatchItem: () => CartItem | null;
+  completeBatchItem: (itemId: string) => Promise<void>;
+  cancelBatchUpload: () => void;
+  isBatchInProgress: () => boolean;
 
   // Reset
   reset: () => void;
@@ -111,12 +112,10 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
   // NEW: Gallery sheet state
   showGallerySheet: false,
 
-  // NEW: Batch processing state
-  isBatchProcessing: false,
-  batchProgress: {
-    current: 0,
-    total: 0,
-  },
+  // Batch upload queue
+  batchQueue: [],
+  currentBatchIndex: 0,
+  isBatchMode: false,
 
   // Load stores from AsyncStorage
   loadStores: async () => {
@@ -201,6 +200,41 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
     });
   },
 
+  // NEW: Open all stores at once (no max limit for initial load)
+  openAllTabs: (stores, activeIndex = 0) => {
+    console.log(
+      '[ShoppingBrowserStore] Opening all tabs:',
+      stores.length,
+      'Active index:',
+      activeIndex,
+    );
+
+    const timestamp = Date.now();
+
+    // Create tabs for all stores
+    const newTabs: BrowserTab[] = stores.map((store, index) => ({
+      id: `${timestamp}_${index}`,
+      shopName: store.name,
+      shopUrl: store.url,
+      favicon: store.faviconUrl,
+      currentUrl: store.url,
+      scrollPosition: 0,
+    }));
+
+    // Set active tab based on provided index
+    const activeTabId =
+      newTabs.length > 0 && activeIndex >= 0 && activeIndex < newTabs.length
+        ? newTabs[activeIndex].id
+        : newTabs.length > 0
+          ? newTabs[0].id
+          : null;
+
+    set({
+      tabs: newTabs,
+      activeTabId,
+    });
+  },
+
   // Close tab
   closeTab: (tabId) => {
     set((state) => {
@@ -226,9 +260,15 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
 
   // Update tab URL (when user navigates)
   updateTabUrl: (tabId, url) => {
-    set((state) => ({
-      tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, currentUrl: url } : t)),
-    }));
+    const { tabs } = get();
+    const tab = tabs.find((t) => t.id === tabId);
+
+    // Only update if URL actually changed
+    if (tab && tab.currentUrl !== url) {
+      set((state) => ({
+        tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, currentUrl: url } : t)),
+      }));
+    }
   },
 
   // Update tab scroll position
@@ -275,15 +315,25 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
 
   // Scan actions
   setScanning: (scanning) => {
-    set({ isScanning: scanning });
+    const { isScanning } = get();
+    if (isScanning !== scanning) {
+      set({ isScanning: scanning });
+    }
   },
 
   setHasScanned: (scanned) => {
-    set({ hasScanned: scanned });
+    const { hasScanned } = get();
+    if (hasScanned !== scanned) {
+      set({ hasScanned: scanned });
+    }
   },
 
   resetScanState: () => {
-    set({ isScanning: false, hasScanned: false, detectedImages: [] });
+    const { isScanning, hasScanned, detectedImages } = get();
+    // Only reset if there's something to reset (avoid unnecessary state updates)
+    if (isScanning || hasScanned || detectedImages.length > 0) {
+      set({ isScanning: false, hasScanned: false, detectedImages: [] });
+    }
   },
 
   // NEW: Selection actions
@@ -306,7 +356,11 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
   },
 
   clearSelection: () => {
-    set({ selectedImageIds: new Set<string>() });
+    const { selectedImageIds } = get();
+    // Only clear if there's something to clear
+    if (selectedImageIds.size > 0) {
+      set({ selectedImageIds: new Set<string>() });
+    }
   },
 
   // NEW: Cart actions
@@ -369,28 +423,69 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
 
   // NEW: Gallery sheet actions
   showGallery: (show) => {
-    set({ showGallerySheet: show });
+    const { showGallerySheet } = get();
+    // Only update if value actually changed
+    if (showGallerySheet !== show) {
+      set({ showGallerySheet: show });
+    }
   },
 
-  // NEW: Batch processing actions
-  startBatchProcessing: (total) => {
-    set({
-      isBatchProcessing: true,
-      batchProgress: { current: 0, total },
-    });
-  },
-
-  updateBatchProgress: (current) => {
-    set((state) => ({
-      batchProgress: { ...state.batchProgress, current },
+  // Batch queue actions
+  startBatchUpload: (items, fromCart = false) => {
+    // Mark items with fromCart flag
+    const itemsWithFlag = items.map((item) => ({
+      ...item,
+      fromCart,
     }));
+
+    set({
+      batchQueue: itemsWithFlag,
+      currentBatchIndex: 0,
+      isBatchMode: items.length >= 1, // Batch mode for 1 or more items from web
+    });
   },
 
-  finishBatchProcessing: () => {
+  getNextBatchItem: () => {
+    const { batchQueue, currentBatchIndex } = get();
+    if (currentBatchIndex >= batchQueue.length) {
+      return null;
+    }
+    return batchQueue[currentBatchIndex];
+  },
+
+  completeBatchItem: async (itemId) => {
+    const { batchQueue, currentBatchIndex, removeFromCart } = get();
+
+    // Remove from cart if it's a cart item
+    await removeFromCart(itemId);
+
+    // Move to next item
+    const nextIndex = currentBatchIndex + 1;
+
+    if (nextIndex >= batchQueue.length) {
+      // Batch complete
+      set({
+        batchQueue: [],
+        currentBatchIndex: 0,
+        isBatchMode: false,
+      });
+    } else {
+      // Move to next item
+      set({ currentBatchIndex: nextIndex });
+    }
+  },
+
+  cancelBatchUpload: () => {
     set({
-      isBatchProcessing: false,
-      batchProgress: { current: 0, total: 0 },
+      batchQueue: [],
+      currentBatchIndex: 0,
+      isBatchMode: false,
     });
+  },
+
+  isBatchInProgress: () => {
+    const { batchQueue, currentBatchIndex } = get();
+    return currentBatchIndex < batchQueue.length && batchQueue.length > 0;
   },
 
   // Reset all state

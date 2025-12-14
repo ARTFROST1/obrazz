@@ -1,5 +1,4 @@
 import CartItemRow from '@/components/shopping/CartItemRow';
-import { useBatchItemProcessing } from '@/hooks/useBatchItemProcessing';
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
@@ -19,14 +18,24 @@ import {
 export default function CartScreen() {
   const router = useRouter();
 
-  const { cartItems, removeFromCart, clearCart } = useShoppingBrowserStore();
-
-  const { processBatchFromCart } = useBatchItemProcessing();
+  const { cartItems, removeFromCart, clearCart, startBatchUpload } = useShoppingBrowserStore();
 
   const count = cartItems.length;
 
   const handleDelete = async (itemId: string) => {
     await removeFromCart(itemId);
+  };
+
+  const handleItemPress = (item: any) => {
+    // Start single item batch (FROM CART)
+    startBatchUpload([item], true);
+
+    router.push({
+      pathname: '/add-item',
+      params: {
+        source: 'web',
+      },
+    });
   };
 
   const handleClearCart = () => {
@@ -42,14 +51,18 @@ export default function CartScreen() {
     ]);
   };
 
-  const handleAddAll = async () => {
+  const handleAddAll = () => {
     if (count === 0) return;
 
-    // Navigate back to browser
-    router.back();
+    // Start batch upload with all cart items (FROM CART)
+    startBatchUpload(cartItems, true);
 
-    // Start batch processing
-    await processBatchFromCart();
+    router.push({
+      pathname: '/add-item',
+      params: {
+        source: 'web',
+      },
+    });
   };
 
   return (
@@ -110,7 +123,9 @@ export default function CartScreen() {
             <FlatList
               data={cartItems}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <CartItemRow item={item} onDelete={handleDelete} />}
+              renderItem={({ item }) => (
+                <CartItemRow item={item} onDelete={handleDelete} onPress={handleItemPress} />
+              )}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContent}
             />

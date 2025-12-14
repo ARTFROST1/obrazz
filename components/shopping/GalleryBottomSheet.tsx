@@ -1,7 +1,7 @@
-import { useBatchItemProcessing } from '@/hooks/useBatchItemProcessing';
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import type { CartItem, DetectedImage } from '@/types/models/store';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import MasonryGallery from './MasonryGallery';
 export default function GalleryBottomSheet() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const {
     detectedImages,
@@ -22,9 +23,8 @@ export default function GalleryBottomSheet() {
     tabs,
     activeTabId,
     setHasScanned,
+    startBatchUpload,
   } = useShoppingBrowserStore();
-
-  const { processBatch } = useBatchItemProcessing();
 
   const selectedCount = selectedImageIds.size;
   const totalCount = detectedImages.length;
@@ -82,9 +82,12 @@ export default function GalleryBottomSheet() {
     [selectedCount, totalCount, handleClose],
   );
 
-  const handleImageSelect = (image: DetectedImage) => {
-    toggleImageSelection(image.id);
-  };
+  const handleImageSelect = useCallback(
+    (image: DetectedImage) => {
+      toggleImageSelection(image.id);
+    },
+    [toggleImageSelection],
+  );
 
   const handleAddNow = async () => {
     if (selectedCount === 0) {
@@ -99,7 +102,7 @@ export default function GalleryBottomSheet() {
 
     // Convert to CartItems
     const cartItems: CartItem[] = selectedImages.map((image) => ({
-      id: `${image.id}_${Date.now()}`,
+      id: `${image.id}_${Date.now()}_${Math.random()}`,
       image,
       sourceUrl,
       sourceName,
@@ -109,8 +112,16 @@ export default function GalleryBottomSheet() {
     // Close gallery
     handleClose();
 
-    // Start batch processing
-    await processBatch(cartItems);
+    // Start batch upload
+    startBatchUpload(cartItems);
+
+    // Navigate to first item
+    router.push({
+      pathname: '/add-item',
+      params: {
+        source: 'web',
+      },
+    });
   };
 
   const handleAddToCart = async () => {
@@ -135,19 +146,13 @@ export default function GalleryBottomSheet() {
 
   // Open sheet when showGallerySheet becomes true
   React.useEffect(() => {
-    console.log('[GalleryBottomSheet] State changed:', { showGallerySheet, totalCount });
-
     if (showGallerySheet && totalCount > 0) {
-      console.log('[GalleryBottomSheet] Opening sheet to index 1');
       bottomSheetRef.current?.snapToIndex(1); // Open to 65%
-    } else {
-      console.log('[GalleryBottomSheet] Closing sheet');
+    } else if (!showGallerySheet) {
+      // Only close when explicitly hidden, not when waiting for images
       bottomSheetRef.current?.close();
     }
   }, [showGallerySheet, totalCount]);
-
-  // Always render the component, just keep it closed if no images
-  console.log('[GalleryBottomSheet] Rendering with:', { totalCount, showGallerySheet });
 
   return (
     <BottomSheet

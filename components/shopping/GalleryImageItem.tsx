@@ -1,6 +1,6 @@
 import type { DetectedImage } from '@/types/models/store';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -12,13 +12,7 @@ interface GalleryImageItemProps {
   height: number;
 }
 
-export default function GalleryImageItem({
-  image,
-  isSelected,
-  onSelect,
-  width,
-  height,
-}: GalleryImageItemProps) {
+function GalleryImageItem({ image, isSelected, onSelect, width, height }: GalleryImageItemProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -51,6 +45,17 @@ export default function GalleryImageItem({
     </Animated.View>
   );
 }
+
+// Memoize to prevent re-renders when parent updates
+export default memo(GalleryImageItem, (prev, next) => {
+  // Only re-render if these specific props changed
+  return (
+    prev.image.id === next.image.id &&
+    prev.isSelected === next.isSelected &&
+    prev.width === next.width &&
+    prev.height === next.height
+  );
+});
 
 const styles = StyleSheet.create({
   container: {

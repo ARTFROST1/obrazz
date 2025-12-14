@@ -6,11 +6,16 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 interface CartItemRowProps {
   item: CartItem;
   onDelete: (itemId: string) => void;
+  onPress?: (item: CartItem) => void;
 }
 
-export default function CartItemRow({ item, onDelete }: CartItemRowProps) {
+export default function CartItemRow({ item, onDelete, onPress }: CartItemRowProps) {
   const handleDelete = () => {
     onDelete(item.id);
+  };
+
+  const handlePress = () => {
+    onPress?.(item);
   };
 
   // Extract domain from URL for display
@@ -24,7 +29,7 @@ export default function CartItemRow({ item, onDelete }: CartItemRowProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
       {/* Thumbnail */}
       <Image source={{ uri: item.image.url }} style={styles.thumbnail} resizeMode="cover" />
 
@@ -45,7 +50,7 @@ export default function CartItemRow({ item, onDelete }: CartItemRowProps) {
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Ionicons name="trash-outline" size={20} color="#FF3B30" />
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 

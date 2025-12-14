@@ -15,7 +15,7 @@ import {
 
 export default function ShoppingStoriesCarousel() {
   const router = useRouter();
-  const { stores, loadingStores, loadStores, openTab, removeStore } = useShoppingBrowserStore();
+  const { stores, loadingStores, loadStores, openAllTabs, removeStore } = useShoppingBrowserStore();
   const [longPressedStore, setLongPressedStore] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,11 +23,23 @@ export default function ShoppingStoriesCarousel() {
   }, [loadStores]);
 
   const handleStorePress = useCallback(
-    (store: Store) => {
-      openTab(store);
+    (clickedStore: Store) => {
+      // Safety check: ensure stores exist
+      if (!stores || stores.length === 0) {
+        Alert.alert('Ошибка', 'Магазины не загружены. Попробуйте обновить страницу.');
+        return;
+      }
+
+      // Find index of clicked store
+      const clickedStoreIndex = stores.findIndex((s) => s.id === clickedStore.id);
+
+      // Open all stores at once with clicked store as active
+      openAllTabs(stores, clickedStoreIndex !== -1 ? clickedStoreIndex : 0);
+
+      // Navigate to browser - it will show all tabs in carousel
       router.push('/shopping/browser');
     },
-    [openTab, router],
+    [stores, openAllTabs, router],
   );
 
   const handleRemoveStore = useCallback(
@@ -77,6 +89,18 @@ export default function ShoppingStoriesCarousel() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#000" />
+      </View>
+    );
+  }
+
+  // Handle empty stores state
+  if (!stores || stores.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>🛍️ Магазины</Text>
+          <Text style={styles.subtitle}>Загрузка магазинов...</Text>
+        </View>
       </View>
     );
   }

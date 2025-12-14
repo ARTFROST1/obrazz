@@ -39,6 +39,7 @@ export interface CartItem {
   sourceUrl: string; // URL страницы, где найдено
   sourceName: string; // Название магазина
   addedAt: number; // Timestamp добавления
+  fromCart?: boolean; // true если из корзины, false если из gallery
 }
 
 export interface BatchProcessingState {

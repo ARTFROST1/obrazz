@@ -1,4 +1,5 @@
 import { ResizableCropOverlay } from '@/components/common/ResizableCropOverlay';
+import { resizeToMegapixels } from '@/utils/image/imageCompression';
 import * as ImageManipulator from 'expo-image-manipulator';
 import React, { useState } from 'react';
 import {
@@ -145,8 +146,22 @@ export default function WebViewCropOverlay({
         },
       );
 
-      console.log('[WebViewCropOverlay] Crop complete:', result.uri);
-      onCropComplete(result.uri);
+      console.log('[WebViewCropOverlay] Crop complete, resizing to 1MP...');
+
+      // Resize to 1MP to optimize for background removal and reduce API costs
+      const resizeResult = await resizeToMegapixels(result.uri, {
+        targetMegapixels: 1.0,
+        quality: 0.85,
+      });
+
+      console.log('[WebViewCropOverlay] Resize to 1MP complete:', {
+        dimensions: `${resizeResult.resizedWidth}x${resizeResult.resizedHeight}`,
+        megapixels: resizeResult.resizedMegapixels.toFixed(2) + 'MP',
+        fileSize: (resizeResult.compressedSize / 1024).toFixed(2) + 'KB',
+        compressionRatio: resizeResult.compressionRatio.toFixed(2) + 'x',
+      });
+
+      onCropComplete(resizeResult.uri);
     } catch (error) {
       console.error('[WebViewCropOverlay] Error cropping image:', error);
       alert('Ошибка при обрезке изображения');

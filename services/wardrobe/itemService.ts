@@ -386,8 +386,22 @@ class ItemService {
    */
   private async saveImageLocally(imageUri: string, userId: string): Promise<string> {
     try {
-      console.log('[ItemService.saveImageLocally] Input URI:', imageUri);
+      console.log('[ItemService.saveImageLocally] Input URI (raw):', imageUri);
+      console.log('[ItemService.saveImageLocally] Input URI type:', typeof imageUri);
       console.log('[ItemService.saveImageLocally] User ID:', userId);
+
+      // Clean URI from Optional() wrapper if present (iOS bridge issue)
+      let cleanedUri = imageUri;
+      if (typeof imageUri === 'string') {
+        // Remove Optional("...") wrapper
+        cleanedUri = imageUri.replace(/^Optional\(["'](.+)["']\)$/, '$1');
+        // Remove any remaining quotes
+        cleanedUri = cleanedUri.replace(/^["']|["']$/g, '');
+        // Trim whitespace
+        cleanedUri = cleanedUri.trim();
+      }
+
+      console.log('[ItemService.saveImageLocally] Cleaned URI:', cleanedUri);
 
       const timestamp = Date.now();
       const fileName = `${userId}_${timestamp}.jpg`;
@@ -396,9 +410,9 @@ class ItemService {
       console.log('[ItemService.saveImageLocally] Target directory:', directory);
 
       // Check if source file exists
-      const sourceInfo = await FileSystem.getInfoAsync(imageUri);
+      const sourceInfo = await FileSystem.getInfoAsync(cleanedUri);
       if (!sourceInfo.exists) {
-        throw new Error(`Source image does not exist: ${imageUri}`);
+        throw new Error(`Source image does not exist: ${cleanedUri}`);
       }
       console.log('[ItemService.saveImageLocally] Source file exists, size:', sourceInfo.size);
 
@@ -417,7 +431,7 @@ class ItemService {
 
       // Copy or move image to local storage
       await FileSystem.copyAsync({
-        from: imageUri,
+        from: cleanedUri,
         to: localPath,
       });
 

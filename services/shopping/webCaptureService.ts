@@ -1,7 +1,8 @@
+import { resizeToMegapixels } from '@/utils/image/imageCompression';
 import { File, Paths } from 'expo-file-system';
 
 /**
- * Downloads image from URL to local storage
+ * Downloads image from URL to local storage and compresses to 1MP
  */
 export async function downloadImageFromUrl(imageUrl: string): Promise<string> {
   try {
@@ -11,8 +12,8 @@ export async function downloadImageFromUrl(imageUrl: string): Promise<string> {
 
     const file = new File(Paths.cache, fileName);
 
-    console.log('Downloading image from:', imageUrl);
-    console.log('Download destination:', file.uri);
+    console.log('[WebCapture] Downloading image from:', imageUrl);
+    console.log('[WebCapture] Download destination:', file.uri);
 
     const response = await fetch(imageUrl);
     if (!response.ok) {
@@ -23,10 +24,24 @@ export async function downloadImageFromUrl(imageUrl: string): Promise<string> {
     const uint8Array = new Uint8Array(arrayBuffer);
     await file.write(uint8Array);
 
-    console.log('Image downloaded successfully:', file.uri);
-    return file.uri;
+    console.log('[WebCapture] Image downloaded successfully, resizing to 1MP...');
+
+    // Resize to 1MP to optimize for background removal and reduce API costs
+    const resizeResult = await resizeToMegapixels(file.uri, {
+      targetMegapixels: 1.0,
+      quality: 0.85,
+    });
+
+    console.log('[WebCapture] Resize to 1MP complete:', {
+      dimensions: `${resizeResult.resizedWidth}x${resizeResult.resizedHeight}`,
+      megapixels: resizeResult.resizedMegapixels.toFixed(2) + 'MP',
+      fileSize: (resizeResult.compressedSize / 1024).toFixed(2) + 'KB',
+      compressionRatio: resizeResult.compressionRatio.toFixed(2) + 'x',
+    });
+
+    return resizeResult.uri;
   } catch (error) {
-    console.error('Error downloading image:', error);
+    console.error('[WebCapture] Error downloading image:', error);
     throw error;
   }
 }

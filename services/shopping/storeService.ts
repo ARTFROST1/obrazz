@@ -87,13 +87,22 @@ class StoreService {
     try {
       const stored = await AsyncStorage.getItem(STORES_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        try {
+          const parsed = JSON.parse(stored);
+          // Validate parsed data is an array
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+          console.warn('[StoreService] Invalid stored data, using defaults');
+        } catch (parseError) {
+          console.error('[StoreService] JSON parse error:', parseError);
+        }
       }
-      // First time - return defaults
+      // First time or invalid data - return defaults
       await this.saveStores(DEFAULT_STORES);
       return DEFAULT_STORES;
     } catch (error) {
-      console.error('Error loading stores:', error);
+      console.error('[StoreService] Error loading stores:', error);
       return DEFAULT_STORES;
     }
   }
@@ -150,10 +159,20 @@ class StoreService {
    * Reorder stores
    */
   async reorderStores(storeIds: string[]): Promise<void> {
+    if (!storeIds || storeIds.length === 0) {
+      throw new Error('Store IDs array is empty');
+    }
+
     const stores = await this.getStores();
+
+    // Validate all IDs exist
+    const missingIds = storeIds.filter((id) => !stores.find((s) => s.id === id));
+    if (missingIds.length > 0) {
+      throw new Error(`Stores not found: ${missingIds.join(', ')}`);
+    }
+
     const reordered = storeIds.map((id, index) => {
-      const store = stores.find((s) => s.id === id);
-      if (!store) throw new Error(`Store ${id} not found`);
+      const store = stores.find((s) => s.id === id)!;
       return { ...store, order: index + 1 };
     });
 
