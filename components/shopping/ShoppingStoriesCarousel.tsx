@@ -77,14 +77,6 @@ export default function ShoppingStoriesCarousel() {
     [handleRemoveStore],
   );
 
-  const handleAddStore = useCallback(() => {
-    // TODO: Open modal to add custom store
-    Alert.alert(
-      'Добавить магазин',
-      'Функция добавления пользовательских магазинов будет доступна в следующей версии',
-    );
-  }, []);
-
   // Render store logo with priority: local asset > remote URL > monogram
   const renderStoreLogo = useCallback((store: Store) => {
     // Priority 1: Local asset for default stores
@@ -163,14 +155,6 @@ export default function ShoppingStoriesCarousel() {
             </Text>
           </TouchableOpacity>
         ))}
-
-        {/* Add Store Button */}
-        <TouchableOpacity style={styles.storeItem} onPress={handleAddStore} activeOpacity={0.7}>
-          <View style={[styles.avatarContainer, styles.addButton]}>
-            <Text style={styles.addButtonText}>+</Text>
-          </View>
-          <Text style={styles.storeName}>Добавить</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -242,15 +226,5 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 11,
     textAlign: 'center',
-  },
-  addButton: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#CCCCCC',
-    borderStyle: 'dashed',
-  },
-  addButtonText: {
-    color: '#999999',
-    fontSize: 32,
-    fontWeight: '300',
   },
 });

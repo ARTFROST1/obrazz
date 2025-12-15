@@ -31,6 +31,7 @@ export default {
     },
     android: {
       package: 'com.artfrost.obrazz',
+      versionCode: 1,
       icon: './assets/images/adaptive-icon.png',
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon-foreground.png',

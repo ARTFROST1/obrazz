@@ -2,9 +2,9 @@ import { ItemCategory } from '@/types/models/item';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// Smaller square tiles for categories
-const TILE_SIZE = 100;
-const TILE_MARGIN = 8;
+// Square tiles for categories (like app icons on OZON)
+const TILE_SIZE = 72;
+const TILE_GAP = 12;
 
 interface CategoryItem {
   id: ItemCategory;
@@ -86,14 +86,13 @@ export default function CategoriesCarousel({ onCategoryPress }: CategoriesCarous
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         decelerationRate="fast"
-        snapToInterval={TILE_SIZE + TILE_MARGIN * 2}
       >
-        {CATEGORY_DATA.map((item) => (
+        {CATEGORY_DATA.map((item, index) => (
           <TouchableOpacity
             key={item.id}
-            style={styles.tile}
+            style={[styles.tile, index === 0 && styles.firstTile]}
             onPress={() => handleCategoryPress(item.id)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
             <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
               <Text style={styles.icon}>{item.icon}</Text>
@@ -114,47 +113,50 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: '#000',
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666',
-    marginTop: 2,
+    marginTop: 4,
   },
   scrollContent: {
-    paddingHorizontal: 12,
+    paddingRight: 16,
+  },
+  firstTile: {
+    marginLeft: 16,
   },
   tile: {
     width: TILE_SIZE,
     alignItems: 'center',
-    marginHorizontal: TILE_MARGIN,
+    marginLeft: TILE_GAP,
   },
   iconContainer: {
     width: TILE_SIZE,
     height: TILE_SIZE,
-    borderRadius: 20,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
   },
   icon: {
-    fontSize: 40,
+    fontSize: 32,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     color: '#333',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 16,
+    lineHeight: 14,
   },
 });

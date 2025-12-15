@@ -5,10 +5,10 @@ import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from '
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Large tile that shows edges of neighbors
-const TILE_WIDTH = SCREEN_WIDTH * 0.75;
-const TILE_HEIGHT = 180;
-const TILE_MARGIN = 8;
+// Large banner-like tile that shows edges of neighbors (like OZON banners)
+const TILE_WIDTH = SCREEN_WIDTH - 48; // 24px margins on each side, neighbors peek ~12px
+const TILE_HEIGHT = 200;
+const TILE_GAP = 12;
 
 interface StyleItem {
   id: StyleTag;
@@ -155,9 +155,10 @@ export default function StylesCarousel({ onStylePress }: StylesCarouselProps) {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        snapToInterval={TILE_WIDTH + TILE_MARGIN * 2}
+        snapToInterval={TILE_WIDTH + TILE_GAP}
         decelerationRate="fast"
-        snapToAlignment="center"
+        snapToAlignment="start"
+        ItemSeparatorComponent={() => <View style={{ width: TILE_GAP }} />}
       />
     </View>
   );
@@ -169,60 +170,59 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: '#000',
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666',
-    marginTop: 2,
+    marginTop: 4,
   },
   listContent: {
-    paddingHorizontal: (SCREEN_WIDTH - TILE_WIDTH) / 2 - TILE_MARGIN,
+    paddingHorizontal: 16,
   },
   tile: {
     width: TILE_WIDTH,
     height: TILE_HEIGHT,
-    marginHorizontal: TILE_MARGIN,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   gradient: {
     flex: 1,
     justifyContent: 'flex-end',
-    padding: 20,
+    padding: 24,
   },
   tileContent: {
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
   sticker: {
-    fontSize: 48,
+    fontSize: 56,
     marginRight: 16,
   },
   textContainer: {
     flex: 1,
   },
   styleLabel: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: '#fff',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   styleDescription: {
-    fontSize: 14,
+    fontSize: 15,
     color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 2,
+    marginTop: 4,
   },
 });

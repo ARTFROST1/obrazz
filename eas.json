@@ -12,15 +12,22 @@
       },
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "development"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "preview"
       }
     },
     "adhoc": {
@@ -31,14 +38,20 @@
       "ios": {
         "simulator": false,
         "enterpriseProvisioning": "adhoc"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "adhoc"
       }
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
       }
     }
   },

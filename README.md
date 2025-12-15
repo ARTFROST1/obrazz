@@ -94,6 +94,12 @@ npx expo start
 - [PRD](./Docs/PRDobrazz.md) - Product requirements document
 - [App Map](./Docs/AppMapobrazz.md) - Detailed application architecture
 
+### 📦 Building & Distribution
+
+- [Build Instructions](./BUILD_INSTRUCTIONS.md) - Complete guide for building APK/AAB
+- [Quick Build Commands](./QUICK_BUILD.md) - Fast reference for EAS Build
+- [Build Checklist](./BUILD_CHECKLIST.md) - Pre-build verification steps
+
 ## 🛠️ Tech Stack
 
 ### Frontend
