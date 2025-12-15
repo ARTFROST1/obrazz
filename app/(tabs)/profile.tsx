@@ -1,4 +1,5 @@
 import { Button, Loader } from '@components/ui';
+import { getTabBarPadding } from '@constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { authService } from '@services/auth/authService';
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 20 : 80, // iOS NativeTabs handles spacing automatically
+    paddingBottom: Platform.OS === 'ios' ? 20 : getTabBarPadding(), // iOS NativeTabs handles spacing, Android needs tab bar clearance
   },
   email: {
     color: '#666666',

@@ -5,7 +5,8 @@
       "Bash(find:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run lint)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

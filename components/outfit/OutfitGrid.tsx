@@ -8,6 +8,7 @@ import {
   useColorScheme,
   Platform,
 } from 'react-native';
+import { getTabBarPadding } from '@constants/Layout';
 import type { Outfit } from '../../types/models';
 import { OutfitCard } from './OutfitCard';
 import { OutfitEmptyState } from './OutfitEmptyState';
@@ -134,6 +135,12 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
       onEndReachedThreshold={0.5}
       ListEmptyComponent={renderEmpty}
       ListFooterComponent={renderFooter}
+      // Android performance optimizations
+      removeClippedSubviews={Platform.OS === 'android'}
+      maxToRenderPerBatch={Platform.OS === 'android' ? 4 : 8}
+      initialNumToRender={8}
+      windowSize={11}
+      updateCellsBatchingPeriod={50}
     />
   );
 };
@@ -141,7 +148,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 90, // iOS NativeTabs handles spacing, Android needs extra for FAB
+    paddingBottom: Platform.OS === 'ios' ? 20 : getTabBarPadding(), // iOS NativeTabs handles spacing, Android needs tab bar clearance
   },
   emptyContainer: {
     flexGrow: 1,

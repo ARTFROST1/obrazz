@@ -1,22 +1,40 @@
 /**
  * Image detection script to be injected into WebView
  * Detects clothing images on web pages
- * Optimized for performance
+ * Optimized for performance - self-contained and callable
  */
 export const imageDetectionScript = `
 (function() {
-  console.log('[ImageDetection] Script execution started');
-  
-  // Prevent multiple initializations
-  if (window.__obrazzDetectionInitialized) {
-    console.log('[ImageDetection] Already initialized, skipping');
-    return;
-  }
-  window.__obrazzDetectionInitialized = true;
   console.log('[ImageDetection] Initializing detection system...');
-
+  
   // Pre-compiled regex for keywords (faster than array.some)
   const keywordPattern = /product|clothing|fashion|dress|shirt|pants|jacket|shoe|skirt|coat|sweater|jeans|apparel|wear|style|outfit|товар|одежда|item|model|look|collection/i;
+
+  // Helper function to find product URL from image parent elements
+  function findProductUrl(img) {
+    let element = img;
+    let depth = 0;
+    const maxDepth = 5; // Search up to 5 parent elements
+    
+    while (element && depth < maxDepth) {
+      // Check if current element is a link
+      if (element.tagName === 'A' && element.href) {
+        const href = element.href;
+        // Filter out non-product links (cart, search, category lists, etc.)
+        if (!/\\/(cart|search|category|collection|catalog|list|filter)[\\/\\?]/i.test(href) &&
+            !/\\/(login|register|account|checkout)/i.test(href)) {
+          return href;
+        }
+      }
+      // Check for data attributes that might contain product URLs
+      if (element.dataset && (element.dataset.href || element.dataset.url || element.dataset.link)) {
+        return element.dataset.href || element.dataset.url || element.dataset.link;
+      }
+      element = element.parentElement;
+      depth++;
+    }
+    return null;
+  }
 
   // Helper function to check if image is likely clothing
   function isClothingImage(img) {
@@ -24,7 +42,6 @@ export const imageDetectionScript = `
     if (!img.complete) return false;
 
     // Minimum size filter (200x200px)
-    // Use naturalWidth/Height for actual image dimensions
     const width = img.naturalWidth || img.width;
     const height = img.naturalHeight || img.height;
 
@@ -59,9 +76,9 @@ export const imageDetectionScript = `
     return Math.abs(hash);
   }
 
-  // Detect images on current page (optimized)
-  function detectImages() {
-    console.log('[ImageDetection] Starting detection...');
+  // Main detection function - exposed globally for direct calls
+  window.__obrazzDetectImages = function() {
+    console.log('[ImageDetection] 🔍 Starting detection...');
     console.log('[ImageDetection] ReactNativeWebView available:', !!window.ReactNativeWebView);
     const startTime = performance.now();
     
@@ -92,18 +109,22 @@ export const imageDetectionScript = `
         const urlHash = fastHash(img.src);
         const id = \`img_\${timestamp}_\${counter++}_\${urlHash}\`;
 
+        // Try to find product URL from parent elements
+        const productUrl = findProductUrl(img);
+
         detectedImages.push({
           id: id,
           url: img.src,
           width: img.naturalWidth || img.width,
           height: img.naturalHeight || img.height,
-          alt: img.alt || ''
+          alt: img.alt || '',
+          productUrl: productUrl || undefined
         });
       }
     }
 
     const endTime = performance.now();
-    console.log('[ImageDetection] Detection completed in', Math.round(endTime - startTime), 'ms');
+    console.log('[ImageDetection] ✅ Detection completed in', Math.round(endTime - startTime), 'ms');
     console.log('[ImageDetection] Stats:', {
       total: totalImages,
       loaded: loadedImages,
@@ -111,7 +132,7 @@ export const imageDetectionScript = `
       unloaded: totalImages - loadedImages
     });
 
-    // Send results back to React Native with error handling
+    // Send results back to React Native
     try {
       if (window.ReactNativeWebView?.postMessage) {
         const message = JSON.stringify({
@@ -125,35 +146,21 @@ export const imageDetectionScript = `
             processingTime: Math.round(endTime - startTime)
           }
         });
-        console.log('[ImageDetection] Sending message to React Native, length:', message.length);
+        console.log('[ImageDetection] 📤 Sending', detectedImages.length, 'images to React Native');
         window.ReactNativeWebView.postMessage(message);
-        console.log('[ImageDetection] Successfully sent', detectedImages.length, 'images to React Native');
+        console.log('[ImageDetection] ✅ Message sent successfully');
       } else {
-        console.error('[ImageDetection] ReactNativeWebView.postMessage is NOT available!');
+        console.error('[ImageDetection] ❌ ReactNativeWebView.postMessage is NOT available!');
         console.error('[ImageDetection] window.ReactNativeWebView:', window.ReactNativeWebView);
       }
     } catch (error) {
-      console.error('[ImageDetection] Error posting message:', error);
+      console.error('[ImageDetection] ❌ Error posting message:', error);
       console.error('[ImageDetection] Error details:', error.message, error.stack);
     }
-  }
+  };
 
-  // Optimized event listener with passive flag
-  document.addEventListener('detectImages', function() {
-    console.log('[ImageDetection] Manual trigger event received!');
-    
-    // Run detection immediately
-    detectImages();
-
-    // Also run delayed detection to catch lazy-loaded images
-    setTimeout(() => {
-      console.log('[ImageDetection] Running delayed detection for late-loaded images');
-      detectImages();
-    }, 2000);
-  }, { passive: true });
-
-  console.log('[ImageDetection] ✅ Detection system initialized successfully - waiting for manual trigger');
-  console.log('[ImageDetection] To trigger detection, dispatch "detectImages" event');
+  console.log('[ImageDetection] ✅ Detection system ready');
+  console.log('[ImageDetection] Call window.__obrazzDetectImages() to scan');
 })();
-true; // Return true to indicate successful injection
+true;
 `;

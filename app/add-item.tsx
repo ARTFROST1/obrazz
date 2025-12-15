@@ -185,6 +185,18 @@ export default function AddItemScreen() {
       // Load from batch queue if no URL provided
       const batchItem = getNextBatchItem();
       if (batchItem) {
+        // Reset form state for new batch item
+        setStep(1);
+        setImageUri(null);
+        setTitle('');
+        setCategory('tops');
+        setSelectedColors([]);
+        setSelectedStyles([]);
+        setSelectedSeasons([]);
+        setBrand('');
+        setSize('');
+        setPrice('');
+
         // Clean URL from potential Optional() wrapper
         let cleanUrl = batchItem.image.url;
         if (typeof cleanUrl === 'string') {
@@ -211,6 +223,8 @@ export default function AddItemScreen() {
     handleWebCaptureImage,
     isBatchMode,
     getNextBatchItem,
+    batchQueue.length,
+    currentBatchIndex, // Add this dependency to reload when moving to next batch item
   ]);
 
   const requestPermissions = async () => {
@@ -406,6 +420,19 @@ export default function AddItemScreen() {
           return;
         }
 
+        // Get product URL from batch item if available
+        let finalSourceUrl = webImageUrl;
+        if (isBatchMode) {
+          const batchItem = batchQueue[currentBatchIndex];
+          if (batchItem?.image?.productUrl) {
+            // Use productUrl if available (specific product page)
+            finalSourceUrl = batchItem.image.productUrl;
+          } else if (batchItem?.sourceUrl) {
+            // Fallback to sourceUrl (page where image was found)
+            finalSourceUrl = batchItem.sourceUrl;
+          }
+        }
+
         const newItem = await itemService.createItem({
           userId: user.id,
           title: title || undefined,
@@ -420,7 +447,7 @@ export default function AddItemScreen() {
           price: price ? parseFloat(price) : undefined,
           metadata: {
             source: imageSource || 'camera',
-            sourceUrl: isFromWeb ? webImageUrl : undefined,
+            sourceUrl: isFromWeb ? finalSourceUrl : undefined,
           },
         });
 

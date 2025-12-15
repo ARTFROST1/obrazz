@@ -421,7 +421,7 @@ export default function OutfitDetailScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -714,7 +714,7 @@ export default function OutfitDetailScreen() {
       {showUpdateModal && (
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView

@@ -156,11 +156,17 @@ const styles = StyleSheet.create({
     height: Platform.OS === 'android' ? 44 : 48,
     justifyContent: 'center',
     width: Platform.OS === 'android' ? 44 : 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   container: {
     flexDirection: 'row',

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { getTabBarPadding } from '@constants/Layout';
 import { ItemCard } from './ItemCard';
 import { WardrobeItem } from '../../types/models/item';
 
@@ -87,6 +88,12 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#000" />
         ) : undefined
       }
+      // Android performance optimizations
+      removeClippedSubviews={Platform.OS === 'android'}
+      maxToRenderPerBatch={Platform.OS === 'android' ? 6 : 10}
+      initialNumToRender={10}
+      windowSize={11}
+      updateCellsBatchingPeriod={50}
     />
   );
 };
@@ -95,7 +102,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingTop: 32,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 80, // iOS NativeTabs handles spacing automatically
+    paddingBottom: Platform.OS === 'ios' ? 20 : getTabBarPadding(), // iOS NativeTabs handles spacing, Android needs tab bar clearance
     paddingHorizontal: 16,
   },
   emptyContainer: {

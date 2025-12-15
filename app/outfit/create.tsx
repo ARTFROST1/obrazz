@@ -258,7 +258,7 @@ export default function CreateScreen() {
       {showSaveModal && (
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView

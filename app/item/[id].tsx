@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -742,6 +743,29 @@ export default function ItemDetailScreen() {
           )}
         </View>
 
+        {/* Open in Browser Button - only if sourceUrl exists */}
+        {item.metadata?.sourceUrl && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.sourceButton}
+              onPress={() => {
+                const url = item.metadata?.sourceUrl;
+                if (url) {
+                  Linking.openURL(url).catch((err) => {
+                    console.error('Failed to open URL:', err);
+                    Alert.alert('Ошибка', 'Не удалось открыть ссылку');
+                  });
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="open-outline" size={20} color="#007AFF" />
+              <Text style={styles.sourceButtonText}>Открыть в магазине</Text>
+              <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Delete Button */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.deleteButton} onPress={handleDelete} disabled={deleting}>
@@ -823,6 +847,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  sourceButton: {
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  sourceButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
   },
   favoriteButton: {
     padding: 8,

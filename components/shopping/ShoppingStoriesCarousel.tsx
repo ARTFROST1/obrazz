@@ -85,6 +85,35 @@ export default function ShoppingStoriesCarousel() {
     );
   }, []);
 
+  // Render store logo with priority: local asset > remote URL > monogram
+  const renderStoreLogo = useCallback((store: Store) => {
+    // Priority 1: Local asset for default stores
+    if (store.logoLocal) {
+      return <Image source={store.logoLocal} style={styles.avatar} resizeMode="contain" />;
+    }
+
+    // Priority 2: Remote URL (favicon) for custom stores
+    if (store.logoUrl) {
+      return (
+        <Image
+          source={{ uri: store.logoUrl }}
+          style={styles.avatar}
+          resizeMode="contain"
+          onError={(e) => {
+            console.log('Failed to load logo for', store.name, e.nativeEvent.error);
+          }}
+        />
+      );
+    }
+
+    // Priority 3: Monogram fallback
+    return (
+      <View style={styles.avatarPlaceholder}>
+        <Text style={styles.avatarText}>{store.name.charAt(0).toUpperCase()}</Text>
+      </View>
+    );
+  }, []);
+
   if (loadingStores) {
     return (
       <View style={styles.loadingContainer}>
@@ -97,9 +126,8 @@ export default function ShoppingStoriesCarousel() {
   if (!stores || stores.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>🛍️ Магазины</Text>
-          <Text style={styles.subtitle}>Загрузка магазинов...</Text>
+        <View style={styles.loadingPlaceholder}>
+          <Text style={styles.loadingText}>Загрузка...</Text>
         </View>
       </View>
     );
@@ -107,11 +135,6 @@ export default function ShoppingStoriesCarousel() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🛍️ Магазины</Text>
-        <Text style={styles.subtitle}>Найди и добавь вещь из интернет-магазина</Text>
-      </View>
-
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -133,17 +156,7 @@ export default function ShoppingStoriesCarousel() {
                 longPressedStore === store.id && styles.avatarContainerPressed,
               ]}
             >
-              {store.faviconUrl ? (
-                <Image
-                  source={{ uri: store.faviconUrl }}
-                  style={styles.avatar}
-                  onError={() => console.log('Failed to load favicon for', store.name)}
-                />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>{store.name.charAt(0)}</Text>
-                </View>
-              )}
+              {renderStoreLogo(store)}
             </View>
             <Text style={styles.storeName} numberOfLines={1}>
               {store.name}
@@ -171,21 +184,16 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    height: 140,
+    height: 100,
     justifyContent: 'center',
   },
-  header: {
-    marginBottom: 12,
-    paddingHorizontal: 16,
+  loadingPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
   },
-  title: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  subtitle: {
-    color: '#666666',
+  loadingText: {
+    color: '#999999',
     fontSize: 13,
   },
   scrollContent: {
@@ -228,6 +236,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 24,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
   storeName: {
     color: '#333333',

@@ -2,7 +2,8 @@ export interface Store {
   id: string;
   name: string;
   url: string;
-  faviconUrl?: string;
+  logoLocal?: any; // Local require() asset for default stores
+  logoUrl?: string; // Remote logo URL for custom stores
   isDefault: boolean;
   order: number;
 }
@@ -24,6 +25,7 @@ export interface DetectedImage {
   alt?: string;
   category?: string;
   confidence?: number;
+  productUrl?: string; // URL страницы конкретного товара (если найдена)
 }
 
 export interface BrowserHistoryItem {

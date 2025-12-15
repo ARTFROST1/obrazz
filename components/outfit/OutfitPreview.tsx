@@ -1,7 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { OutfitBackground, OutfitItem } from '../../types/models/outfit';
+
+// Default item size constant
+const ITEM_SIZE = 100;
 
 interface OutfitPreviewProps {
   items: OutfitItem[];
@@ -85,10 +88,59 @@ export function OutfitPreview({
     return null;
   };
 
-  // Sort items by zIndex
-  const sortedItems = [...items]
-    .filter((item) => item.isVisible && item.item)
-    .sort((a, b) => a.transform.zIndex - b.transform.zIndex);
+  // Memoize sorted items and layout calculations to prevent expensive recalculation
+  const { sortedItems, scaleFactor, offsetX, offsetY } = useMemo(() => {
+    // Sort items by zIndex
+    const sorted = [...items]
+      .filter((item) => item.isVisible && item.item)
+      .sort((a, b) => a.transform.zIndex - b.transform.zIndex);
+
+    if (sorted.length === 0) {
+      return { sortedItems: sorted, scaleFactor: 1, offsetX: 0, offsetY: 0 };
+    }
+
+    // Calculate bounding box of all items to fit entire content
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    sorted.forEach((outfitItem) => {
+      const { transform } = outfitItem;
+      const itemSize = ITEM_SIZE * transform.scale;
+
+      // Calculate item bounds (considering center point)
+      const itemLeft = transform.x;
+      const itemTop = transform.y;
+      const itemRight = itemLeft + itemSize;
+      const itemBottom = itemTop + itemSize;
+
+      minX = Math.min(minX, itemLeft);
+      minY = Math.min(minY, itemTop);
+      maxX = Math.max(maxX, itemRight);
+      maxY = Math.max(maxY, itemBottom);
+    });
+
+    // Add padding to bounds
+    const PADDING = 20;
+    minX -= PADDING;
+    minY -= PADDING;
+    maxX += PADDING;
+    maxY += PADDING;
+
+    // Calculate content dimensions
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+
+    // Calculate scale to fit content in preview container
+    const scale = scaleToFit ? Math.min(width / contentWidth, height / contentHeight) : 1;
+
+    // Calculate offset to center content
+    const offX = (width - contentWidth * scale) / 2 - minX * scale;
+    const offY = (height - contentHeight * scale) / 2 - minY * scale;
+
+    return { sortedItems: sorted, scaleFactor: scale, offsetX: offX, offsetY: offY };
+  }, [items, width, height, scaleToFit]);
 
   if (sortedItems.length === 0) {
     return (
@@ -97,47 +149,6 @@ export function OutfitPreview({
       </View>
     );
   }
-
-  // Calculate bounding box of all items to fit entire content
-  const ITEM_SIZE = 100; // Default item size
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-
-  sortedItems.forEach((outfitItem) => {
-    const { transform } = outfitItem;
-    const itemSize = ITEM_SIZE * transform.scale;
-
-    // Calculate item bounds (considering center point)
-    const itemLeft = transform.x;
-    const itemTop = transform.y;
-    const itemRight = itemLeft + itemSize;
-    const itemBottom = itemTop + itemSize;
-
-    minX = Math.min(minX, itemLeft);
-    minY = Math.min(minY, itemTop);
-    maxX = Math.max(maxX, itemRight);
-    maxY = Math.max(maxY, itemBottom);
-  });
-
-  // Add padding to bounds
-  const PADDING = 20;
-  minX -= PADDING;
-  minY -= PADDING;
-  maxX += PADDING;
-  maxY += PADDING;
-
-  // Calculate content dimensions
-  const contentWidth = maxX - minX;
-  const contentHeight = maxY - minY;
-
-  // Calculate scale to fit content in preview container
-  const scaleFactor = scaleToFit ? Math.min(width / contentWidth, height / contentHeight) : 1;
-
-  // Calculate offset to center content
-  const offsetX = (width - contentWidth * scaleFactor) / 2 - minX * scaleFactor;
-  const offsetY = (height - contentHeight * scaleFactor) / 2 - minY * scaleFactor;
 
   return (
     <View style={[styles.container, { width, height }, getBackgroundStyle()]}>

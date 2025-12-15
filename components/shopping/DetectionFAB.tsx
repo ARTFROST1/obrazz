@@ -1,6 +1,13 @@
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 
 interface DetectionFABProps {
   onScan: () => void;
@@ -97,11 +104,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   buttonScan: {
     backgroundColor: '#000000', // Black for scan button

@@ -189,7 +189,7 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
       id: Date.now().toString(),
       shopName: store.name,
       shopUrl: store.url,
-      favicon: store.faviconUrl,
+      favicon: store.logoUrl, // Use logoUrl for custom stores (logoLocal not serializable)
       currentUrl: store.url,
       scrollPosition: 0,
     };
@@ -216,7 +216,7 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
       id: `${timestamp}_${index}`,
       shopName: store.name,
       shopUrl: store.url,
-      favicon: store.faviconUrl,
+      favicon: store.logoUrl, // Use logoUrl for custom stores (logoLocal not serializable)
       currentUrl: store.url,
       scrollPosition: 0,
     }));

@@ -1,7 +1,7 @@
 import CartItemRow from '@/components/shopping/CartItemRow';
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Alert,
@@ -66,84 +66,71 @@ export default function CartScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: 'Корзина',
-          headerStyle: {
-            backgroundColor: '#FFFFFF',
-          },
-          headerTintColor: '#000000',
-          headerTitleStyle: {
-            fontWeight: '600',
-            fontSize: 17,
-          },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#000000" />
-            </TouchableOpacity>
-          ),
-          headerRight: () =>
-            count > 0 ? (
-              <TouchableOpacity style={styles.headerButton} onPress={handleClearCart}>
-                <Text style={styles.clearText}>Очистить</Text>
-              </TouchableOpacity>
-            ) : null,
-        }}
-      />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+      {/* Header with Back Button */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButtonHeader} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#000000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Корзина</Text>
+        {count > 0 ? (
+          <TouchableOpacity style={styles.clearButtonHeader} onPress={handleClearCart}>
+            <Text style={styles.clearText}>Очистить</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.clearButtonHeader} />
+        )}
+      </View>
 
-        {/* Content */}
-        {count === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🛒</Text>
-            <Text style={styles.emptyTitle}>Корзина пуста</Text>
-            <Text style={styles.emptyText}>
-              Добавьте вещи из магазинов,{'\n'}
-              чтобы добавить их в гардероб{'\n'}
-              позже.
+      {/* Content */}
+      {count === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>🛒</Text>
+          <Text style={styles.emptyTitle}>Корзина пуста</Text>
+          <Text style={styles.emptyText}>
+            Добавьте вещи из магазинов,{'\n'}
+            чтобы добавить их в гардероб{'\n'}
+            позже.
+          </Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Вернуться к магазинам</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Header Info */}
+          <View style={styles.infoHeader}>
+            <Text style={styles.infoText}>
+              {count} {count === 1 ? 'вещь' : count < 5 ? 'вещи' : 'вещей'} для добавления
             </Text>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-              <Text style={styles.backButtonText}>Вернуться к магазинам</Text>
+          </View>
+
+          {/* Items List */}
+          <FlatList
+            data={cartItems}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <CartItemRow item={item} onDelete={handleDelete} onPress={handleItemPress} />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+
+          {/* Action Buttons */}
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleAddAll}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.primaryButtonText}>Добавить всё ({count}) ➕</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <>
-            {/* Header Info */}
-            <View style={styles.infoHeader}>
-              <Text style={styles.infoText}>
-                {count} {count === 1 ? 'вещь' : count < 5 ? 'вещи' : 'вещей'} для добавления
-              </Text>
-            </View>
-
-            {/* Items List */}
-            <FlatList
-              data={cartItems}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <CartItemRow item={item} onDelete={handleDelete} onPress={handleItemPress} />
-              )}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
-            />
-
-            {/* Action Buttons */}
-            <View style={styles.actionsContainer}>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={handleAddAll}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.primaryButtonText}>Добавить всё ({count}) ➕</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </SafeAreaView>
-    </>
+        </>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -152,6 +139,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#000000',
+    flex: 1,
+    textAlign: 'center',
+  },
+  backButtonHeader: {
+    padding: 8,
+    width: 40,
+    justifyContent: 'center',
+  },
+  clearButtonHeader: {
+    padding: 8,
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   headerButton: {
     padding: 8,

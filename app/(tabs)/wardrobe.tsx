@@ -7,8 +7,9 @@ import { useTranslation } from '@hooks/useTranslation';
 import { itemService } from '@services/wardrobe/itemService';
 import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { debounce } from '@utils/debounce';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -123,9 +124,18 @@ export default function WardrobeScreen() {
     router.push('/add-item');
   };
 
+  // Debounced filter update for search (300ms delay)
+  const debouncedSetFilter = useMemo(
+    () =>
+      debounce((query: string) => {
+        setFilter({ searchQuery: query || undefined });
+      }, 300),
+    [setFilter],
+  );
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setFilter({ searchQuery: query || undefined });
+    debouncedSetFilter(query);
   };
 
   const handleApplyFilter = (filters: FilterState) => {
@@ -250,7 +260,11 @@ export default function WardrobeScreen() {
     );
   };
 
-  const filteredItems = getFilteredItems();
+  // Memoize filtered items to prevent expensive recalculation on every render
+  const filteredItems = useMemo(() => {
+    return getFilteredItems();
+  }, [getFilteredItems]);
+
   const hasActiveFilters =
     filter.categories?.length ||
     filter.colors?.length ||

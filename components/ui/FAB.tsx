@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Platform, StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { TAB_BAR_TOTAL_HEIGHT } from '@constants/Layout';
 
 export interface FABProps {
   icon: string;
@@ -91,7 +92,7 @@ export const FAB: React.FC<FABProps> = ({
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 110, // Raised 30% higher on both platforms
+    bottom: Platform.OS === 'ios' ? 120 : TAB_BAR_TOTAL_HEIGHT + 16, // iOS: above native tabs, Android: above floating tab bar + spacing
     right: 16,
     justifyContent: 'center',
     alignItems: 'center',

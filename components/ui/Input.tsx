@@ -52,6 +52,9 @@ export const Input: React.FC<InputProps> = ({
           placeholderTextColor="#666666"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          // Android-specific optimizations
+          disableFullscreenUI={true}
+          importantForAutofill="yes"
           {...props}
         />
         {rightIcon && (

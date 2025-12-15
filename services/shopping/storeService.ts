@@ -1,4 +1,6 @@
+import { STORE_LOGOS } from '@/constants/storeLogos';
 import type { BrowserHistoryItem, Store } from '@/types/models/store';
+import { getStoreFavicon } from '@/utils/shopping/logoFetcher';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORES_KEY = '@shopping_browser_stores';
@@ -9,7 +11,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '1',
     name: 'ZARA',
     url: 'https://www.zara.com',
-    faviconUrl: 'https://www.zara.com/favicon.ico',
+    logoLocal: STORE_LOGOS['1'],
     isDefault: true,
     order: 1,
   },
@@ -17,7 +19,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '2',
     name: 'H&M',
     url: 'https://www2.hm.com',
-    faviconUrl: 'https://www2.hm.com/favicon.ico',
+    logoLocal: STORE_LOGOS['2'],
     isDefault: true,
     order: 2,
   },
@@ -25,7 +27,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '3',
     name: 'ASOS',
     url: 'https://www.asos.com',
-    faviconUrl: 'https://www.asos.com/favicon.ico',
+    logoLocal: STORE_LOGOS['3'],
     isDefault: true,
     order: 3,
   },
@@ -33,7 +35,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '4',
     name: 'Nike',
     url: 'https://www.nike.com',
-    faviconUrl: 'https://www.nike.com/favicon.ico',
+    logoLocal: STORE_LOGOS['4'],
     isDefault: true,
     order: 4,
   },
@@ -41,7 +43,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '5',
     name: 'Adidas',
     url: 'https://www.adidas.com',
-    faviconUrl: 'https://www.adidas.com/favicon.ico',
+    logoLocal: STORE_LOGOS['5'],
     isDefault: true,
     order: 5,
   },
@@ -49,7 +51,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '6',
     name: 'Reserved',
     url: 'https://www.reserved.com',
-    faviconUrl: 'https://www.reserved.com/favicon.ico',
+    logoLocal: STORE_LOGOS['6'],
     isDefault: true,
     order: 6,
   },
@@ -57,7 +59,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '7',
     name: 'Mango',
     url: 'https://shop.mango.com',
-    faviconUrl: 'https://shop.mango.com/favicon.ico',
+    logoLocal: STORE_LOGOS['7'],
     isDefault: true,
     order: 7,
   },
@@ -65,7 +67,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '8',
     name: 'Pull&Bear',
     url: 'https://www.pullandbear.com',
-    faviconUrl: 'https://www.pullandbear.com/favicon.ico',
+    logoLocal: STORE_LOGOS['8'],
     isDefault: true,
     order: 8,
   },
@@ -73,7 +75,7 @@ export const DEFAULT_STORES: Store[] = [
     id: '9',
     name: 'Bershka',
     url: 'https://www.bershka.com',
-    faviconUrl: 'https://www.bershka.com/favicon.ico',
+    logoLocal: STORE_LOGOS['9'],
     isDefault: true,
     order: 9,
   },
@@ -91,7 +93,17 @@ class StoreService {
           const parsed = JSON.parse(stored);
           // Validate parsed data is an array
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+            // Restore local logos for default stores
+            const storesWithLogos = parsed.map((store) => {
+              if (store.isDefault && STORE_LOGOS[store.id as keyof typeof STORE_LOGOS]) {
+                return {
+                  ...store,
+                  logoLocal: STORE_LOGOS[store.id as keyof typeof STORE_LOGOS],
+                };
+              }
+              return store;
+            });
+            return storesWithLogos;
           }
           console.warn('[StoreService] Invalid stored data, using defaults');
         } catch (parseError) {
@@ -121,16 +133,20 @@ class StoreService {
 
   /**
    * Add custom store
+   * Automatically fetches favicon for the store
    */
   async addStore(name: string, url: string, faviconUrl?: string): Promise<Store> {
     const stores = await this.getStores();
     const maxOrder = Math.max(...stores.map((s) => s.order), 0);
 
+    // Fetch favicon from Google's service
+    const logoUrl = faviconUrl || getStoreFavicon(url);
+
     const newStore: Store = {
       id: Date.now().toString(),
       name,
       url,
-      faviconUrl,
+      logoUrl,
       isDefault: false,
       order: maxOrder + 1,
     };

@@ -1,4 +1,8 @@
+import CategoriesCarousel from '@/components/home/CategoriesCarousel';
+import StylesCarousel from '@/components/home/StylesCarousel';
 import ShoppingStoriesCarousel from '@/components/shopping/ShoppingStoriesCarousel';
+import { ItemCategory } from '@/types/models/item';
+import { StyleTag } from '@/types/models/user';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
@@ -23,6 +27,16 @@ export default function HomeScreen() {
     }, []),
   );
 
+  const handleStylePress = useCallback((style: StyleTag) => {
+    // TODO: Navigate to wardrobe filtered by style
+    console.log('Style pressed:', style);
+  }, []);
+
+  const handleCategoryPress = useCallback((category: ItemCategory) => {
+    // TODO: Navigate to wardrobe filtered by category
+    console.log('Category pressed:', category);
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
@@ -36,8 +50,16 @@ export default function HomeScreen() {
       </SafeAreaView>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Shopping Stories Carousel */}
-        <ShoppingStoriesCarousel />
+        {/* Shopping Section with Store Carousel */}
+        <View style={styles.shoppingSection}>
+          <ShoppingStoriesCarousel />
+        </View>
+
+        {/* Styles Section - Large tiles carousel */}
+        <StylesCarousel onStylePress={handleStylePress} />
+
+        {/* Categories Section - Square tiles carousel */}
+        <CategoriesCarousel onCategoryPress={handleCategoryPress} />
 
         {/* Placeholder for other sections */}
         <View style={styles.content}>
@@ -78,12 +100,16 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  shoppingSection: {
+    // Just a wrapper for the shopping carousel
+  },
   content: {
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
     padding: 20,
     marginTop: 40,
+    marginBottom: 40,
   },
   subtitle: {
     color: '#666',

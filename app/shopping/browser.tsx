@@ -5,10 +5,7 @@ import WebViewCropOverlay from '@/components/shopping/WebViewCropOverlay';
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import type { DetectedImage } from '@/types/models/store';
 import { imageDetectionScript } from '@/utils/shopping/imageDetection';
-import {
-  pageOptimizationScript,
-  preloadOptimizationScript,
-} from '@/utils/shopping/webviewOptimization';
+import { preloadOptimizationScript } from '@/utils/shopping/webviewOptimization';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -32,7 +29,10 @@ export default function ShoppingBrowserScreen() {
   const router = useRouter();
   const webViewRef = useRef<WebView>(null);
   const webViewContainerRef = useRef<View>(null);
-  const detectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const detectionTimeoutRef = useRef<{
+    current: NodeJS.Timeout | null;
+    safetyTimeout: NodeJS.Timeout | null;
+  }>({ current: null, safetyTimeout: null });
   const lastUrlRef = useRef<string>('');
 
   const {
@@ -48,10 +48,9 @@ export default function ShoppingBrowserScreen() {
     isScanning,
     hasScanned,
     detectedImages,
-    showGallerySheet,
   } = useShoppingBrowserStore();
 
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -59,19 +58,25 @@ export default function ShoppingBrowserScreen() {
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
-  // Mobile User-Agent для отображения мобильной версии сайтов
-  const MOBILE_USER_AGENT =
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1';
+  // Platform-specific Mobile User-Agent для избежания блокировок
+  const MOBILE_USER_AGENT = Platform.select({
+    ios: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    android:
+      'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+    default:
+      'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+  }) as string;
 
-  // Reset state when switching tabs
+  // Reset state when switching tabs - FIXED: removed resetScanState from deps to prevent infinite loop
   useEffect(() => {
     if (activeTabId) {
       console.log('[Browser] Tab switched to:', activeTabId);
       setLoading(true);
-      resetScanState();
+      resetScanState(); // Call it but don't include in deps
       lastUrlRef.current = activeTab?.currentUrl || '';
     }
-  }, [activeTabId, activeTab, resetScanState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId]); // Only depend on activeTabId, not activeTab or resetScanState
 
   useEffect(() => {
     // Load cart on mount
@@ -81,14 +86,19 @@ export default function ShoppingBrowserScreen() {
 
   useEffect(() => {
     // Cleanup on unmount
+    const currentDetectionTimeoutRef = detectionTimeoutRef.current;
     return () => {
       const { setDetectedImages: clearDetectedImages } = useShoppingBrowserStore.getState();
       clearDetectedImages([]);
 
-      // Cleanup detection timeout
-      if (detectionTimeoutRef.current) {
-        clearTimeout(detectionTimeoutRef.current);
-        detectionTimeoutRef.current = null;
+      // Cleanup detection timeouts
+      if (currentDetectionTimeoutRef.current) {
+        clearTimeout(currentDetectionTimeoutRef.current);
+        currentDetectionTimeoutRef.current = null;
+      }
+      if (currentDetectionTimeoutRef.safetyTimeout) {
+        clearTimeout(currentDetectionTimeoutRef.safetyTimeout);
+        currentDetectionTimeoutRef.safetyTimeout = null;
       }
     };
   }, []);
@@ -163,6 +173,12 @@ export default function ShoppingBrowserScreen() {
         console.log('[WebView Message] Detected images count:', images.length);
         console.log('[WebView Message] Stats:', data.stats);
 
+        // Clear safety timeout
+        if (detectionTimeoutRef.current.safetyTimeout) {
+          clearTimeout(detectionTimeoutRef.current.safetyTimeout);
+          detectionTimeoutRef.current.safetyTimeout = null;
+        }
+
         // Stop scanning state
         setScanning(false);
         setHasScanned(true);
@@ -186,6 +202,13 @@ export default function ShoppingBrowserScreen() {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error('[WebView Message] ❌ Error parsing message:', errorMsg);
       console.error('[WebView Message] Raw data was:', event.nativeEvent.data?.substring(0, 200));
+
+      // Clear safety timeout and reset scanning state on error
+      if (detectionTimeoutRef.current.safetyTimeout) {
+        clearTimeout(detectionTimeoutRef.current.safetyTimeout);
+        detectionTimeoutRef.current.safetyTimeout = null;
+      }
+      setScanning(false);
     }
   };
 
@@ -193,8 +216,8 @@ export default function ShoppingBrowserScreen() {
     setLoading(false);
 
     // Clear any pending detection
-    if (detectionTimeoutRef.current) {
-      clearTimeout(detectionTimeoutRef.current);
+    if (detectionTimeoutRef.current.current) {
+      clearTimeout(detectionTimeoutRef.current.current);
     }
 
     const currentPageUrl = currentUrl || activeTab?.currentUrl || '';
@@ -203,64 +226,72 @@ export default function ShoppingBrowserScreen() {
     // Reset scan state on new page load
     resetScanState();
 
-    // Apply page optimizations and initialize detection
-    if (webViewRef.current) {
-      console.log('[Browser] Initializing page optimizations and detection');
-
-      // First, reset detection flag
-      webViewRef.current.injectJavaScript(`
-        if (window.__obrazzDetectionInitialized) {
-          delete window.__obrazzDetectionInitialized;
-        }
-        if (window.__obrazzOptimizationInitialized) {
-          delete window.__obrazzOptimizationInitialized;
-        }
-        true;
-      `);
-
-      // Small delay to ensure reset completed, then inject scripts
-      setTimeout(() => {
-        if (webViewRef.current) {
-          // Inject page optimizations
-          webViewRef.current.injectJavaScript(pageOptimizationScript);
-
-          // Inject detection script (after a small delay)
-          setTimeout(() => {
-            if (webViewRef.current) {
-              webViewRef.current.injectJavaScript(imageDetectionScript);
-            }
-          }, 100);
-        }
-      }, 50);
-    }
+    // OPTIMIZED: Simplified injection - scripts already injected via props
+    // No need to re-inject on every load, they're already in place via:
+    // - injectedJavaScriptBeforeContentLoaded={preloadOptimizationScript}
+    // - injectedJavaScript={imageDetectionScript}
   };
 
   const handleScan = () => {
     console.log('[Browser] 🔍 Manual scan triggered');
     setScanning(true);
 
-    // Trigger detection after delay to allow images to load
+    // Safety timeout: reset scanning state after 7 seconds if no response
+    const safetyTimeout = setTimeout(() => {
+      console.warn('[Browser] ⚠️ Detection timeout - no response received, resetting state');
+      setScanning(false);
+      setHasScanned(true);
+    }, 7000);
+
+    // Trigger detection
     if (webViewRef.current) {
-      detectionTimeoutRef.current = setTimeout(() => {
+      detectionTimeoutRef.current.current = setTimeout(() => {
         if (webViewRef.current) {
-          console.log('[Browser] ⚡ Dispatching detectImages event to WebView');
+          console.log('[Browser] ⚡ Injecting and running detection');
+          // Re-inject detection script + call it immediately
           webViewRef.current.injectJavaScript(`
+            ${imageDetectionScript}
+            
+            // Call detection immediately after injection
             (function() {
               try {
-                console.log('[Browser->WebView] Creating and dispatching detectImages event');
-                const event = new Event('detectImages');
-                document.dispatchEvent(event);
-                console.log('[Browser->WebView] Event dispatched successfully');
+                console.log('[Browser] Calling __obrazzDetectImages...');
+                if (typeof window.__obrazzDetectImages === 'function') {
+                  window.__obrazzDetectImages();
+                } else {
+                  console.error('[Browser] __obrazzDetectImages function not found!');
+                  // Send empty result to unblock UI
+                  if (window.ReactNativeWebView?.postMessage) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'IMAGES_DETECTED',
+                      images: [],
+                      error: 'Detection function not available'
+                    }));
+                  }
+                }
               } catch (e) {
-                console.error('[Manual Detection] Error dispatching event:', e);
+                console.error('[Browser] Error calling detection:', e);
+                // Send error back to React Native
+                if (window.ReactNativeWebView?.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'IMAGES_DETECTED',
+                    images: [],
+                    error: e.message
+                  }));
+                }
               }
             })();
             true;
           `);
         }
       }, 500); // Short delay to show scanning state
+
+      // Store safety timeout ref to clear it when we get response
+      detectionTimeoutRef.current.safetyTimeout = safetyTimeout;
     } else {
       console.error('[Browser] ❌ WebView ref is null, cannot trigger detection');
+      clearTimeout(safetyTimeout);
+      setScanning(false);
     }
   };
 
@@ -326,11 +357,10 @@ export default function ShoppingBrowserScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-        {/* Top Bar */}
-        <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          {/* Top Bar */}
           <View style={styles.topBar}>
             {/* Exit Button */}
             <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
@@ -345,45 +375,56 @@ export default function ShoppingBrowserScreen() {
             {/* Cart Button */}
             <CartButton />
           </View>
-        </SafeAreaView>
 
-        {/* WebView Container - wrapped for screenshot capture */}
-        <View ref={webViewContainerRef} style={styles.webViewContainer}>
-          <WebView
-            key={activeTabId} // CRITICAL: Force re-render when tab changes
-            ref={webViewRef}
-            source={{ uri: activeTab.currentUrl }}
-            userAgent={MOBILE_USER_AGENT}
-            onNavigationStateChange={handleNavigationStateChange}
-            onMessage={handleMessage}
-            onLoadEnd={handleLoadEnd}
-            onError={handleError}
-            // Preload optimization script runs before page loads
-            injectedJavaScriptBeforeContentLoaded={preloadOptimizationScript}
-            // Detection script runs after page loads
-            injectedJavaScript={imageDetectionScript}
-            // Navigation & Gestures
-            allowsBackForwardNavigationGestures
-            // Cache & Storage - максимальная оптимизация
-            cacheEnabled={true}
-            domStorageEnabled={true}
-            sharedCookiesEnabled
-            incognito={false}
-            thirdPartyCookiesEnabled={false}
-            // Performance Optimization
-            setBuiltInZoomControls={false}
-            scrollEnabled={true}
-            // Security
-            mixedContentMode="never"
-            geolocationEnabled={false}
-            allowsInlineMediaPlayback={false}
-            mediaPlaybackRequiresUserAction={true}
-            style={styles.webView}
-          />
-        </View>
+          {/* WebView Container - wrapped for screenshot capture */}
+          <View
+            ref={webViewContainerRef}
+            style={[
+              styles.webViewContainer,
+              Platform.OS === 'android' && {
+                paddingTop: StatusBar.currentHeight || 0,
+                paddingBottom: 16,
+              },
+            ]}
+          >
+            <WebView
+              key={activeTabId} // CRITICAL: Force re-render when tab changes
+              ref={webViewRef}
+              source={{ uri: activeTab.currentUrl }}
+              userAgent={MOBILE_USER_AGENT}
+              onNavigationStateChange={handleNavigationStateChange}
+              onMessage={handleMessage}
+              onLoadEnd={handleLoadEnd}
+              onError={handleError}
+              // Preload optimization script runs before page loads
+              injectedJavaScriptBeforeContentLoaded={preloadOptimizationScript}
+              // Detection script runs after page loads
+              injectedJavaScript={imageDetectionScript}
+              // Navigation & Gestures
+              allowsBackForwardNavigationGestures
+              // Cache & Storage - Android optimizations
+              cacheEnabled={true}
+              domStorageEnabled={true}
+              sharedCookiesEnabled
+              incognito={false}
+              thirdPartyCookiesEnabled={false}
+              // ANDROID PERFORMANCE CRITICAL OPTIMIZATIONS
+              androidLayerType={Platform.OS === 'android' ? 'hardware' : undefined}
+              nestedScrollEnabled={Platform.OS === 'android'}
+              overScrollMode="never"
+              // Performance Optimization
+              setBuiltInZoomControls={false}
+              scrollEnabled={true}
+              // Security
+              mixedContentMode="never"
+              geolocationEnabled={false}
+              allowsInlineMediaPlayback={false}
+              mediaPlaybackRequiresUserAction={true}
+              style={styles.webView}
+            />
+          </View>
 
-        {/* Bottom Navigation Bar */}
-        <SafeAreaView style={styles.bottomSafeArea}>
+          {/* Bottom Navigation Bar */}
           <View style={styles.bottomBar}>
             {/* Navigation Buttons (Left) */}
             <View style={styles.navButtonsContainer}>
@@ -437,19 +478,19 @@ export default function ShoppingBrowserScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
 
-        {/* Gallery Bottom Sheet */}
-        <GalleryBottomSheet />
+          {/* Gallery Bottom Sheet */}
+          <GalleryBottomSheet />
 
-        {/* WebView Crop Overlay */}
-        <WebViewCropOverlay
-          visible={showCropOverlay}
-          viewShotRef={webViewContainerRef}
-          onCropComplete={handleCropComplete}
-          onCancel={handleCropCancel}
-        />
-      </View>
+          {/* WebView Crop Overlay */}
+          <WebViewCropOverlay
+            visible={showCropOverlay}
+            viewShotRef={webViewContainerRef}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        </View>
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 }
@@ -461,6 +502,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     backgroundColor: '#FFFFFF',
+    flex: 1,
   },
   topBar: {
     alignItems: 'center',
@@ -470,11 +512,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 52,
     paddingHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   exitButton: {
     alignItems: 'center',
@@ -492,6 +540,7 @@ const styles = StyleSheet.create({
   },
   webViewContainer: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   webView: {
     flex: 1,
@@ -507,17 +556,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 12,
   },
-  bottomSafeArea: {
-    backgroundColor: '#FFFFFF',
-  },
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 16,
     backgroundColor: '#FFFFFF',
+    borderTopColor: '#E5E5E5',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   navButtonsContainer: {
     flexDirection: 'row',
@@ -530,11 +589,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   navButtonDisabled: {
     opacity: 0.3,
@@ -548,11 +613,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
   scanButtonScanning: {
     backgroundColor: '#333333',
