@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { itemService } from '@services/wardrobe/itemService';
+import { useNetworkStatus } from '@services/sync';
+import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -92,7 +93,8 @@ const getStyleSticker = (style?: string): string => {
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { updateItem, removeItemLocally: deleteItemFromStore } = useWardrobeStore();
+  const { items, updateItem, removeItemLocally: deleteItemFromStore } = useWardrobeStore();
+  const { isOnline } = useNetworkStatus();
 
   const [item, setItem] = useState<WardrobeItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,13 +109,36 @@ export default function ItemDetailScreen() {
   const [editingBrand, setEditingBrand] = useState('');
   const [editingSize, setEditingSize] = useState('');
 
+  // ✅ Offline-first: Load from cache immediately, then optionally refresh
   const loadItem = useCallback(async () => {
     if (!id) return;
 
+    // First, try to get from store cache (instant)
+    const cachedItem = items.find((i) => i.id === id);
+    if (cachedItem) {
+      setItem(cachedItem);
+      setLoading(false);
+      console.log('[ItemDetail] Loaded from cache instantly');
+      return;
+    }
+
+    // Not in cache, try to fetch (only if online)
+    if (!isOnline) {
+      setLoading(false);
+      Alert.alert('Offline', 'Item not available offline');
+      router.back();
+      return;
+    }
+
     try {
       setLoading(true);
-      const itemData = await itemService.getItemById(id);
-      setItem(itemData);
+      const itemData = await itemServiceOffline.getItemById(id);
+      if (itemData) {
+        setItem(itemData);
+      } else {
+        Alert.alert('Error', 'Item not found');
+        router.back();
+      }
     } catch (error) {
       console.error('Error loading item:', error);
       Alert.alert('Error', 'Failed to load item details');
@@ -121,7 +146,7 @@ export default function ItemDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, items, isOnline]);
 
   useEffect(() => {
     loadItem();
@@ -132,12 +157,15 @@ export default function ItemDetailScreen() {
 
     try {
       const newStatus = !item.isFavorite;
-      await itemService.toggleFavorite(item.id, newStatus);
-      updateItem(item.id, { isFavorite: newStatus });
+      // Offline-first: updates locally immediately, syncs in background
+      await itemServiceOffline.toggleFavorite(item.id, newStatus, item.userId);
+      // Update local component state
       setItem({ ...item, isFavorite: newStatus });
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorite status');
+      if (isOnline) {
+        Alert.alert('Error', 'Failed to update favorite status');
+      }
     }
   };
 
@@ -161,12 +189,14 @@ export default function ItemDetailScreen() {
 
     try {
       setDeleting(true);
-      await itemService.deleteItem(item.id);
-      deleteItemFromStore(item.id);
+      // Offline-first: deletes locally immediately, syncs in background
+      await itemServiceOffline.deleteItem(item.id, item.userId);
       router.back();
     } catch (error) {
       console.error('Error deleting item:', error);
-      Alert.alert('Error', 'Failed to delete item');
+      if (isOnline) {
+        Alert.alert('Error', 'Failed to delete item');
+      }
     } finally {
       setDeleting(false);
     }
@@ -200,13 +230,12 @@ export default function ItemDetailScreen() {
     if (!item) return;
 
     try {
-      const updatedItem = await itemService.updateItem(item.id, { category });
+      const updatedItem = await itemServiceOffline.updateItem(item.id, { category });
       setItem({ ...item, category });
-      updateItem(item.id, updatedItem);
       setActiveMetadataCard(null);
     } catch (error) {
       console.error('Error updating category:', error);
-      Alert.alert('Error', 'Failed to update category');
+      if (isOnline) Alert.alert('Error', 'Failed to update category');
     }
   };
 
@@ -220,14 +249,13 @@ export default function ItemDetailScreen() {
       : [...currentStyles, style];
 
     try {
-      const updatedItem = await itemService.updateItem(item.id, {
+      await itemServiceOffline.updateItem(item.id, {
         styles: newStyles.length > 0 ? newStyles : undefined,
       });
       setItem({ ...item, styles: newStyles });
-      updateItem(item.id, updatedItem);
     } catch (error) {
       console.error('Error updating style:', error);
-      Alert.alert('Error', 'Failed to update style');
+      if (isOnline) Alert.alert('Error', 'Failed to update style');
     }
   };
 
@@ -241,14 +269,13 @@ export default function ItemDetailScreen() {
       : [...currentSeasons, season];
 
     try {
-      const updatedItem = await itemService.updateItem(item.id, {
+      await itemServiceOffline.updateItem(item.id, {
         seasons: newSeasons.length > 0 ? newSeasons : undefined,
       });
       setItem({ ...item, seasons: newSeasons });
-      updateItem(item.id, updatedItem);
     } catch (error) {
       console.error('Error updating season:', error);
-      Alert.alert('Error', 'Failed to update season');
+      if (isOnline) Alert.alert('Error', 'Failed to update season');
     }
   };
 
@@ -257,15 +284,14 @@ export default function ItemDetailScreen() {
     if (!item) return;
 
     try {
-      const updatedItem = await itemService.updateItem(item.id, {
+      await itemServiceOffline.updateItem(item.id, {
         brand: editingBrand.trim() || undefined,
       });
       setItem({ ...item, brand: editingBrand.trim() || undefined });
-      updateItem(item.id, updatedItem);
       setActiveMetadataCard(null);
     } catch (error) {
       console.error('Error updating brand:', error);
-      Alert.alert('Error', 'Failed to update brand');
+      if (isOnline) Alert.alert('Error', 'Failed to update brand');
     }
   };
 
@@ -274,15 +300,14 @@ export default function ItemDetailScreen() {
     if (!item) return;
 
     try {
-      const updatedItem = await itemService.updateItem(item.id, {
+      await itemServiceOffline.updateItem(item.id, {
         size: editingSize.trim() || undefined,
       });
       setItem({ ...item, size: editingSize.trim() || undefined });
-      updateItem(item.id, updatedItem);
       setActiveMetadataCard(null);
     } catch (error) {
       console.error('Error updating size:', error);
-      Alert.alert('Error', 'Failed to update size');
+      if (isOnline) Alert.alert('Error', 'Failed to update size');
     }
   };
 
@@ -296,20 +321,29 @@ export default function ItemDetailScreen() {
       ? currentColors.filter((c) => c.hex !== colorHex)
       : [...currentColors, { hex: colorHex }];
 
+    // ⚠️ Prevent removing all colors
+    if (newColors.length === 0) {
+      Alert.alert(
+        'Color Required',
+        'At least one color must be selected. Please add another color before removing this one.',
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+
     try {
-      const updatedItem = await itemService.updateItem(item.id, {
-        colors: newColors.length > 0 ? newColors : undefined,
-        primaryColor: newColors.length > 0 ? { hex: newColors[0].hex } : undefined,
+      await itemServiceOffline.updateItem(item.id, {
+        colors: newColors,
+        primaryColor: { hex: newColors[0].hex },
       });
       setItem({
         ...item,
         colors: newColors,
-        primaryColor: newColors.length > 0 ? { hex: newColors[0].hex } : { hex: '#CCCCCC' },
+        primaryColor: { hex: newColors[0].hex },
       });
-      updateItem(item.id, updatedItem);
     } catch (error) {
       console.error('Error updating colors:', error);
-      Alert.alert('Error', 'Failed to update colors');
+      if (isOnline) Alert.alert('Error', 'Failed to update colors');
     }
   };
 

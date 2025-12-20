@@ -2,6 +2,65 @@
 
 ## Recent Updates
 
+### BUG-005: Edit Mode - Wrong Items in Carousels
+
+**Date:** 2025-12-20  
+**Type:** Bug Fix  
+**Status:** ✅ Fixed  
+**Priority:** High
+
+**Summary:**
+При редактировании образа в каруселях отображались неправильные вещи. Scroll cache фиксировал некорректные позиции из-за асинхронной загрузки данных.
+
+**Problem:**
+
+1. При клике "Edit" на странице образа открывается create screen
+2. Outfit загружается асинхронно через `setCurrentOutfit()`
+3. Карусели рендерятся **до** обновления `selectedItemsForCreation`
+4. Scroll cache сохраняет позиции 0 вместо реальных индексов выбранных вещей
+5. В edit mode можно было переключаться на другие вкладки (Basic/Dress/All)
+
+**Root Cause:**
+
+- Scroll cache (`scrollCache` state) имел приоритет над `selectedItem`
+- Cache не очищался при смене `outfitId` (new → edit transition)
+- Tab switching не был заблокирован в edit mode
+
+**Solution:**
+
+1. ✅ Очистка всего scroll cache при смене `outfitId`
+2. ✅ Приоритет `selectedItem` над cache в edit mode
+3. ✅ Блокировка переключения вкладок в edit mode
+4. ✅ Скрытие неактивных вкладок в OutfitTabBar
+
+**Files Modified:**
+
+1. `components/outfit/CategorySelectorWithSmooth.tsx`:
+   - Добавлен `prevOutfitIdRef` для отслеживания outfitId
+   - Новый useEffect для очистки cache при смене outfitId
+   - Приоритет `selectedItem` в edit mode
+2. `components/outfit/ItemSelectionStepNew.tsx`:
+   - Защита от переключения вкладок в `handleTabChange`
+   - Передача `isEditMode` в OutfitTabBar
+3. `components/outfit/OutfitTabBar.tsx`:
+   - Prop `isEditMode` для фильтрации вкладок
+   - Блокировка tab switching
+   - Показывать только Custom tab в edit mode
+4. `types/components/OutfitCreator.ts`:
+   - Добавлен `isEditMode?: boolean` в `OutfitTabBarProps`
+
+**Testing:**
+
+- ✅ Редактирование образа → карусели показывают правильные вещи
+- ✅ Автоматическая прокрутка к выбранным items
+- ✅ Категории соответствуют структуре образа
+- ✅ Вкладки Basic/Dress/All скрыты в edit mode
+
+**Documentation:**
+[OUTFIT_EDIT_MODE_FIX_2025-12-20.md](Extra/OUTFIT_EDIT_MODE_FIX_2025-12-20.md)
+
+---
+
 ### ENHANCEMENT-004: Multi-Select & Bulk Delete for Wardrobe & Outfits
 
 **Date:** 2025-11-11  

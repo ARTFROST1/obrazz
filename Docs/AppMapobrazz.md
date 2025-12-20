@@ -2,9 +2,9 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** December 14, 2025
-**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)
-**Project Status:** Auth, Wardrobe Management (with ImageCropper), 4-Tab Outfit Creator, Outfits Collection, Shopping Browser - FULLY IMPLEMENTED
+**Latest Update:** December 20, 2025
+**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)
+**Project Status:** Auth, Wardrobe Management (offline-first), 4-Tab Outfit Creator (offline-first), Shopping Browser - FULLY IMPLEMENTED
 **Next Stage:** Stage 5 - AI-анализ вещей при загрузке
 **Documentation Status:** ✅ Synchronized with actual implementation
 
@@ -48,9 +48,10 @@
 
 **Key Features:**
 
-- 📦 Personal wardrobe management with auto background removal
-- 🎨 Manual outfit creator with 4-tab system and drag-drop canvas
+- 📦 Personal wardrobe management with auto background removal (offline-first)
+- 🎨 Manual outfit creator with 4-tab system and drag-drop canvas (offline-first)
 - 🛒 Shopping Browser - добавление вещей из интернет-магазинов (9 default stores)
+- ⚡ **Offline-First Architecture** - instant UI updates, background sync, full offline support
 - 🤖 AI-stylist for automatic outfit generation (planned)
 - 👗 AI try-on on user photos (planned)
 - 🎮 Gamification with streak and challenges (planned)

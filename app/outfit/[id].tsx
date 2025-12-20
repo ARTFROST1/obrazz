@@ -1,6 +1,7 @@
 import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
 import { Ionicons } from '@expo/vector-icons';
-import { outfitService } from '@services/outfit/outfitService';
+import { outfitServiceOffline } from '@services/outfit/outfitServiceOffline';
+import { useNetworkStatus } from '@services/sync';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -122,8 +123,12 @@ const getSeasonSticker = (season?: string): string => {
 
 export default function OutfitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { updateOutfit: updateOutfitInStore, deleteOutfit: deleteOutfitFromStore } =
-    useOutfitStore();
+  const {
+    outfits,
+    updateOutfit: updateOutfitInStore,
+    deleteOutfit: deleteOutfitFromStore,
+  } = useOutfitStore();
+  const { isOnline } = useNetworkStatus();
 
   const [outfit, setOutfit] = useState<Outfit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -156,19 +161,50 @@ export default function OutfitDetailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // ✅ Offline-first: Load from cache immediately, refresh in background
   const loadOutfit = async () => {
     if (!id) return;
 
+    // First, try to get from store cache (instant)
+    const cachedOutfit = outfits.find((o) => o.id === id);
+    if (cachedOutfit) {
+      setOutfit(cachedOutfit);
+      setIsFavorite(cachedOutfit.isFavorite);
+      setOutfitTitle(cachedOutfit.title || '');
+      setSelectedOccasion(cachedOutfit.occasions?.[0] || '');
+      setSelectedStyles(
+        cachedOutfit.styles && cachedOutfit.styles.length > 0 ? cachedOutfit.styles : [],
+      );
+      setSelectedSeason(cachedOutfit.seasons?.[0] || '');
+      setIsLoading(false);
+      console.log('[OutfitDetail] Loaded from cache instantly');
+      return;
+    }
+
+    // Not in cache - try to fetch from server
+    if (!isOnline) {
+      setIsLoading(false);
+      Alert.alert('Offline', 'Outfit not available offline');
+      router.back();
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const outfitData = await outfitService.getOutfitById(id);
-      setOutfit(outfitData);
-      setIsFavorite(outfitData.isFavorite);
-      // Set initial values for update modal
-      setOutfitTitle(outfitData.title || '');
-      setSelectedOccasion(outfitData.occasions?.[0] || '');
-      setSelectedStyles(outfitData.styles && outfitData.styles.length > 0 ? outfitData.styles : []);
-      setSelectedSeason(outfitData.seasons?.[0] || '');
+      const outfitData = await outfitServiceOffline.getOutfitById(id);
+      if (outfitData) {
+        setOutfit(outfitData);
+        setIsFavorite(outfitData.isFavorite);
+        setOutfitTitle(outfitData.title || '');
+        setSelectedOccasion(outfitData.occasions?.[0] || '');
+        setSelectedStyles(
+          outfitData.styles && outfitData.styles.length > 0 ? outfitData.styles : [],
+        );
+        setSelectedSeason(outfitData.seasons?.[0] || '');
+      } else {
+        Alert.alert('Error', 'Outfit not found');
+        router.back();
+      }
     } catch (error) {
       console.error('Error loading outfit:', error);
       Alert.alert('Error', 'Failed to load outfit');
@@ -189,14 +225,14 @@ export default function OutfitDetailScreen() {
 
     try {
       const newFavoriteStatus = !isFavorite;
-      await outfitService.toggleFavorite(outfit.id, newFavoriteStatus);
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.toggleFavorite(outfit.id, newFavoriteStatus);
       setIsFavorite(newFavoriteStatus);
-      updateOutfitInStore(outfit.id, { isFavorite: newFavoriteStatus });
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorite status');
+      if (isOnline) Alert.alert('Error', 'Failed to update favorite status');
     }
-  }, [outfit?.id, isFavorite, updateOutfitInStore]);
+  }, [outfit?.id, isFavorite, isOnline]);
 
   const handleDelete = useCallback(() => {
     if (!outfit) return;
@@ -208,31 +244,33 @@ export default function OutfitDetailScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await outfitService.deleteOutfit(outfit.id);
-            deleteOutfitFromStore(outfit.id);
+            // Offline-first: deletes locally immediately, syncs in background
+            await outfitServiceOffline.deleteOutfit(outfit.id);
             router.back();
           } catch (error) {
             console.error('Error deleting outfit:', error);
-            Alert.alert('Error', 'Failed to delete outfit');
+            if (isOnline) Alert.alert('Error', 'Failed to delete outfit');
           }
         },
       },
     ]);
-  }, [outfit, deleteOutfitFromStore]);
+  }, [outfit, isOnline]);
 
   const handleUpdateMetadata = async () => {
     if (!outfit) return;
 
     try {
       setIsUpdating(true);
-      await outfitService.updateOutfit(outfit.id, {
+      // Offline-first: updates locally immediately, syncs in background
+      // The service handles store updates automatically
+      await outfitServiceOffline.updateOutfit(outfit.id, {
         title: outfitTitle || 'My Outfit',
         occasions: selectedOccasion ? [selectedOccasion] : undefined,
         styles: selectedStyles.length > 0 ? selectedStyles : undefined,
         seasons: selectedSeason ? [selectedSeason] : undefined,
       });
 
-      // Update local state
+      // Update local component state
       setOutfit({
         ...outfit,
         title: outfitTitle,
@@ -241,17 +279,10 @@ export default function OutfitDetailScreen() {
         seasons: selectedSeason ? [selectedSeason] : [],
       });
 
-      updateOutfitInStore(outfit.id, {
-        title: outfitTitle,
-        occasions: selectedOccasion ? [selectedOccasion] : undefined,
-        styles: selectedStyles.length > 0 ? selectedStyles : undefined,
-        seasons: selectedSeason ? [selectedSeason] : undefined,
-      });
-
       setShowUpdateModal(false);
     } catch (error) {
       console.error('Error updating outfit:', error);
-      Alert.alert('Error', 'Failed to update outfit information');
+      if (isOnline) Alert.alert('Error', 'Failed to update outfit information');
     } finally {
       setIsUpdating(false);
     }
@@ -299,24 +330,25 @@ export default function OutfitDetailScreen() {
     const newTitle = editingTitleValue.trim() || 'My Outfit';
 
     try {
-      await outfitService.updateOutfit(outfit.id, { title: newTitle });
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.updateOutfit(outfit.id, { title: newTitle });
       setOutfit({ ...outfit, title: newTitle });
       setOutfitTitle(newTitle);
-      updateOutfitInStore(outfit.id, { title: newTitle });
       setIsEditingTitle(false);
       Keyboard.dismiss();
     } catch (error) {
       console.error('Error updating title:', error);
-      Alert.alert('Error', 'Failed to update title');
+      if (isOnline) Alert.alert('Error', 'Failed to update title');
     }
-  }, [outfit, editingTitleValue, updateOutfitInStore]);
+  }, [outfit, editingTitleValue, isOnline]);
 
   // Handle inline occasion selection
   const handleInlineOccasionSelect = async (occasion: OccasionTag) => {
     if (!outfit) return;
 
     try {
-      await outfitService.updateOutfit(outfit.id, {
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.updateOutfit(outfit.id, {
         occasions: [occasion],
       });
 
@@ -325,11 +357,10 @@ export default function OutfitDetailScreen() {
         occasions: [occasion],
       });
       setSelectedOccasion(occasion);
-      updateOutfitInStore(outfit.id, { occasions: [occasion] });
       setActiveMetadataCard(null);
     } catch (error) {
       console.error('Error updating occasion:', error);
-      Alert.alert('Error', 'Failed to update occasion');
+      if (isOnline) Alert.alert('Error', 'Failed to update occasion');
     }
   };
 
@@ -344,7 +375,8 @@ export default function OutfitDetailScreen() {
       : [...currentStyles, style];
 
     try {
-      await outfitService.updateOutfit(outfit.id, {
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.updateOutfit(outfit.id, {
         styles: newStyles.length > 0 ? newStyles : undefined,
       });
 
@@ -353,10 +385,9 @@ export default function OutfitDetailScreen() {
         styles: newStyles,
       });
       setSelectedStyles(newStyles);
-      updateOutfitInStore(outfit.id, { styles: newStyles.length > 0 ? newStyles : undefined });
     } catch (error) {
       console.error('Error updating style:', error);
-      Alert.alert('Error', 'Failed to update style');
+      if (isOnline) Alert.alert('Error', 'Failed to update style');
     }
   };
 
@@ -365,7 +396,8 @@ export default function OutfitDetailScreen() {
     if (!outfit) return;
 
     try {
-      await outfitService.updateOutfit(outfit.id, {
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.updateOutfit(outfit.id, {
         seasons: [season],
       });
 
@@ -374,11 +406,10 @@ export default function OutfitDetailScreen() {
         seasons: [season],
       });
       setSelectedSeason(season);
-      updateOutfitInStore(outfit.id, { seasons: [season] });
       setActiveMetadataCard(null);
     } catch (error) {
       console.error('Error updating season:', error);
-      Alert.alert('Error', 'Failed to update season');
+      if (isOnline) Alert.alert('Error', 'Failed to update season');
     }
   };
 

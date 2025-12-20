@@ -25,6 +25,7 @@ export function OutfitTabBar({
   onTabChange,
   customItemCount = 0,
   isCustomTabEditing = false,
+  isEditMode = false, // ✅ NEW: Edit mode flag
   tabs = DEFAULT_OUTFIT_TABS,
 }: OutfitTabBarProps) {
   const { t } = useTranslation('outfit');
@@ -32,9 +33,12 @@ export function OutfitTabBar({
   // Animated indicator
   const indicatorAnim = useRef(new Animated.Value(0)).current;
 
+  // ✅ In edit mode, show only the custom tab
+  const visibleTabs = isEditMode ? tabs.filter((tab) => tab.id === 'custom') : tabs;
+
   // Animate indicator when tab changes
   useEffect(() => {
-    const activeIndex = tabs.findIndex((tab) => tab.id === activeTab);
+    const activeIndex = visibleTabs.findIndex((tab) => tab.id === activeTab);
     if (activeIndex !== -1) {
       Animated.spring(indicatorAnim, {
         toValue: activeIndex,
@@ -43,14 +47,19 @@ export function OutfitTabBar({
         friction: 26,
       }).start();
     }
-  }, [activeTab, tabs, indicatorAnim]);
+  }, [activeTab, visibleTabs, indicatorAnim]);
 
   const handleTabPress = (tabId: OutfitTabType) => {
+    // ✅ Prevent tab switching in edit mode
+    if (isEditMode && tabId !== 'custom') {
+      console.log('🚫 [OutfitTabBar] Tab switching disabled in edit mode');
+      return;
+    }
     onTabChange(tabId);
   };
 
-  const tabWidth = 100 / tabs.length; // Process width (for style)
-  const tabWidthInPixels = SCREEN_WIDTH / tabs.length; // Pixel width (for translateX)
+  const tabWidth = 100 / visibleTabs.length; // Process width (for style)
+  const tabWidthInPixels = SCREEN_WIDTH / visibleTabs.length; // Pixel width (for translateX)
 
   return (
     <View style={styles.container}>
@@ -60,7 +69,7 @@ export function OutfitTabBar({
         contentContainerStyle={styles.scrollContent}
         bounces={false}
       >
-        {tabs.map((tab, index) => {
+        {visibleTabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           const showBadge = tab.id === 'custom' && customItemCount > 0 && !isActive;
 
@@ -124,8 +133,8 @@ export function OutfitTabBar({
             transform: [
               {
                 translateX: indicatorAnim.interpolate({
-                  inputRange: [0, tabs.length - 1],
-                  outputRange: [0, (tabs.length - 1) * tabWidthInPixels],
+                  inputRange: [0, visibleTabs.length - 1],
+                  outputRange: [0, (visibleTabs.length - 1) * tabWidthInPixels],
                 }),
               },
             ],

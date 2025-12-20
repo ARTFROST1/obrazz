@@ -1,7 +1,7 @@
 # Implementation Plan for Obrazz
 
-**Last Updated:** December 14, 2025  
-**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)  
+**Last Updated:** December 20, 2025  
+**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)  
 **Next Stage:** Stage 5 - AI-анализ вещей при загрузке
 
 ---
@@ -17,6 +17,7 @@
 5. ✅ **ImageCropper** - кастомная обрезка 3:4 с pinch-to-zoom
 6. ✅ **Shopping Browser** - добавление вещей из интернет-магазинов (9 default stores)
 7. ✅ **Default Items** - 24 встроенные вещи для новых пользователей
+8. ✅ **Offline-First Architecture** - мгновенная загрузка, работа без интернета, фоновая синхронизация
 
 ### Планируемые функции (Stage 5+):
 
@@ -735,9 +736,137 @@ AsyncStorage.setItem('@shopping_cart', JSON.stringify(cartItems));
 
 ---
 
+### Stage 4.12: Offline-First Architecture ✅
+
+**Dependencies:** Stage 4.11 completion
+**Timeline:** 1 день
+**Status:** COMPLETED (December 20, 2025)
+
+**Цель:** Мгновенная загрузка данных, работа без интернета, фоновая синхронизация
+
+#### Проблемы до внедрения:
+
+- UI зависал при добавлении вещей/создании образов (ожидание ответа сервера)
+- Медленная загрузка detail screens (каждый раз fetch с сервера)
+- Невозможность работы без интернета
+- Network errors блокировали работу приложения
+
+#### Реализованное решение:
+
+**1. Optimistic UI Strategy** - все операции выполняются локально мгновенно:
+
+- Создание вещей/образов → сразу в Zustand store
+- Обновление → сразу в локальном состоянии
+- Удаление → мгновенное удаление из UI
+- Синхронизация с сервером в фоне (неблокирующая)
+
+**2. Offline Services** (новые файлы):
+
+- `services/wardrobe/itemServiceOffline.ts` ✅ - Offline-first для вещей
+  - `createItem()` - мгновенное локальное создание + фоновая sync
+  - `updateItem()` - мгновенное обновление + фоновая sync
+  - `deleteItem()` - мгновенное удаление + фоновая sync
+  - `toggleFavorite()` - мгновенное изменение + фоновая sync
+  - `getUserItems()` - возврат кеша + фоновая sync
+  - `getItemById()` - проверка кеша first, fallback на server
+
+- `services/outfit/outfitServiceOffline.ts` ✅ - Offline-first для образов
+  - `createOutfit()` - мгновенное создание + фоновая sync
+  - `updateOutfit()` - мгновенное обновление + фоновая sync
+  - `deleteOutfit()` - мгновенное удаление + фоновая sync
+  - `toggleFavorite()` - мгновенное изменение + фоновая sync
+  - `getUserOutfits()` - возврат кеша + фоновая sync
+  - `getOutfitById()` - проверка кеша first, fallback на server
+  - `duplicateOutfit()` - работает через createOutfit (offline-ready)
+
+**3. Sync Infrastructure** (используется существующая):
+
+- `services/sync/syncQueue.ts` ✅ - Очередь операций для offline
+- `services/sync/networkMonitor.ts` ✅ - Отслеживание состояния сети
+- AsyncStorage для персистентности очереди
+
+**4. Store Updates**:
+
+- `store/wardrobe/wardrobeStore.ts` ✅ - sync state (syncStatus, lastSyncedAt)
+- `store/outfit/outfitStore.ts` ✅ - sync state (syncStatus, lastSyncedAt)
+
+**5. Screen Updates** (все экраны теперь используют offline сервисы):
+
+- `app/add-item.tsx` ✅ - itemServiceOffline вместо itemService
+- `app/outfit/create.tsx` ✅ - outfitServiceOffline + itemServiceOffline
+- `app/(tabs)/wardrobe.tsx` ✅ - itemServiceOffline
+- `app/(tabs)/outfits.tsx` ✅ - outfitServiceOffline
+- `app/item/[id].tsx` ✅ - кеш-first загрузка, itemServiceOffline
+- `app/outfit/[id].tsx` ✅ - кеш-first загрузка, outfitServiceOffline
+
+**6. Bug Fixes**:
+
+- Исправлена ошибка сортировки дат (Date vs string при десериализации)
+- Добавлены проверки на null при загрузке данных
+- Удалены дубликаты кода после рефакторинга
+
+#### Технические детали:
+
+```typescript
+// Паттерн: мгновенное локальное обновление + фоновая sync
+async createItem(input: CreateItemInput): Promise<WardrobeItem> {
+  // 1. Создать локально с temp ID
+  const tempId = generateTempId();
+  const localItem = this.inputToLocalItem(input, tempId);
+
+  // 2. Добавить в store СРАЗУ - UI обновляется мгновенно
+  store.addItem(localItem);
+
+  // 3. Синхронизация в фоне - НЕ блокирует UI
+  if (isOnline()) {
+    this.syncCreateItemInBackground(tempId, input, store).catch(...);
+  } else {
+    await syncQueue.add({...}); // Очередь для offline
+  }
+
+  // 4. Вернуть локальный item сразу
+  return localItem;
+}
+
+// Фоновая синхронизация - неблокирующая
+private async syncCreateItemInBackground(...): Promise<void> {
+  try {
+    const serverItem = await itemService.createItem(input);
+    store.removeItemLocally(tempId);
+    store.addItem(serverItem); // Замена temp → real
+  } catch (error) {
+    await syncQueue.add({...}); // Retry через очередь
+  }
+}
+```
+
+#### Результаты:
+
+✅ **UI больше не зависает** - все операции мгновенные
+✅ **Instant loading** - detail screens открываются мгновенно (кеш)
+✅ **Работа офлайн** - все CRUD операции доступны без интернета
+✅ **Фоновая sync** - изменения синхронизируются когда есть сеть
+✅ **Очередь операций** - при offline все изменения сохраняются и применяются позже
+✅ **TypeScript** - все типы корректны, компиляция без ошибок
+
+#### Sub-steps:
+
+- [x] Создание itemServiceOffline.ts с optimistic UI
+- [x] Создание outfitServiceOffline.ts с optimistic UI
+- [x] Замена всех вызовов itemService → itemServiceOffline
+- [x] Замена всех вызовов outfitService → outfitServiceOffline
+- [x] Обновление экранов (add-item, create, detail screens)
+- [x] Исправление ошибки сортировки дат
+- [x] Добавление null checks
+- [x] Тестирование offline режима
+- [x] TypeScript type checking
+- [x] Обновление документации
+
+---
+
 ### Stage 5: AI-анализ вещей при загрузке
 
-**Dependencies:** Stage 4 completion
+**Dependencies:** Stage 4.12 completion
 **Timeline:** 1-2 недели
 **Status:** PLANNED
 

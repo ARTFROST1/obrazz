@@ -1,10 +1,12 @@
 import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
+import { SyncStatusIndicator } from '@components/sync';
 import { FAB } from '@components/ui';
 import { FilterState, ItemFilter } from '@components/wardrobe/ItemFilter';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
-import { itemService } from '@services/wardrobe/itemService';
+import { useNetworkStatus } from '@services/sync/networkMonitor';
+import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { debounce } from '@utils/debounce';
@@ -33,6 +35,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function WardrobeScreen() {
   const { t } = useTranslation('wardrobe');
   const { user } = useAuthStore();
+  const { isOnline } = useNetworkStatus();
   const {
     items,
     filter,
@@ -45,6 +48,8 @@ export default function WardrobeScreen() {
     setLoading,
     setError,
     removeItemLocally,
+    isHydrated,
+    setSyncStatus,
   } = useWardrobeStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +59,7 @@ export default function WardrobeScreen() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [gridColumns, setGridColumns] = useState<2 | 3>(3);
 
+  // Offline-first load: use cached items immediately, sync in background
   const loadItems = useCallback(async () => {
     if (!user?.id) {
       console.log('[WardrobeScreen] No user ID, skipping load');
@@ -61,35 +67,51 @@ export default function WardrobeScreen() {
     }
 
     try {
-      console.log('[WardrobeScreen] Loading items for user:', user.id);
-      setLoading(true);
-      const userItems = await itemService.getUserItems(user.id);
-      console.log('[WardrobeScreen] Loaded', userItems.length, 'items');
-      setItems(userItems);
-      setError(null); // Clear any previous errors
+      console.log('[WardrobeScreen] Loading items (offline-first) for user:', user.id);
+      setSyncStatus('syncing');
+
+      // This returns cached items immediately and syncs in background
+      const userItems = await itemServiceOffline.getUserItems(user.id);
+      console.log('[WardrobeScreen] Got', userItems.length, 'items (from cache/server)');
+
+      // Only update if we got items from server sync
+      // The store already has cached items from hydration
+      if (userItems.length > 0) {
+        setItems(userItems);
+      }
+
+      setError(null);
+      setSyncStatus(isOnline ? 'synced' : 'offline');
     } catch (error) {
       console.error('[WardrobeScreen] Error loading items:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to load items';
       setError(errorMessage);
-      Alert.alert('Error', 'Failed to load your wardrobe items. Please try again.');
+      setSyncStatus('error');
+
+      // Don't show alert if offline - user can still see cached items
+      if (isOnline) {
+        Alert.alert('Error', 'Failed to load your wardrobe items. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
-  }, [user?.id, setLoading, setItems, setError]);
+  }, [user?.id, setLoading, setItems, setError, setSyncStatus, isOnline]);
 
-  // Load items when screen is focused (not on every render)
+  // Load items when screen is focused
+  // Now uses offline-first approach: show cached immediately, sync in background
   useFocusEffect(
     useCallback(() => {
-      // Only load if we don't have items yet or if user changed
-      if (items.length === 0 || !user?.id) {
-        console.log('[WardrobeScreen] Screen focused, loading items');
+      // If hydrated and have cached items, show them immediately
+      if (isHydrated && items.length > 0) {
+        console.log('[WardrobeScreen] Using', items.length, 'cached items');
+        // Still trigger background sync if online
+        if (user?.id && isOnline) {
+          loadItems();
+        }
+      } else if (user?.id) {
+        // No cached items, need to load
+        console.log('[WardrobeScreen] No cached items, loading...');
         loadItems();
-      } else {
-        console.log(
-          '[WardrobeScreen] Screen focused, items already loaded (',
-          items.length,
-          '), skipping load',
-        );
       }
 
       // Update StatusBar
@@ -98,7 +120,7 @@ export default function WardrobeScreen() {
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
       }
-    }, [loadItems, items.length, user?.id]),
+    }, [loadItems, items.length, user?.id, isHydrated, isOnline]),
   );
 
   const handleRefresh = useCallback(async () => {
@@ -127,11 +149,15 @@ export default function WardrobeScreen() {
   const handleFavoritePress = async (item: WardrobeItem) => {
     try {
       const newFavoriteStatus = !item.isFavorite;
-      await itemService.toggleFavorite(item.id, newFavoriteStatus);
-      updateItem(item.id, { isFavorite: newFavoriteStatus });
+      // Use offline-first service - updates locally immediately, syncs in background
+      await itemServiceOffline.toggleFavorite(item.id, newFavoriteStatus, user?.id || '');
+      // Local update is already done by the service
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorite status');
+      // Don't show error if offline - change will sync later
+      if (isOnline) {
+        Alert.alert('Error', 'Failed to update favorite status');
+      }
     }
   };
 
@@ -236,15 +262,15 @@ export default function WardrobeScreen() {
               setSelectedItems(new Set());
               setIsSelectionMode(false);
 
-              // STEP 3: Delete from database in background
-              console.log('[WardrobeScreen] Deleting from database...');
+              // STEP 3: Delete from database in background (using offline-first service)
+              console.log('[WardrobeScreen] Deleting items (offline-first)...');
               const results = await Promise.allSettled(
-                selectedItemsList.map((item) => itemService.deleteItem(item.id)),
+                selectedItemsList.map((item) => itemServiceOffline.deleteItem(item.id, user.id)),
               );
 
-              // Check for failures
+              // Check for failures (only relevant if online)
               const failed = results.filter((r) => r.status === 'rejected');
-              if (failed.length > 0) {
+              if (failed.length > 0 && isOnline) {
                 console.error('[WardrobeScreen] Some deletions failed:', failed.length);
                 throw new Error(`Failed to delete ${failed.length} items`);
               }
@@ -296,7 +322,10 @@ export default function WardrobeScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>{t('header.title')}</Text>
+            <View style={styles.headerTitleRow}>
+              <Text style={styles.headerTitle}>{t('header.title')}</Text>
+              <SyncStatusIndicator size="small" style={styles.syncIndicator} />
+            </View>
             <TouchableOpacity
               style={styles.selectButton}
               onPress={handleToggleSelectionMode}
@@ -502,6 +531,14 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 20,
     fontWeight: '600',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  syncIndicator: {
+    marginLeft: 4,
   },
   filterBadge: {
     marginLeft: 4,

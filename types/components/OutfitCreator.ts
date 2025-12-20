@@ -41,6 +41,7 @@ export interface OutfitTabBarProps {
   onTabChange: (tab: OutfitTabType) => void;
   customItemCount?: number;
   isCustomTabEditing?: boolean;
+  isEditMode?: boolean; // ✅ NEW: Hide inactive tabs in edit mode
   tabs?: OutfitTab[];
 }
 

@@ -110,6 +110,8 @@ export function CategorySelectorWithSmooth({
   const [scrollCache, setScrollCache] = useState<Record<string, number>>({});
   // ✅ Track previous selectedItems to detect changes and clear cache
   const prevSelectedItemsRef = useRef<(WardrobeItem | null)[]>([]);
+  // ✅ Track outfitId changes to clear cache when entering edit mode
+  const prevOutfitIdRef = useRef<string | undefined>(outfitId);
 
   // Categories are already filtered by parent based on tab
   const visibleCategories = categories;
@@ -154,6 +156,18 @@ export function CategorySelectorWithSmooth({
     },
     [selectedItems],
   );
+
+  // ✅ FIX: Clear scroll cache when outfitId changes (entering edit mode)
+  useEffect(() => {
+    if (prevOutfitIdRef.current !== outfitId) {
+      console.log('🔄 [CategorySelector] outfitId changed, clearing ALL scroll cache:', {
+        prevOutfitId: prevOutfitIdRef.current,
+        newOutfitId: outfitId,
+      });
+      setScrollCache({});
+      prevOutfitIdRef.current = outfitId;
+    }
+  }, [outfitId]);
 
   // ✅ FIX: Track selectedItems changes and reset scroll cache for changed slots
   // This ensures carousels scroll to correct items when editing an outfit
@@ -234,16 +248,25 @@ export function CategorySelectorWithSmooth({
         const categoryItems = getItemsByCategory(category);
         const selectedItem = selectedItems[slotIndex];
 
-        // Get initial scroll index: use cached index if available, otherwise calculate from selected item
+        // ✅ FIX: In edit mode (when outfitId exists), prioritize selectedItem over cache
+        // This ensures correct scroll position when entering edit mode
         const cacheKey = `${outfitId || 'new'}-${tabType}-${category}-${slotIndex}`;
-        const initialIndex =
-          scrollCache[cacheKey] !== undefined
-            ? scrollCache[cacheKey]
-            : getInitialScrollIndex(slotIndex, categoryItems);
+        const calculatedIndex = getInitialScrollIndex(slotIndex, categoryItems);
 
-        console.log(`📍 [CategorySelector] Cache lookup for ${cacheKey}:`, {
+        // Use calculated index if:
+        // 1. In edit mode (outfitId exists) - always use selectedItem
+        // 2. No cache exists
+        // 3. selectedItem exists (user has made a selection)
+        const shouldUseCalculated =
+          outfitId || scrollCache[cacheKey] === undefined || selectedItem !== null;
+        const initialIndex = shouldUseCalculated ? calculatedIndex : scrollCache[cacheKey];
+
+        console.log(`📍 [CategorySelector] Scroll index for ${cacheKey}:`, {
           cached: scrollCache[cacheKey],
+          calculated: calculatedIndex,
           willUse: initialIndex,
+          selectedItemTitle: selectedItem?.title || 'null',
+          isEditMode: !!outfitId,
           category,
           tabType,
           outfitId: outfitId || 'new',

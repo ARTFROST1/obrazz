@@ -144,6 +144,12 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
 
   const handleTabChange = useCallback(
     (tab: OutfitTabType) => {
+      // ✅ In edit mode, prevent switching away from custom tab
+      if (isEditMode && tab !== 'custom') {
+        console.log('🚫 [ItemSelectionStepNew] Cannot switch tabs in edit mode');
+        return;
+      }
+
       // If clicking on custom tab when already on it - toggle edit mode
       if (tab === 'custom' && activeTab === 'custom') {
         toggleCustomTabEditing();
@@ -156,7 +162,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
         }
       }
     },
-    [activeTab, setActiveTab, isCustomTabEditing, toggleCustomTabEditing],
+    [activeTab, setActiveTab, isCustomTabEditing, toggleCustomTabEditing, isEditMode],
   );
 
   const handleRandomize = useCallback(() => {
@@ -197,6 +203,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
         onTabChange={handleTabChange}
         customItemCount={customTabCategories.length}
         isCustomTabEditing={isCustomTabEditing}
+        isEditMode={isEditMode} // ✅ Pass edit mode flag
       />
 
       {/* Category Carousels OR Edit Content */}

@@ -7,7 +7,7 @@ import { ColorPicker } from '@components/wardrobe/ColorPicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
-import { itemService } from '@services/wardrobe/itemService';
+import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useShoppingBrowserStore } from '@store/shoppingBrowserStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
@@ -103,7 +103,14 @@ export default function AddItemScreen() {
   const loadItemData = useCallback(async () => {
     try {
       setLoadingItem(true);
-      const item = await itemService.getItemById(itemId!);
+      const item = await itemServiceOffline.getItemById(itemId!);
+
+      if (!item) {
+        Alert.alert(t('common:states.error'), t('addItem.loadItemError'));
+        router.back();
+        return;
+      }
+
       setOriginalItem(item); // Store original item
 
       // Pre-fill form with existing data
@@ -385,6 +392,14 @@ export default function AddItemScreen() {
       return;
     }
 
+    // ⚠️ Validate colors before save
+    if (selectedColors.length === 0) {
+      Alert.alert(t('common:states.error'), 'Please select at least one color for this item', [
+        { text: 'OK' },
+      ]);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -411,7 +426,7 @@ export default function AddItemScreen() {
           updateData.imageUri = imageUri;
         }
 
-        const updatedItem = await itemService.updateItem(itemId!, updateData);
+        const updatedItem = await itemServiceOffline.updateItem(itemId!, updateData);
         updateItem(itemId!, updatedItem);
       } else {
         // Create new item
@@ -433,7 +448,7 @@ export default function AddItemScreen() {
           }
         }
 
-        const newItem = await itemService.createItem({
+        const newItem = await itemServiceOffline.createItem({
           userId: user.id,
           title: title || undefined,
           category,

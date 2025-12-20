@@ -238,6 +238,11 @@ class ItemService {
    */
   async updateItem(itemId: string, updates: UpdateItemInput): Promise<WardrobeItem> {
     try {
+      // ⚠️ Validate colors - cannot be empty
+      if (updates.colors !== undefined && updates.colors.length === 0) {
+        throw new Error('At least one color is required');
+      }
+
       const updateData: Record<string, unknown> = {};
 
       if (updates.title !== undefined) updateData.name = updates.title;

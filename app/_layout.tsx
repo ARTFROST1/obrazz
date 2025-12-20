@@ -1,3 +1,4 @@
+import { OfflineBanner } from '@components/sync';
 import { Loader } from '@components/ui';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -5,6 +6,9 @@ import { i18n } from '@hooks/useTranslation';
 import '@lib/i18n/config'; // Initialize i18n
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { authService } from '@services/auth/authService';
+import { initNetworkMonitor } from '@services/sync/networkMonitor';
+import { syncService } from '@services/sync/syncService';
+import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useSettingsStore } from '@store/settings/settingsStore';
@@ -13,9 +17,10 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Import diagnostics (only in DEV mode)
 if (__DEV__) {
@@ -68,6 +73,38 @@ function RootLayoutNav() {
   const { language } = useSettingsStore();
   const segments = useSegments();
   const router = useRouter();
+
+  // Initialize network monitor and sync services
+  useEffect(() => {
+    console.log('[RootLayoutNav] Initializing offline-first services...');
+
+    // Initialize network monitoring
+    const unsubscribeNetwork = initNetworkMonitor();
+
+    // Initialize sync service
+    syncService
+      .init()
+      .then(() => {
+        console.log('[RootLayoutNav] ✓ Sync service initialized');
+      })
+      .catch((error) => {
+        console.error('[RootLayoutNav] Failed to initialize sync service:', error);
+      });
+
+    // Initialize offline item service
+    itemServiceOffline
+      .init()
+      .then(() => {
+        console.log('[RootLayoutNav] ✓ Offline item service initialized');
+      })
+      .catch((error) => {
+        console.error('[RootLayoutNav] Failed to initialize item service:', error);
+      });
+
+    return () => {
+      unsubscribeNetwork();
+    };
+  }, []);
 
   // Rehydrate stores on client side
   useEffect(() => {
@@ -173,14 +210,19 @@ function RootLayoutNav() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <View style={{ flex: 1 }}>
+            <OfflineBanner />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            </Stack>
+          </View>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

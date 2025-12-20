@@ -1,8 +1,8 @@
 import { CompositionStep, ItemSelectionStepNew } from '@components/outfit';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
-import { outfitService } from '@services/outfit/outfitService';
-import { itemService } from '@services/wardrobe/itemService';
+import { outfitServiceOffline } from '@services/outfit/outfitServiceOffline';
+import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
@@ -67,7 +67,7 @@ export default function CreateScreen() {
 
       try {
         console.log('📦 [create.tsx] Loading wardrobe items from DB...');
-        const items = await itemService.getUserItems(user.id);
+        const items = await itemServiceOffline.getUserItems(user.id);
         console.log(`✅ [create.tsx] Loaded ${items.length} wardrobe items`);
 
         const { setItems } = useWardrobeStore.getState();
@@ -98,7 +98,14 @@ export default function CreateScreen() {
   const loadOutfitForEdit = async (outfitId: string) => {
     try {
       setIsLoadingOutfit(true);
-      const outfit = await outfitService.getOutfitById(outfitId);
+      const outfit = await outfitServiceOffline.getOutfitById(outfitId);
+
+      if (!outfit) {
+        Alert.alert('Error', 'Failed to load outfit for editing');
+        router.back();
+        return;
+      }
+
       setCurrentOutfit(outfit);
       setOutfitTitle(outfit.title || '');
       setSelectedOccasion(outfit.occasions?.[0] || '');
@@ -171,7 +178,7 @@ export default function CreateScreen() {
 
       if (isEditMode && id) {
         // Update existing outfit
-        await outfitService.updateOutfit(id, {
+        await outfitServiceOffline.updateOutfit(id, {
           title: outfitTitle || 'My Outfit',
           items: currentItems,
           background: currentBackground,
@@ -186,7 +193,7 @@ export default function CreateScreen() {
         router.back();
       } else {
         // Create new outfit
-        await outfitService.createOutfit(user.id, {
+        await outfitServiceOffline.createOutfit(user.id, {
           title: outfitTitle || 'My Outfit',
           items: currentItems,
           background: currentBackground,

@@ -2,10 +2,12 @@ import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { OutfitFilter, OutfitFilterState } from '@components/outfit';
 import { OutfitEmptyState } from '@components/outfit/OutfitEmptyState';
 import { OutfitGrid } from '@components/outfit/OutfitGrid';
+import { SyncStatusIndicator } from '@components/sync';
 import { FAB } from '@components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
-import { outfitService } from '@services/outfit/outfitService';
+import { outfitServiceOffline } from '@services/outfit/outfitServiceOffline';
+import { useNetworkStatus } from '@services/sync';
 import { useAuthStore } from '@store/auth/authStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { router, useFocusEffect } from 'expo-router';
@@ -49,7 +51,11 @@ export default function OutfitsScreen() {
     isLoading,
     setLoading,
     setError,
+    isHydrated,
+    setSyncStatus,
   } = useOutfitStore();
+
+  const { isOnline } = useNetworkStatus();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'private' | 'shared' | 'public'>('all');
@@ -66,11 +72,15 @@ export default function OutfitsScreen() {
   const [selectedOutfits, setSelectedOutfits] = useState<Set<string>>(new Set());
 
   // ✅ Load outfits when screen is focused (after creating/editing)
+  // Uses offline-first approach: returns cached immediately, syncs in background
   useFocusEffect(
     useCallback(() => {
-      loadOutfits();
+      // Only load after store is hydrated to avoid overwriting cache
+      if (isHydrated) {
+        loadOutfits();
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []),
+    }, [isHydrated]),
   );
 
   // Update StatusBar when screen is focused or theme changes
@@ -84,21 +94,34 @@ export default function OutfitsScreen() {
     }, [isDark]),
   );
 
-  const loadOutfits = async () => {
+  const loadOutfits = useCallback(async () => {
     if (!user?.id) return;
 
     try {
-      setLoading(true);
-      const userOutfits = await outfitService.getUserOutfits(user.id);
+      // Don't show loading spinner if we have cached data
+      if (outfits.length === 0) {
+        setLoading(true);
+      }
+      setSyncStatus('syncing');
+
+      // Offline-first: returns cached immediately, syncs in background
+      const userOutfits = await outfitServiceOffline.getUserOutfits(user.id);
       setOutfits(userOutfits);
+      setSyncStatus('synced');
     } catch (error) {
       console.error('Error loading outfits:', error);
-      setError('Failed to load outfits');
-      Alert.alert('Error', 'Failed to load your outfits');
+      setSyncStatus('error');
+      // Only show error if we have no cached data
+      if (outfits.length === 0) {
+        setError('Failed to load outfits');
+        if (isOnline) {
+          Alert.alert('Error', 'Failed to load your outfits');
+        }
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, outfits.length, isOnline]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.id) {
@@ -107,16 +130,9 @@ export default function OutfitsScreen() {
     }
 
     setRefreshing(true);
-    try {
-      const userOutfits = await outfitService.getUserOutfits(user.id);
-      setOutfits(userOutfits);
-    } catch (error) {
-      console.error('Error refreshing outfits:', error);
-      setError('Failed to refresh outfits');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [user?.id, setOutfits, setError]);
+    await loadOutfits();
+    setRefreshing(false);
+  }, [loadOutfits, user?.id]);
 
   const handleOutfitPress = (outfit: Outfit) => {
     if (isSelectionMode) {
@@ -154,11 +170,13 @@ export default function OutfitsScreen() {
           onPress: async () => {
             try {
               setLoading(true);
-              await outfitService.duplicateOutfit(outfit.id, user.id);
-              await loadOutfits();
+              await outfitServiceOffline.duplicateOutfit(outfit.id, user.id);
+              // No need to reload - store is updated automatically
             } catch (error) {
               console.error('Error duplicating outfit:', error);
-              Alert.alert('Error', 'Failed to duplicate outfit');
+              if (isOnline) {
+                Alert.alert('Error', 'Failed to duplicate outfit');
+              }
             } finally {
               setLoading(false);
             }
@@ -182,12 +200,14 @@ export default function OutfitsScreen() {
           onPress: async () => {
             try {
               setLoading(true);
-              await outfitService.deleteOutfit(outfit.id);
-              removeOutfitFromStore(outfit.id);
-              // ✅ No success message as per user request
+              // Offline-first: deletes locally immediately, syncs in background
+              await outfitServiceOffline.deleteOutfit(outfit.id);
+              // No need to call removeOutfitFromStore - service handles it
             } catch (error) {
               console.error('Error deleting outfit:', error);
-              Alert.alert('Error', 'Failed to delete outfit');
+              if (isOnline) {
+                Alert.alert('Error', 'Failed to delete outfit');
+              }
             } finally {
               setLoading(false);
             }
@@ -205,15 +225,14 @@ export default function OutfitsScreen() {
   const handleFavoritePress = async (outfit: Outfit) => {
     try {
       const newFavoriteStatus = !outfit.isFavorite;
-      await outfitService.toggleFavorite(outfit.id, newFavoriteStatus);
-      // Update local state
-      const updatedOutfits = outfits.map((o) =>
-        o.id === outfit.id ? { ...o, isFavorite: newFavoriteStatus } : o,
-      );
-      setOutfits(updatedOutfits);
+      // Offline-first: updates locally immediately, syncs in background
+      await outfitServiceOffline.toggleFavorite(outfit.id, newFavoriteStatus);
+      // Store is updated by the service, no need to manually update
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorite status');
+      if (isOnline) {
+        Alert.alert('Error', 'Failed to update favorite status');
+      }
     }
   };
 
@@ -252,19 +271,20 @@ export default function OutfitsScreen() {
           onPress: async () => {
             try {
               setLoading(true);
-              // Delete all selected outfits
+              // Delete all selected outfits (offline-first)
               await Promise.all(
-                Array.from(selectedOutfits).map((outfitId) => outfitService.deleteOutfit(outfitId)),
+                Array.from(selectedOutfits).map((outfitId) =>
+                  outfitServiceOffline.deleteOutfit(outfitId),
+                ),
               );
-              // Reload outfits
-              await loadOutfits();
-              // Exit selection mode
+              // Exit selection mode - store is already updated by service
               setIsSelectionMode(false);
               setSelectedOutfits(new Set());
-              // ✅ No success message as per user request
             } catch (error) {
               console.error('Error deleting outfits:', error);
-              Alert.alert('Error', 'Failed to delete some outfits');
+              if (isOnline) {
+                Alert.alert('Error', 'Failed to delete some outfits');
+              }
             } finally {
               setLoading(false);
             }
@@ -365,9 +385,12 @@ export default function OutfitsScreen() {
           <View
             style={[styles.headerContent, { borderBottomColor: isDark ? '#38383A' : '#E5E5E5' }]}
           >
-            <Text style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
-              {t('header.title')}
-            </Text>
+            <View style={styles.headerTitleRow}>
+              <Text style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+                {t('header.title')}
+              </Text>
+              <SyncStatusIndicator size="small" style={styles.syncIndicator} />
+            </View>
             <TouchableOpacity
               style={styles.selectButton}
               onPress={handleToggleSelectionMode}
@@ -604,6 +627,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     // color set dynamically
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  syncIndicator: {
+    marginLeft: 4,
   },
   searchContainer: {
     flexDirection: 'row',

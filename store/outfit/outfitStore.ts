@@ -40,6 +40,11 @@ interface OutfitState {
   isLoading: boolean;
   error: string | null;
 
+  // Sync state (offline-first)
+  syncStatus: 'synced' | 'syncing' | 'pending' | 'error';
+  lastSyncedAt: Date | null;
+  isHydrated: boolean;
+
   // Undo/Redo
   history: HistoryState[];
   historyIndex: number;
@@ -95,6 +100,11 @@ interface OutfitState {
   // Loading & Error
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+
+  // Sync actions (offline-first)
+  setSyncStatus: (status: 'synced' | 'syncing' | 'pending' | 'error') => void;
+  setLastSyncedAt: (date: Date | null) => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 const defaultBackground: OutfitBackground = {
@@ -164,6 +174,12 @@ export const useOutfitStore = create<OutfitState>()(
       outfits: [],
       isLoading: false,
       error: null,
+
+      // Sync state (offline-first)
+      syncStatus: 'synced',
+      lastSyncedAt: null,
+      isHydrated: false,
+
       history: [],
       historyIndex: -1,
       maxHistorySize: 20,
@@ -868,6 +884,19 @@ export const useOutfitStore = create<OutfitState>()(
       setError: (error) => {
         set({ error });
       },
+
+      // Sync actions (offline-first)
+      setSyncStatus: (syncStatus) => {
+        set({ syncStatus });
+      },
+
+      setLastSyncedAt: (lastSyncedAt) => {
+        set({ lastSyncedAt });
+      },
+
+      setHydrated: (isHydrated) => {
+        set({ isHydrated });
+      },
     }),
     {
       name: 'outfit-storage',
@@ -878,8 +907,14 @@ export const useOutfitStore = create<OutfitState>()(
         activeTab: state.activeTab,
         customTabCategories: state.customTabCategories,
         customTabOrder: state.customTabOrder,
+        lastSyncedAt: state.lastSyncedAt,
       }),
-      skipHydration: true, // Skip hydration on server (SSR)
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true);
+          console.log('✅ [outfitStore] Hydrated with', state.outfits?.length || 0, 'outfits');
+        }
+      },
     },
   ),
 );

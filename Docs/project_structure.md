@@ -1,7 +1,7 @@
 # Project Structure - Obrazz
 
-**Last Updated:** December 14, 2025
-**Current Stage:** Stage 4.11 Complete ✅ (Shopping Browser реализован)
+**Last Updated:** December 20, 2025
+**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)
 **Documentation Status:** ✅ Synchronized with codebase
 
 ## Overview
@@ -74,8 +74,20 @@ obrazz/
 │       └── schema.sql ✅
 ├── services/ 📋               # Business logic services
 │   ├── auth/ ✅            # Authentication service (authService.ts)
-│   ├── wardrobe/ ✅        # Wardrobe management (Stage 3)
-│   ├── outfit/ ✅          # Outfit creation (outfitService.ts - Stage 4)
+│   ├── wardrobe/ ✅        # Wardrobe management (Stage 3 + 4.12)
+│   │   ├── itemService.ts ✅          # Legacy online-only service
+│   │   ├── itemServiceOffline.ts ✅   # NEW: Offline-first service (Stage 4.12)
+│   │   └── backgroundRemover.ts ✅     # Remove.bg integration
+│   ├── outfit/ ✅          # Outfit creation (Stage 4 + 4.12)
+│   │   ├── outfitService.ts ✅        # Legacy online-only service
+│   │   └── outfitServiceOffline.ts ✅ # NEW: Offline-first service (Stage 4.12)
+│   ├── sync/ ✅            # Sync infrastructure (Stage 4.12 - NEW)
+│   │   ├── syncQueue.ts ✅            # Operation queue for offline
+│   │   ├── networkMonitor.ts ✅       # Network state tracking
+│   │   └── types.ts ✅                # Sync-related types
+│   ├── shopping/ ✅        # Shopping browser (Stage 4.11)
+│   │   ├── storeService.ts ✅         # Store management
+│   │   └── webCaptureService.ts ✅    # Screenshot capture
 │   └── subscription/ 🚧    # Payment handling (Stage 7)
 ├── store/ 📋                  # Zustand stores
 │   ├── auth/ ✅            # Auth store with persistence (authStore.ts)

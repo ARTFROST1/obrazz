@@ -3,12 +3,22 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { ItemCategory, ItemFilter, ItemSortOptions, WardrobeItem } from '../../types/models/item';
 import { zustandStorage } from '../storage';
 
+/**
+ * Sync status for offline-first architecture
+ */
+export type WardrobeSyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+
 interface WardrobeState {
   items: WardrobeItem[];
   filter: ItemFilter;
   sortOptions: ItemSortOptions;
   isLoading: boolean;
   error: string | null;
+
+  // Offline-first state
+  syncStatus: WardrobeSyncStatus;
+  lastSyncedAt: string | null; // ISO string for persistence
+  isHydrated: boolean;
 
   // Actions
   setItems: (items: WardrobeItem[]) => void;
@@ -20,6 +30,11 @@ interface WardrobeState {
   setSortOptions: (sortOptions: ItemSortOptions) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+
+  // Offline-first actions
+  setSyncStatus: (status: WardrobeSyncStatus) => void;
+  setLastSyncedAt: (date: Date | null) => void;
+  setHydrated: (hydrated: boolean) => void;
 
   // Getters
   getFilteredItems: () => WardrobeItem[];
@@ -56,6 +71,11 @@ export const useWardrobeStore = create<WardrobeState>()(
       isLoading: false,
       error: null,
 
+      // Offline-first state
+      syncStatus: 'idle' as WardrobeSyncStatus,
+      lastSyncedAt: null,
+      isHydrated: false,
+
       setItems: (items) => set({ items }),
 
       addItem: (item) => set((state) => ({ items: [item, ...state.items] })),
@@ -81,6 +101,11 @@ export const useWardrobeStore = create<WardrobeState>()(
           );
           return { items: newItems };
         }),
+
+      // Offline-first actions
+      setSyncStatus: (syncStatus) => set({ syncStatus }),
+      setLastSyncedAt: (date) => set({ lastSyncedAt: date?.toISOString() ?? null }),
+      setHydrated: (isHydrated) => set({ isHydrated }),
 
       setFilter: (filter) =>
         set((state) => ({
@@ -201,6 +226,8 @@ export const useWardrobeStore = create<WardrobeState>()(
           sortOptions: defaultSortOptions,
           isLoading: false,
           error: null,
+          syncStatus: 'idle',
+          lastSyncedAt: null,
         });
       },
     }),
@@ -211,8 +238,15 @@ export const useWardrobeStore = create<WardrobeState>()(
         items: state.items,
         filter: state.filter,
         sortOptions: state.sortOptions,
+        lastSyncedAt: state.lastSyncedAt, // Persist sync timestamp
       }),
-      skipHydration: true, // Skip hydration on server (SSR)
+      onRehydrateStorage: () => (state) => {
+        // Mark as hydrated after rehydration
+        if (state) {
+          console.log('[WardrobeStore] Rehydrated with', state.items?.length ?? 0, 'items');
+          state.setHydrated(true);
+        }
+      },
     },
   ),
 );
