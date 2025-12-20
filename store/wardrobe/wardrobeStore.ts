@@ -9,22 +9,17 @@ interface WardrobeState {
   sortOptions: ItemSortOptions;
   isLoading: boolean;
   error: string | null;
-  hiddenDefaultItemIds: string[];
 
   // Actions
   setItems: (items: WardrobeItem[]) => void;
   addItem: (item: WardrobeItem) => void;
   updateItem: (id: string, updates: Partial<WardrobeItem>) => void;
-  deleteItem: (id: string) => void;
   removeItemLocally: (id: string) => void;
   setFilter: (filter: Partial<ItemFilter>) => void;
   clearFilter: () => void;
   setSortOptions: (sortOptions: ItemSortOptions) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  setHiddenDefaultItemIds: (ids: string[]) => void;
-  addHiddenDefaultItemId: (id: string) => void;
-  removeHiddenDefaultItemId: (id: string) => void;
 
   // Getters
   getFilteredItems: () => WardrobeItem[];
@@ -32,6 +27,9 @@ interface WardrobeState {
   getFavoriteItems: () => WardrobeItem[];
   getDefaultItems: () => WardrobeItem[];
   getUserOwnItems: () => WardrobeItem[];
+
+  // Utility
+  clearAll: () => void;
 }
 
 const defaultFilter: ItemFilter = {
@@ -57,7 +55,6 @@ export const useWardrobeStore = create<WardrobeState>()(
       sortOptions: defaultSortOptions,
       isLoading: false,
       error: null,
-      hiddenDefaultItemIds: [],
 
       setItems: (items) => set({ items }),
 
@@ -70,27 +67,20 @@ export const useWardrobeStore = create<WardrobeState>()(
           ),
         })),
 
-      deleteItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
-        })),
-
       removeItemLocally: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
-        })),
-
-      setHiddenDefaultItemIds: (ids) => set({ hiddenDefaultItemIds: ids }),
-
-      addHiddenDefaultItemId: (id) =>
-        set((state) => ({
-          hiddenDefaultItemIds: [...state.hiddenDefaultItemIds, id],
-        })),
-
-      removeHiddenDefaultItemId: (id) =>
-        set((state) => ({
-          hiddenDefaultItemIds: state.hiddenDefaultItemIds.filter((itemId) => itemId !== id),
-        })),
+        set((state) => {
+          console.log('[WardrobeStore.removeItemLocally] Removing item:', id);
+          console.log(
+            '[WardrobeStore.removeItemLocally] Before removal, items count:',
+            state.items.length,
+          );
+          const newItems = state.items.filter((item) => item.id !== id);
+          console.log(
+            '[WardrobeStore.removeItemLocally] After removal, items count:',
+            newItems.length,
+          );
+          return { items: newItems };
+        }),
 
       setFilter: (filter) =>
         set((state) => ({
@@ -201,6 +191,18 @@ export const useWardrobeStore = create<WardrobeState>()(
         const { items } = get();
         return items.filter((item) => item.isBuiltin !== true);
       },
+
+      // Clear all data (useful for logout)
+      clearAll: () => {
+        console.log('[WardrobeStore] Clearing all data');
+        set({
+          items: [],
+          filter: defaultFilter,
+          sortOptions: defaultSortOptions,
+          isLoading: false,
+          error: null,
+        });
+      },
     }),
     {
       name: 'wardrobe-storage',
@@ -209,7 +211,6 @@ export const useWardrobeStore = create<WardrobeState>()(
         items: state.items,
         filter: state.filter,
         sortOptions: state.sortOptions,
-        hiddenDefaultItemIds: state.hiddenDefaultItemIds,
       }),
       skipHydration: true, // Skip hydration on server (SSR)
     },

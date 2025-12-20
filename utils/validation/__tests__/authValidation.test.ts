@@ -11,28 +11,16 @@ describe('validatePassword', () => {
     expect(result.error).toContain('required');
   });
 
-  it('should reject password shorter than 8 characters', () => {
+  it('should reject password shorter than 6 characters', () => {
     const result = validatePassword('Pass1');
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('8 characters');
+    expect(result.error).toContain('6 characters');
   });
 
-  it('should reject password without uppercase letter', () => {
-    const result = validatePassword('password123');
-    expect(result.isValid).toBe(false);
-    expect(result.error).toContain('uppercase');
-  });
-
-  it('should reject password without lowercase letter', () => {
-    const result = validatePassword('PASSWORD123');
-    expect(result.isValid).toBe(false);
-    expect(result.error).toContain('lowercase');
-  });
-
-  it('should reject password without number', () => {
-    const result = validatePassword('PasswordTest');
-    expect(result.isValid).toBe(false);
-    expect(result.error).toContain('number');
+  it('should accept password with 6 or more characters', () => {
+    const result = validatePassword('password');
+    expect(result.isValid).toBe(true);
+    expect(result.error).toBeUndefined();
   });
 
   it('should accept valid password with all requirements', () => {

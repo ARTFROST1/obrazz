@@ -7,7 +7,7 @@ import { Season, StyleTag } from '../../types/models/user';
 // Database record interface (snake_case)
 interface ItemDbRecord {
   id: string;
-  user_id: string;
+  user_id: string | null; // Can be null for system default items
   name?: string;
   category: ItemCategory;
   subcategory?: string;
@@ -134,56 +134,66 @@ class ItemService {
   }
 
   /**
-   * Get all items for a user (including default items, excluding hidden ones)
+   * Get all items for a user (simplified - default items are now copied to users on registration)
    */
   async getUserItems(userId: string): Promise<WardrobeItem[]> {
-    try {
-      // Get hidden default item IDs for this user
-      const hiddenIds = await this.getHiddenDefaultItemIds(userId);
+    console.log('[ItemService.getUserItems] Fetching items for user:', userId);
 
-      // Get user's own items
-      const { data: userItems, error: userError } = await supabase
+    try {
+      // Get all user's items (including copied defaults)
+      // Note: Default items (with user_id=NULL) are automatically copied to new users by DB trigger
+      const { data, error } = await supabase
         .from('items')
         .select('*')
         .eq('user_id', userId)
-        .eq('is_default', false)
         .order('created_at', { ascending: false });
 
-      if (userError) throw userError;
-
-      // Get default items (not hidden by this user)
-      let defaultItemsQuery = supabase
-        .from('items')
-        .select('*')
-        .eq('is_default', true)
-        .order('created_at', { ascending: false });
-
-      // Exclude hidden items
-      if (hiddenIds.length > 0) {
-        defaultItemsQuery = defaultItemsQuery.not('id', 'in', `(${hiddenIds.join(',')})`);
+      if (error) {
+        console.error('[ItemService.getUserItems] Supabase error:', error);
+        console.error('[ItemService.getUserItems] Error code:', error.code);
+        console.error('[ItemService.getUserItems] Error details:', error.details);
+        console.error('[ItemService.getUserItems] Error hint:', error.hint);
+        throw new Error(`Database error: ${error.message}`);
       }
 
-      const { data: defaultItems, error: defaultError } = await defaultItemsQuery;
+      console.log('[ItemService.getUserItems] Fetched items count:', data?.length || 0);
 
-      if (defaultError) throw defaultError;
+      if (data && data.length > 0) {
+        console.log('[ItemService.getUserItems] Sample item:', {
+          id: data[0].id,
+          name: data[0].name,
+          category: data[0].category,
+          user_id: data[0].user_id,
+          is_default: data[0].is_default,
+        });
+      } else {
+        console.warn('[ItemService.getUserItems] No items found for user:', userId);
+        console.warn('[ItemService.getUserItems] This might mean:');
+        console.warn("  1. User is newly registered and trigger hasn't run yet");
+        console.warn('  2. RLS policies are blocking access');
+        console.warn('  3. User has deleted all their items');
+      }
 
-      // Combine and return
-      const allItems = [...(userItems || []), ...(defaultItems || [])];
-      return allItems.map(this.mapSupabaseItemToWardrobeItem);
+      const mappedItems = (data || []).map(this.mapSupabaseItemToWardrobeItem);
+      console.log('[ItemService.getUserItems] Returning', mappedItems.length, 'items');
+
+      return mappedItems;
     } catch (error) {
-      console.error('Error fetching items:', error);
+      console.error('[ItemService.getUserItems] Error fetching items:', error);
       throw new Error('Failed to fetch wardrobe items');
     }
   }
 
   /**
-   * Get only default/builtin items
+   * Get only system default/template items (user_id=NULL)
+   * These are used as templates and automatically copied to new users
    */
   async getDefaultItems(): Promise<WardrobeItem[]> {
     try {
       const { data, error } = await supabase
         .from('items')
         .select('*')
+        .is('user_id', null)
         .eq('is_default', true)
         .order('created_at', { ascending: false });
 
@@ -197,85 +207,29 @@ class ItemService {
   }
 
   /**
-   * Get IDs of default items hidden by this user
-   */
-  async getHiddenDefaultItemIds(userId: string): Promise<string[]> {
-    try {
-      const { data, error } = await supabase
-        .from('hidden_default_items')
-        .select('item_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      return (data || []).map((row) => row.item_id);
-    } catch (error) {
-      console.error('Error fetching hidden default items:', error);
-      return []; // Return empty array on error to not block the main flow
-    }
-  }
-
-  /**
-   * Hide a default item for a user
-   */
-  async hideDefaultItem(userId: string, itemId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('hidden_default_items')
-        .insert({ user_id: userId, item_id: itemId });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error hiding default item:', error);
-      throw new Error('Failed to hide default item');
-    }
-  }
-
-  /**
-   * Unhide a default item for a user
-   */
-  async unhideDefaultItem(userId: string, itemId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('hidden_default_items')
-        .delete()
-        .eq('user_id', userId)
-        .eq('item_id', itemId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error unhiding default item:', error);
-      throw new Error('Failed to unhide default item');
-    }
-  }
-
-  /**
-   * Restore all hidden default items for a user
-   */
-  async unhideAllDefaultItems(userId: string): Promise<void> {
-    try {
-      const { error } = await supabase.from('hidden_default_items').delete().eq('user_id', userId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error unhiding all default items:', error);
-      throw new Error('Failed to unhide all default items');
-    }
-  }
-
-  /**
    * Get a single item by ID
+   * Note: RLS policies apply - user can only see their own items or system defaults
    */
   async getItemById(itemId: string): Promise<WardrobeItem> {
     try {
       const { data, error } = await supabase.from('items').select('*').eq('id', itemId).single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ItemService.getItemById] Error:', error);
+        if (error.code === 'PGRST116') {
+          throw new Error(`Item not found or access denied. ID: ${itemId}`);
+        }
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error(`Item not found. ID: ${itemId}`);
+      }
 
       return this.mapSupabaseItemToWardrobeItem(data);
     } catch (error) {
-      console.error('Error fetching item:', error);
-      throw new Error('Failed to fetch item');
+      console.error('[ItemService.getItemById] Failed to fetch item:', itemId, error);
+      throw error instanceof Error ? error : new Error('Failed to fetch item');
     }
   }
 
@@ -591,7 +545,7 @@ class ItemService {
 
     return {
       id: data.id,
-      userId: data.user_id,
+      userId: data.user_id || '', // Handle null user_id for system default items
       title: data.name,
       category: data.category,
       subcategory: data.subcategory,

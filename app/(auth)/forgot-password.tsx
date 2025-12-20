@@ -1,86 +1,87 @@
-import { Button, Input, Loader } from '@components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from '@hooks/useTranslation';
 import { authService } from '@services/auth/authService';
 import { validateEmail } from '@utils/validation/authValidation';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { t } = useTranslation('auth');
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | undefined>();
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async () => {
-    // Validate email
-    const emailValidation = validateEmail(email);
+    Keyboard.dismiss();
+    setError('');
 
+    const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
-      setError(emailValidation.error);
+      setError(emailValidation.error || 'Invalid email');
       return;
     }
 
-    setError(undefined);
     setLoading(true);
-
     try {
       const result = await authService.resetPassword(email);
-
       if (result.success) {
         setEmailSent(true);
       } else {
-        Alert.alert(t('common:states.error'), result.error || t('forgotPassword.errorMessage'));
+        setError(result.error || 'Failed to send reset email');
       }
     } catch {
-      Alert.alert(t('common:states.error'), t('forgotPassword.unexpectedError'));
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <Loader fullScreen />;
-  }
-
   if (emailSent) {
     return (
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 },
+        ]}
+      >
         <View style={styles.successContainer}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="mail-outline" size={64} color="#34C759" />
+          <View style={styles.successIcon}>
+            <Ionicons name="mail-outline" size={48} color="#1A1A2E" />
           </View>
-          <Text style={styles.successTitle}>{t('forgotPassword.successTitle')}</Text>
+          <Text style={styles.successTitle}>Check Your Email</Text>
           <Text style={styles.successMessage}>
-            {t('forgotPassword.successMessage')} <Text style={styles.emailText}>{email}</Text>
+            We've sent a password reset link to{'\n'}
+            <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
-          <Text style={styles.instructionsText}>{t('forgotPassword.instructions')}</Text>
-          <Button
-            title={t('forgotPassword.backToSignIn')}
+          <TouchableOpacity
+            style={styles.primaryButton}
             onPress={() => router.push('/(auth)/sign-in')}
-            style={styles.backButton}
-          />
+            activeOpacity={0.8}
+          >
+            <Text style={styles.primaryButtonText}>Back to Sign In</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
               setEmailSent(false);
               setEmail('');
             }}
           >
-            <Text style={styles.resendText}>{t('forgotPassword.tryDifferentEmail')}</Text>
+            <Text style={styles.linkText}>Try different email</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -94,47 +95,70 @@ export default function ForgotPasswordScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 },
+          ]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
+          {/* Back Button */}
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color="#000000" />
+            <Ionicons name="chevron-back" size={24} color="#1A1A2E" />
           </TouchableOpacity>
 
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('forgotPassword.title')}</Text>
-            <Text style={styles.subtitle}>{t('forgotPassword.subtitle')}</Text>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logo}>OBRAZZ</Text>
+            <Text style={styles.tagline}>Reset Password</Text>
           </View>
 
+          {/* Description */}
+          <Text style={styles.description}>
+            Enter your email address and we'll send you a link to reset your password.
+          </Text>
+
+          {/* Form */}
           <View style={styles.form}>
-            <Input
-              label={t('forgotPassword.emailLabel')}
-              placeholder={t('forgotPassword.emailPlaceholder')}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setError(undefined);
-              }}
-              error={error}
-              leftIcon="mail-outline"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              textContentType="emailAddress"
-              autoFocus
-            />
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  placeholderTextColor="#999"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoFocus
+                />
+              </View>
+            </View>
 
-            <Button
-              title={t('forgotPassword.sendResetLink')}
+            {/* Error Message */}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Reset Button */}
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
               onPress={handleResetPassword}
-              loading={loading}
-              style={styles.resetButton}
-            />
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Send Reset Link</Text>
+              )}
+            </TouchableOpacity>
 
-            <View style={styles.signInPrompt}>
-              <Text style={styles.signInPromptText}>{t('forgotPassword.rememberPassword')}</Text>
+            {/* Back to Sign In */}
+            <View style={styles.linkContainer}>
+              <Text style={styles.linkLabel}>Remember your password? </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-                <Text style={styles.signInLink}>{t('forgotPassword.signInLink')}</Text>
+                <Text style={styles.linkAction}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -149,68 +173,106 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 44,
     justifyContent: 'center',
-    marginBottom: 16,
-    marginLeft: -12,
+    marginBottom: 24,
+    marginLeft: -8,
     width: 44,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   container: {
     backgroundColor: '#FFFFFF',
     flex: 1,
   },
-  emailText: {
-    color: '#000000',
-    fontWeight: '600',
-  },
-  form: {
-    flex: 1,
-  },
-  header: {
-    marginBottom: 40,
-  },
-  iconContainer: {
-    marginBottom: 32,
-  },
-  instructionsText: {
-    color: '#999999',
+  description: {
+    color: '#666',
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 32,
     textAlign: 'center',
   },
-  resendText: {
-    color: '#007AFF',
-    fontSize: 15,
-    fontWeight: '500',
-    marginTop: 16,
-  },
-  resetButton: {
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-  },
-  signInLink: {
-    color: '#007AFF',
-    fontSize: 15,
+  emailHighlight: {
+    color: '#1A1A2E',
     fontWeight: '600',
   },
-  signInPrompt: {
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  form: {
+    flex: 1,
+    width: '100%',
+  },
+  input: {
+    color: '#000',
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 0,
+  },
+  inputContainer: {
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    flexDirection: 'row',
+    height: 56,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  inputWrapper: {
+    marginBottom: 16,
+  },
+  linkAction: {
+    color: '#1A1A2E',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  linkContainer: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
-  signInPromptText: {
-    color: '#666666',
-    fontSize: 15,
+  linkLabel: {
+    color: '#666',
+    fontSize: 14,
   },
-  subtitle: {
-    color: '#666666',
-    fontSize: 17,
-    lineHeight: 24,
+  linkText: {
+    color: '#1A1A2E',
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 24,
+  },
+  logo: {
+    color: '#1A1A2E',
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 3,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  primaryButton: {
+    alignItems: 'center',
+    backgroundColor: '#1A1A2E',
+    borderRadius: 30,
+    height: 56,
+    justifyContent: 'center',
+    marginBottom: 24,
+    marginTop: 8,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 32,
   },
   successContainer: {
     alignItems: 'center',
@@ -218,24 +280,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
+  successIcon: {
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: 24,
+    width: 80,
+  },
   successMessage: {
-    color: '#666666',
-    fontSize: 17,
-    lineHeight: 24,
-    marginBottom: 16,
+    color: '#666',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 32,
     textAlign: 'center',
   },
   successTitle: {
-    color: '#000000',
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  title: {
-    color: '#000000',
-    fontSize: 34,
+    color: '#1A1A2E',
+    fontSize: 24,
     fontWeight: '700',
     marginBottom: 12,
+  },
+  tagline: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 8,
   },
 });

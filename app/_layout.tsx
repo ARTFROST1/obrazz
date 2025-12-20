@@ -6,7 +6,9 @@ import '@lib/i18n/config'; // Initialize i18n
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { authService } from '@services/auth/authService';
 import { useAuthStore } from '@store/auth/authStore';
+import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useSettingsStore } from '@store/settings/settingsStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -14,6 +16,13 @@ import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+
+// Import diagnostics (only in DEV mode)
+if (__DEV__) {
+  import('../scripts/wardrobeDiagnostics').catch(() => {
+    console.log('[Dev] Wardrobe diagnostics not available');
+  });
+}
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -65,8 +74,23 @@ function RootLayoutNav() {
     // Only on client side (not SSR)
     if (typeof window !== 'undefined') {
       console.log('[RootLayoutNav] Rehydrating stores...');
-      useAuthStore.persist.rehydrate();
-      useSettingsStore.persist.rehydrate();
+      try {
+        useAuthStore.persist.rehydrate();
+        console.log('[RootLayoutNav] ✓ Auth store rehydrated');
+
+        useSettingsStore.persist.rehydrate();
+        console.log('[RootLayoutNav] ✓ Settings store rehydrated');
+
+        useWardrobeStore.persist.rehydrate();
+        console.log('[RootLayoutNav] ✓ Wardrobe store rehydrated');
+
+        useOutfitStore.persist.rehydrate();
+        console.log('[RootLayoutNav] ✓ Outfit store rehydrated');
+
+        console.log('[RootLayoutNav] All stores rehydrated successfully');
+      } catch (error) {
+        console.error('[RootLayoutNav] Error during store rehydration:', error);
+      }
     }
   }, []);
 

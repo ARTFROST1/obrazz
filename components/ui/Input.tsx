@@ -1,14 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  TextInput,
-  Text,
   StyleSheet,
+  Text,
+  TextInput,
   TextInputProps,
-  ViewStyle,
   TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -70,25 +70,25 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   error: {
     color: '#FF3B30',
-    fontSize: 13,
+    fontSize: 12,
     marginLeft: 4,
-    marginTop: 4,
+    marginTop: 6,
   },
   input: {
     color: '#000000',
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     padding: 0,
   },
   inputContainer: {
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
+    backgroundColor: '#FAFAFA',
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     height: 52,
@@ -96,11 +96,10 @@ const styles = StyleSheet.create({
   },
   inputContainerError: {
     borderColor: '#FF3B30',
-    borderWidth: 2,
   },
   inputContainerFocused: {
+    backgroundColor: '#FFFFFF',
     borderColor: '#000000',
-    borderWidth: 2,
   },
   inputWithLeftIcon: {
     paddingLeft: 8,
@@ -110,9 +109,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#000000',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
+    letterSpacing: 0.3,
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
   leftIcon: {
     marginRight: 8,

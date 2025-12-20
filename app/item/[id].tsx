@@ -92,7 +92,7 @@ const getStyleSticker = (style?: string): string => {
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { updateItem, deleteItem: deleteItemFromStore } = useWardrobeStore();
+  const { updateItem, removeItemLocally: deleteItemFromStore } = useWardrobeStore();
 
   const [item, setItem] = useState<WardrobeItem | null>(null);
   const [loading, setLoading] = useState(true);

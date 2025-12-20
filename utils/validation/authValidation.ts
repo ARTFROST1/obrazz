@@ -31,34 +31,10 @@ export const validatePassword = (password: string): ValidationResult => {
     };
   }
 
-  if (password.length < 8) {
+  if (password.length < 6) {
     return {
       isValid: false,
-      error: 'Password must be at least 8 characters',
-    };
-  }
-
-  // Check for uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    return {
-      isValid: false,
-      error: 'Password must contain at least one uppercase letter',
-    };
-  }
-
-  // Check for lowercase letter
-  if (!/[a-z]/.test(password)) {
-    return {
-      isValid: false,
-      error: 'Password must contain at least one lowercase letter',
-    };
-  }
-
-  // Check for number
-  if (!/\d/.test(password)) {
-    return {
-      isValid: false,
-      error: 'Password must contain at least one number',
+      error: 'Password must be at least 6 characters',
     };
   }
 

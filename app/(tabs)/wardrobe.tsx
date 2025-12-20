@@ -9,7 +9,7 @@ import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { debounce } from '@utils/debounce';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -45,7 +45,6 @@ export default function WardrobeScreen() {
     setLoading,
     setError,
     removeItemLocally,
-    addHiddenDefaultItemId,
   } = useWardrobeStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,37 +52,53 @@ export default function WardrobeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  const [gridColumns, setGridColumns] = useState<2 | 3>(3); // Default to 3 columns
+  const [gridColumns, setGridColumns] = useState<2 | 3>(3);
 
   const loadItems = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('[WardrobeScreen] No user ID, skipping load');
+      return;
+    }
 
     try {
+      console.log('[WardrobeScreen] Loading items for user:', user.id);
       setLoading(true);
       const userItems = await itemService.getUserItems(user.id);
+      console.log('[WardrobeScreen] Loaded', userItems.length, 'items');
       setItems(userItems);
+      setError(null); // Clear any previous errors
     } catch (error) {
-      console.error('Error loading items:', error);
-      setError('Failed to load items');
-      Alert.alert('Error', 'Failed to load your wardrobe items');
+      console.error('[WardrobeScreen] Error loading items:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load items';
+      setError(errorMessage);
+      Alert.alert('Error', 'Failed to load your wardrobe items. Please try again.');
     } finally {
       setLoading(false);
     }
   }, [user?.id, setLoading, setItems, setError]);
 
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
-
-  // Update StatusBar when screen is focused
+  // Load items when screen is focused (not on every render)
   useFocusEffect(
     useCallback(() => {
+      // Only load if we don't have items yet or if user changed
+      if (items.length === 0 || !user?.id) {
+        console.log('[WardrobeScreen] Screen focused, loading items');
+        loadItems();
+      } else {
+        console.log(
+          '[WardrobeScreen] Screen focused, items already loaded (',
+          items.length,
+          '), skipping load',
+        );
+      }
+
+      // Update StatusBar
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
       }
-    }, []),
+    }, [loadItems, items.length, user?.id]),
   );
 
   const handleRefresh = useCallback(async () => {
@@ -180,77 +195,76 @@ export default function WardrobeScreen() {
   const handleDeleteSelected = async () => {
     if (selectedItems.size === 0 || !user?.id) return;
 
-    // Separate builtin items from user's own items
     const selectedItemsList = items.filter((item) => selectedItems.has(item.id));
-    const builtinItems = selectedItemsList.filter((item) => item.isBuiltin);
-    const userItems = selectedItemsList.filter((item) => !item.isBuiltin);
+    const count = selectedItemsList.length;
 
-    const hasBuiltinItems = builtinItems.length > 0;
-    const hasUserItems = userItems.length > 0;
-
-    // Determine alert message
-    let alertMessage = '';
-    if (hasBuiltinItems && hasUserItems) {
-      alertMessage = t('selection.mixedConfirmMessage', {
-        userCount: userItems.length,
-        userPlural: userItems.length === 1 ? t('selection.item') : t('selection.items'),
-        builtinCount: builtinItems.length,
-        builtinPlural: builtinItems.length === 1 ? t('selection.item') : t('selection.items'),
-      });
-    } else if (hasBuiltinItems) {
-      alertMessage = t('selection.hideConfirmMessage', {
-        count: builtinItems.length,
-        plural: builtinItems.length === 1 ? t('selection.item') : t('selection.items'),
-      });
-    } else {
-      alertMessage = t('selection.deleteConfirmMessage', {
-        count: userItems.length,
-        plural: userItems.length === 1 ? t('selection.item') : t('selection.items'),
-      });
-    }
-
+    // Single confirmation alert
+    console.log('[WardrobeScreen] Showing delete confirmation');
     Alert.alert(
-      hasBuiltinItems && !hasUserItems ? t('selection.hideItems') : t('selection.deleteItems'),
-      alertMessage,
+      t('selection.deleteItems'),
+      t('selection.deleteConfirmMessage', {
+        count,
+        plural: count === 1 ? t('selection.item') : t('selection.items'),
+      }),
       [
         { text: t('common:actions.cancel'), style: 'cancel' },
         {
-          text:
-            hasBuiltinItems && !hasUserItems
-              ? t('selection.hideItems')
-              : t('common:actions.delete'),
+          text: t('common:actions.delete'),
           style: 'destructive',
           onPress: async () => {
+            console.log(
+              '[WardrobeScreen] Deletion confirmed, starting deletion of',
+              count,
+              'items',
+            );
+            console.log('[WardrobeScreen] Items to delete:', Array.from(selectedItems));
+
+            // Save selection state for error recovery
+            const itemIdsToDelete = Array.from(selectedItems);
+
             try {
               setLoading(true);
 
-              // Delete user's own items
-              if (hasUserItems) {
-                await Promise.all(userItems.map((item) => itemService.deleteItem(item.id)));
-              }
+              // STEP 1: Optimistically remove from UI (instant feedback)
+              console.log('[WardrobeScreen] Optimistically removing items from store');
+              selectedItemsList.forEach((item) => {
+                removeItemLocally(item.id);
+              });
 
-              // Hide builtin items (instead of deleting)
-              if (hasBuiltinItems) {
-                await Promise.all(
-                  builtinItems.map(async (item) => {
-                    await itemService.hideDefaultItem(user.id, item.id);
-                    addHiddenDefaultItemId(item.id);
-                    removeItemLocally(item.id);
-                  }),
-                );
-              }
-
-              // Reload items if we deleted any user items
-              if (hasUserItems) {
-                await loadItems();
-              }
-
-              // Exit selection mode
-              setIsSelectionMode(false);
+              // STEP 2: Clear selection state immediately
+              console.log('[WardrobeScreen] Clearing selection state');
               setSelectedItems(new Set());
+              setIsSelectionMode(false);
+
+              // STEP 3: Delete from database in background
+              console.log('[WardrobeScreen] Deleting from database...');
+              const results = await Promise.allSettled(
+                selectedItemsList.map((item) => itemService.deleteItem(item.id)),
+              );
+
+              // Check for failures
+              const failed = results.filter((r) => r.status === 'rejected');
+              if (failed.length > 0) {
+                console.error('[WardrobeScreen] Some deletions failed:', failed.length);
+                throw new Error(`Failed to delete ${failed.length} items`);
+              }
+
+              console.log('[WardrobeScreen] Database deletion completed successfully');
+              console.log('[WardrobeScreen] UI already updated optimistically, no reload needed');
             } catch (error) {
-              console.error('Error deleting/hiding items:', error);
-              Alert.alert('Error', 'Failed to process some items');
+              console.error('[WardrobeScreen] Error deleting items:', error);
+              Alert.alert('Error', `Failed to delete some items. Restoring...`, [
+                {
+                  text: 'OK',
+                  onPress: async () => {
+                    // Reload to restore correct state
+                    await loadItems();
+                    // Restore selection mode
+                    setIsSelectionMode(true);
+                    setSelectedItems(new Set(itemIdsToDelete));
+                  },
+                },
+              ]);
             } finally {
               setLoading(false);
             }
@@ -261,9 +275,11 @@ export default function WardrobeScreen() {
   };
 
   // Memoize filtered items to prevent expensive recalculation on every render
+  // IMPORTANT: Must depend on items directly, not getFilteredItems function
   const filteredItems = useMemo(() => {
+    console.log('[WardrobeScreen] Recalculating filteredItems, current items count:', items.length);
     return getFilteredItems();
-  }, [getFilteredItems]);
+  }, [items, getFilteredItems]); // ✅ Depend on items, getFilteredItems already includes filter
 
   const hasActiveFilters =
     filter.categories?.length ||

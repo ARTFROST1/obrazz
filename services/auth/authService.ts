@@ -1,5 +1,7 @@
 import { clearAuthStorage, supabase } from '@lib/supabase/client';
 import { useAuthStore } from '@store/auth/authStore';
+import { useOutfitStore } from '@store/outfit/outfitStore';
+import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { createLogger } from '@utils/logger';
 
 const logger = createLogger('AuthService');
@@ -111,21 +113,30 @@ class AuthService {
    */
   async signOut(): Promise<AuthResponse> {
     try {
+      logger.info('Signing out user...');
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        logger.error('Sign out error:', error.message);
         return {
           success: false,
           error: this.formatError(error.message),
         };
       }
 
+      // Clear all user-specific state
+      logger.info('Clearing user state...');
       useAuthStore.getState().clearAuth();
+      useWardrobeStore.getState().clearAll();
+      useOutfitStore.getState().resetCurrentOutfit();
+
+      logger.info('Sign out successful');
       return {
         success: true,
         message: 'Signed out successfully!',
       };
-    } catch {
+    } catch (error) {
+      logger.error('Unexpected sign out error:', error);
       return {
         success: false,
         error: 'An unexpected error occurred. Please try again.',
