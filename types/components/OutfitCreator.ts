@@ -46,18 +46,6 @@ export interface OutfitTabBarProps {
 }
 
 /**
- * Props for custom tab manager
- */
-export interface CustomTabManagerProps {
-  categories: ItemCategory[];
-  onCategoriesChange: (categories: ItemCategory[]) => void;
-  onOrderChange: (order: number[]) => void;
-  availableCategories: ItemCategory[];
-  isEditMode: boolean;
-  onToggleEditMode: () => void;
-}
-
-/**
  * Carousel dimensions based on tab type
  */
 export interface CarouselDimensions {

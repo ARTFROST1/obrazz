@@ -4,7 +4,6 @@ import { useOutfitStore } from '@store/outfit/outfitStore';
 import React, { useState } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BackgroundPicker } from './BackgroundPicker';
-import { ItemMiniPreviewBar } from './ItemMiniPreviewBar';
 import { OutfitCanvas } from './OutfitCanvas';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -115,14 +114,6 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Item Mini Preview Bar */}
-      <ItemMiniPreviewBar
-        items={currentItems}
-        selectedItemId={selectedItemId}
-        onItemSelect={setSelectedItemId}
-        onItemRemove={removeItemFromCanvas}
-      />
 
       {/* Background Picker Modal */}
       <BackgroundPicker

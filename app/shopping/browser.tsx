@@ -22,11 +22,13 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import { WebView } from 'react-native-webview';
 
 export default function ShoppingBrowserScreen() {
   const router = useRouter();
+  const safeAreaInsets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
   const webViewContainerRef = useRef<View>(null);
   const detectionTimeoutRef = useRef<{
@@ -384,16 +386,7 @@ export default function ShoppingBrowserScreen() {
           </View>
 
           {/* WebView Container - wrapped for screenshot capture */}
-          <View
-            ref={webViewContainerRef}
-            style={[
-              styles.webViewContainer,
-              Platform.OS === 'android' && {
-                paddingTop: StatusBar.currentHeight || 0,
-                paddingBottom: 16,
-              },
-            ]}
-          >
+          <View ref={webViewContainerRef} style={styles.webViewContainer}>
             <WebView
               key={activeTabId} // CRITICAL: Force re-render when tab changes
               ref={webViewRef}
@@ -528,6 +521,8 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 3,
+        marginTop: (StatusBar.currentHeight || 24) + 8, // StatusBar + дополнительный отступ
+        paddingTop: 4,
       },
     }),
   },
@@ -584,6 +579,8 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 4,
+        paddingBottom: 32, // Увеличенный отступ для системной навигации (gesture bar / buttons)
+        marginBottom: 4,
       },
     }),
   },

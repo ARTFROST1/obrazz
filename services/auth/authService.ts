@@ -220,11 +220,13 @@ class AuthService {
         if (
           error.message?.includes('refresh') ||
           error.message?.includes('Refresh Token') ||
-          error.message?.includes('Invalid Refresh Token')
+          error.message?.includes('Invalid Refresh Token') ||
+          error.message?.includes('Not Found')
         ) {
-          logger.warn('Invalid refresh token detected, clearing storage...');
+          logger.warn('Invalid/expired refresh token detected, clearing all auth data...');
           await clearAuthStorage();
           await supabase.auth.signOut({ scope: 'local' });
+          useAuthStore.getState().clearAuth();
         }
         throw error;
       }
@@ -241,8 +243,15 @@ class AuthService {
       }
 
       // If it's a refresh token error, ensure storage is cleared
-      if (errorMessage.includes('refresh') || errorMessage.includes('Refresh Token')) {
+      if (
+        errorMessage.includes('refresh') ||
+        errorMessage.includes('Refresh Token') ||
+        errorMessage.includes('Not Found')
+      ) {
+        logger.warn('Clearing corrupted auth state...');
         await clearAuthStorage();
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        useAuthStore.getState().clearAuth();
       }
 
       return null;
@@ -253,11 +262,38 @@ class AuthService {
    * Initialize auth state listener
    */
   initializeAuthListener() {
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        useAuthStore.getState().initialize(session.user, session);
-      } else {
-        useAuthStore.getState().clearAuth();
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        logger.info('Auth state changed:', event);
+
+        // Handle specific auth events
+        if (event === 'TOKEN_REFRESHED') {
+          logger.info('Token refreshed successfully');
+        } else if (event === 'SIGNED_OUT') {
+          logger.info('User signed out');
+          useAuthStore.getState().clearAuth();
+          return;
+        }
+
+        if (session?.user) {
+          useAuthStore.getState().initialize(session.user, session);
+        } else {
+          useAuthStore.getState().clearAuth();
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error('Error in auth state change handler:', errorMessage);
+
+        // On any error, clear auth state to be safe
+        if (
+          errorMessage.includes('refresh') ||
+          errorMessage.includes('Refresh Token') ||
+          errorMessage.includes('Invalid')
+        ) {
+          logger.warn('Clearing auth due to error in state change');
+          await clearAuthStorage();
+          useAuthStore.getState().clearAuth();
+        }
       }
     });
   }

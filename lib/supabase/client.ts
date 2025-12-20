@@ -41,11 +41,36 @@ const createSafeStorage = (baseStorage: typeof AsyncStorage) => {
         if (key === SUPABASE_AUTH_KEY && item) {
           try {
             const parsed = JSON.parse(item);
-            // Basic validation - check for required fields
+            // Enhanced validation - check for required session/user fields
             if (!parsed || typeof parsed !== 'object') {
-              console.warn('[SafeStorage] Corrupted auth data detected, clearing...');
+              console.warn(
+                '[SafeStorage] Corrupted auth data detected (invalid format), clearing...',
+              );
               await baseStorage.removeItem(key);
               return null;
+            }
+
+            // Check if it has valid session structure
+            if (parsed.currentSession) {
+              const session = parsed.currentSession;
+              if (!session.access_token || !session.refresh_token || !session.user) {
+                console.warn(
+                  '[SafeStorage] Corrupted auth data detected (missing tokens/user), clearing...',
+                );
+                await baseStorage.removeItem(key);
+                return null;
+              }
+
+              // Check if tokens are expired or invalid
+              if (session.expires_at) {
+                const expiresAt = new Date(session.expires_at * 1000);
+                const now = new Date();
+                if (expiresAt < now) {
+                  console.warn('[SafeStorage] Session expired, clearing...');
+                  await baseStorage.removeItem(key);
+                  return null;
+                }
+              }
             }
           } catch (parseError) {
             console.warn('[SafeStorage] Failed to parse auth data, clearing...', parseError);
@@ -117,14 +142,76 @@ export const clearAuthStorage = async () => {
     const keys = [
       'supabase.auth.token',
       '@supabase.auth.token', // Old format
+      'auth-store', // Zustand persist key
     ];
 
     for (const key of keys) {
-      await baseStorage.removeItem(key);
+      try {
+        await baseStorage.removeItem(key);
+        console.log('[Supabase] Cleared key:', key);
+      } catch (keyError) {
+        console.warn('[Supabase] Failed to clear key:', key, keyError);
+      }
     }
 
     console.log('[Supabase] Auth storage cleared successfully');
   } catch (error) {
     console.error('[Supabase] Error clearing auth storage:', error);
+  }
+};
+
+// Helper to validate and clean auth data on startup
+export const validateAuthStorage = async () => {
+  try {
+    console.log('[Supabase] Validating auth storage...');
+    const authData = await baseStorage.getItem('supabase.auth.token');
+
+    if (!authData) {
+      console.log('[Supabase] No auth data found');
+      return true;
+    }
+
+    try {
+      const parsed = JSON.parse(authData);
+
+      // Check for valid structure
+      if (parsed?.currentSession) {
+        const session = parsed.currentSession;
+
+        // Validate required fields
+        if (!session.access_token || !session.refresh_token || !session.user) {
+          console.warn('[Supabase] Invalid session structure, clearing...');
+          await clearAuthStorage();
+          return false;
+        }
+
+        // Check expiration
+        if (session.expires_at) {
+          const expiresAt = new Date(session.expires_at * 1000);
+          const now = new Date();
+
+          if (expiresAt < now) {
+            console.warn('[Supabase] Session expired, clearing...');
+            await clearAuthStorage();
+            return false;
+          }
+        }
+
+        console.log('[Supabase] Auth storage validation passed');
+        return true;
+      }
+
+      console.warn('[Supabase] No currentSession in auth data, clearing...');
+      await clearAuthStorage();
+      return false;
+    } catch (parseError) {
+      console.warn('[Supabase] Failed to parse auth data, clearing...', parseError);
+      await clearAuthStorage();
+      return false;
+    }
+  } catch (error) {
+    console.error('[Supabase] Error validating auth storage:', error);
+    await clearAuthStorage();
+    return false;
   }
 };

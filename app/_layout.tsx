@@ -4,6 +4,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { i18n } from '@hooks/useTranslation';
 import '@lib/i18n/config'; // Initialize i18n
+import { validateAuthStorage } from '@lib/supabase/client';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { authService } from '@services/auth/authService';
 import { initNetworkMonitor } from '@services/sync/networkMonitor';
@@ -144,19 +145,28 @@ function RootLayoutNav() {
       setLoading(true);
 
       try {
-        // Initialize auth state listener first (non-blocking)
+        // STEP 1: Validate auth storage before anything else
+        console.log('[RootLayoutNav] Validating auth storage...');
+        const isValid = await validateAuthStorage();
+        if (!isValid) {
+          console.warn('[RootLayoutNav] Auth storage was invalid and has been cleared');
+          useAuthStore.getState().clearAuth();
+          setLoading(false);
+          return;
+        }
+
+        // STEP 2: Initialize auth state listener (non-blocking)
         console.log('[RootLayoutNav] Initializing auth listener...');
         authService.initializeAuthListener();
 
-        // Check for existing session with shorter timeout
+        // STEP 3: Check for existing session with timeout
         console.log('[RootLayoutNav] Getting session...');
         const sessionPromise = authService.getSession();
-        const timeoutPromise = new Promise<null>(
-          (resolve) =>
-            setTimeout(() => {
-              console.log('[RootLayoutNav] Session check timeout - continuing without session');
-              resolve(null);
-            }, 3000), // Reduced from 5000ms to 3000ms
+        const timeoutPromise = new Promise<null>((resolve) =>
+          setTimeout(() => {
+            console.log('[RootLayoutNav] Session check timeout - continuing without session');
+            resolve(null);
+          }, 3000),
         );
 
         const session = await Promise.race([sessionPromise, timeoutPromise]);
@@ -172,8 +182,19 @@ function RootLayoutNav() {
         const errorMessage = error instanceof Error ? error.message : 'Unknown auth error';
         console.error('[RootLayoutNav] Auth initialization error:', errorMessage);
 
-        // Clear auth on error but continue app execution
-        useAuthStore.getState().clearAuth();
+        // For refresh token errors, explicitly clear everything
+        if (
+          errorMessage.includes('refresh') ||
+          errorMessage.includes('Refresh Token') ||
+          errorMessage.includes('Invalid') ||
+          errorMessage.includes('Not Found')
+        ) {
+          console.warn('[RootLayoutNav] Refresh token error detected, clearing auth...');
+          useAuthStore.getState().clearAuth();
+        } else {
+          // Clear auth on any other error but continue app execution
+          useAuthStore.getState().clearAuth();
+        }
       } finally {
         console.log('[RootLayoutNav] Auth initialization complete');
         // Always set loading to false to unblock UI
@@ -184,6 +205,7 @@ function RootLayoutNav() {
     // Run async without blocking render
     initAuth().catch((err) => {
       console.error('[RootLayoutNav] Unhandled auth init error:', err);
+      useAuthStore.getState().clearAuth();
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
