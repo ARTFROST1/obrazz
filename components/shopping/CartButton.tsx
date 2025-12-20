@@ -15,7 +15,7 @@ export default function CartButton() {
 
   return (
     <TouchableOpacity style={styles.button} onPress={handlePress}>
-      <Ionicons name="cart" size={20} color="#FFFFFF" />
+      <Ionicons name="cart" size={22} color="#FFFFFF" />
       {count > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>
@@ -27,9 +27,9 @@ export default function CartButton() {
 
 const styles = StyleSheet.create({
   button: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',

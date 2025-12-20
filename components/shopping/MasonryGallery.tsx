@@ -27,13 +27,16 @@ export default function MasonryGallery({
   columns = 2,
   gap = 8,
 }: MasonryGalleryProps) {
+  // Reverse images array so newest are at top
+  const reversedImages = useMemo(() => [...images].reverse(), [images]);
+
   const layout = useMemo(() => {
     const containerWidth = SCREEN_WIDTH - 32; // Padding 16px each side
     const columnWidth = (containerWidth - (columns - 1) * gap) / columns;
     const columnHeights = new Array(columns).fill(0);
     const items: MasonryItem[] = [];
 
-    images.forEach((image) => {
+    reversedImages.forEach((image) => {
       // Find column with minimum height
       const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
 
@@ -53,7 +56,7 @@ export default function MasonryGallery({
     });
 
     return { items, columnHeights };
-  }, [images, columns, gap]);
+  }, [reversedImages, columns, gap]);
 
   // Group items by column
   const columnItems = useMemo(() => {

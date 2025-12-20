@@ -45,6 +45,7 @@ export default function ShoppingBrowserScreen() {
     setHasScanned,
     resetScanState,
     showGallery,
+    showGallerySheet,
     isScanning,
     hasScanned,
     detectedImages,
@@ -143,8 +144,12 @@ export default function ShoppingBrowserScreen() {
     const lastNormalizedUrl = normalizeUrl(lastUrlRef.current);
 
     // Reset scan state only when navigating to a truly new page (not just hash/query changes)
-    if (normalizedUrl !== lastNormalizedUrl) {
+    // But keep gallery open if user is viewing results
+    if (normalizedUrl !== lastNormalizedUrl && !showGallerySheet) {
       resetScanState();
+      lastUrlRef.current = navState.url;
+    } else if (normalizedUrl !== lastNormalizedUrl) {
+      // Just update the URL ref without resetting scan state
       lastUrlRef.current = navState.url;
     }
 
@@ -223,8 +228,10 @@ export default function ShoppingBrowserScreen() {
     const currentPageUrl = currentUrl || activeTab?.currentUrl || '';
     console.log('[Browser] Page loaded:', currentPageUrl.substring(0, 50));
 
-    // Reset scan state on new page load
-    resetScanState();
+    // Reset scan state on new page load only if gallery is not shown
+    if (!showGallerySheet) {
+      resetScanState();
+    }
 
     // OPTIMIZED: Simplified injection - scripts already injected via props
     // No need to re-inject on every load, they're already in place via:
@@ -526,9 +533,11 @@ const styles = StyleSheet.create({
   },
   exitButton: {
     alignItems: 'center',
-    height: 40,
+    height: 44,
     justifyContent: 'center',
-    width: 40,
+    width: 44,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
   },
   exitIcon: {
     color: '#333333',

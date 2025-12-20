@@ -329,10 +329,16 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
   },
 
   resetScanState: () => {
-    const { isScanning, hasScanned, detectedImages } = get();
+    const { isScanning, hasScanned, detectedImages, showGallerySheet } = get();
     // Only reset if there's something to reset (avoid unnecessary state updates)
-    if (isScanning || hasScanned || detectedImages.length > 0) {
-      set({ isScanning: false, hasScanned: false, detectedImages: [] });
+    if (isScanning || hasScanned || detectedImages.length > 0 || showGallerySheet) {
+      set({
+        isScanning: false,
+        hasScanned: false,
+        detectedImages: [],
+        showGallerySheet: false,
+        selectedImageIds: new Set<string>(),
+      });
     }
   },
 

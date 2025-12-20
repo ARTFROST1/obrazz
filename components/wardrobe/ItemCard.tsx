@@ -111,11 +111,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  category: {
-    color: '#666',
-    fontSize: 12,
-    textTransform: 'capitalize',
-  },
   container: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,

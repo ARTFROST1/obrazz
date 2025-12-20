@@ -63,6 +63,7 @@ export const useSettingsStore = create<SettingsState>()(
         theme: state.theme,
         notificationsEnabled: state.notificationsEnabled,
       }),
+      skipHydration: true, // Skip hydration on server (SSR)
     },
   ),
 );
