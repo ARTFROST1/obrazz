@@ -1,9 +1,8 @@
 import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
-import { SyncStatusIndicator } from '@components/sync';
 import { FAB } from '@components/ui';
-import { GlassDropdownItem, GlassDropdownMenu, GlassSearchBar } from '@components/ui/glass';
 import { FilterState, ItemFilter } from '@components/wardrobe/ItemFilter';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
+import { WardrobeHeader, WardrobeHeaderMenuItem } from '@components/wardrobe/WardrobeHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { useNetworkStatus } from '@services/sync/networkMonitor';
@@ -19,11 +18,9 @@ import {
   InteractionManager,
   LayoutAnimation,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   UIManager,
   View,
@@ -56,7 +53,6 @@ export default function WardrobeScreen() {
     setItems,
     setFilter,
     clearFilter,
-    updateItem,
     getFilteredItems,
     isLoading,
     setLoading,
@@ -387,8 +383,8 @@ export default function WardrobeScreen() {
     filter.isFavorite ||
     filter.searchQuery;
 
-  // Dropdown menu items for iOS 26+ glass header
-  const dropdownItems: GlassDropdownItem[] = useMemo(
+  // Dropdown menu items for header
+  const headerMenuItems: WardrobeHeaderMenuItem[] = useMemo(
     () => [
       {
         id: 'select',
@@ -420,161 +416,8 @@ export default function WardrobeScreen() {
     ],
   );
 
-  // Render iOS 26+ Glass Header (absolute positioned, no container)
-  const renderGlassHeader = () => (
-    <>
-      <GlassSearchBar
-        value={searchQuery}
-        onChangeText={handleSearch}
-        placeholder={t('search.placeholder')}
-        style={{ ...styles.glassSearchBar, top: insets.top + 8 }}
-      />
-      <GlassDropdownMenu
-        items={dropdownItems}
-        style={{ ...styles.glassMenu, top: insets.top + 8 }}
-      />
-    </>
-  );
-
-  // Render classic header (iOS < 26, Android)
-  const renderClassicHeader = () => (
-    <>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View style={styles.headerTitleRow}>
-              <Text style={styles.headerTitle}>{t('header.title')}</Text>
-              <SyncStatusIndicator size="small" style={styles.syncIndicator} />
-            </View>
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={handleToggleSelectionMode}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={styles.selectButtonText}>
-                {isSelectionMode ? t('common:actions.cancel') : t('common:actions.select')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('search.placeholder')}
-          value={searchQuery}
-          onChangeText={handleSearch}
-          placeholderTextColor="#999"
-        />
-        {searchQuery ? (
-          <TouchableOpacity onPress={() => handleSearch('')}>
-            <Ionicons name="close-circle" size={20} color="#666" />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-
-      {/* Filter Bar / Selection Actions */}
-      <View style={styles.filterBar}>
-        {isSelectionMode ? (
-          // Selection Mode Actions
-          <>
-            <TouchableOpacity
-              style={[
-                styles.selectionActionButton,
-                { backgroundColor: '#FFF', borderColor: '#E5E5E5' },
-              ]}
-              onPress={handleSelectAll}
-            >
-              <Ionicons name="checkmark-done" size={20} color="#000" />
-              <Text style={styles.selectionActionText}>
-                {selectedItems.size === filteredItems.length
-                  ? t('selection.deselectAll')
-                  : t('selection.selectAll')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.selectionActionButton,
-                styles.deleteActionButton,
-                { backgroundColor: '#FFF', borderColor: '#E5E5E5' },
-                selectedItems.size === 0 && styles.disabledButton,
-              ]}
-              onPress={handleDeleteSelected}
-              disabled={selectedItems.size === 0}
-            >
-              <Ionicons
-                name="trash"
-                size={20}
-                color={selectedItems.size === 0 ? '#CCC' : '#FF3B30'}
-              />
-              <Text
-                style={[styles.deleteActionText, selectedItems.size === 0 && styles.disabledText]}
-              >
-                {t('common:actions.delete')} ({selectedItems.size})
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          // Normal Filter Mode
-          <>
-            <View style={styles.filterBarLeft}>
-              <TouchableOpacity
-                style={[styles.filterButton, hasActiveFilters ? styles.filterButtonActive : null]}
-                onPress={() => setShowFilter(true)}
-              >
-                <Ionicons name="filter" size={20} color={hasActiveFilters ? '#FFF' : '#000'} />
-                <Text
-                  style={[
-                    styles.filterButtonText,
-                    hasActiveFilters ? styles.filterButtonTextActive : null,
-                  ]}
-                >
-                  {t('filter.filterButton')}
-                </Text>
-                {hasActiveFilters && (
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>•</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.filterBarCenter}>
-              <Text style={styles.itemCount}>
-                {filteredItems.length}{' '}
-                {filteredItems.length === 1
-                  ? t('header.itemCount_one')
-                  : t('header.itemCount_other')}
-              </Text>
-            </View>
-
-            <View style={styles.filterBarRight}>
-              {hasActiveFilters ? (
-                <TouchableOpacity style={styles.clearFilterButton} onPress={handleClearFilter}>
-                  <Text style={styles.clearFilterText}>{t('filter.clearAll')}</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.gridToggleButton}
-                  onPress={handleToggleGridColumns}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons
-                    name={gridColumns === 2 ? 'grid-outline' : 'grid'}
-                    size={20}
-                    color="#000"
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-          </>
-        )}
-      </View>
-    </>
-  );
+  // Calculate header padding for content (extra gap for Android custom header overlay)
+  const headerContentPadding = (isSelectionMode ? 140 : 110) + (Platform.OS === 'android' ? 12 : 0);
 
   return (
     <DismissKeyboardView
@@ -582,11 +425,6 @@ export default function WardrobeScreen() {
       onLayout={() => setRootLayoutReady(true)}
     >
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-
-      {/* Conditional Header: Classic for iOS < 26 / Android, or during glass initialization */}
-      {/* Show classic header until glass UI is enabled */}
-      {/* On iOS 26+ when Liquid Glass is available, do NOT render classic header (prevents flash). */}
-      {!canUseLiquidGlass && renderClassicHeader()}
 
       {/* Items Grid */}
       <ItemGrid
@@ -602,10 +440,7 @@ export default function WardrobeScreen() {
         isSelectable={isSelectionMode}
         selectedItems={selectedItems}
         numColumns={gridColumns}
-        contentContainerStyle={
-          // Apply top padding as soon as we know we're on iOS 26+ (even before glass UI is enabled)
-          canUseLiquidGlass ? { paddingTop: isSelectionMode ? 130 : 90 } : undefined
-        }
+        contentContainerStyle={{ paddingTop: headerContentPadding }}
       />
 
       {/* Filter Modal */}
@@ -632,11 +467,17 @@ export default function WardrobeScreen() {
         />
       )}
 
-      {/* iOS 26+ Glass Header - RENDERED LAST to be on top of everything */}
-      {supportsLiquidGlass && renderGlassHeader()}
+      {/* Unified Header - Automatically uses Glass on iOS 26+, custom components otherwise */}
+      <WardrobeHeader
+        searchValue={searchQuery}
+        onSearchChange={handleSearch}
+        searchPlaceholder={t('search.placeholder')}
+        menuItems={headerMenuItems}
+        liquidGlassEnabled={supportsLiquidGlass}
+      />
 
-      {/* Selection Mode Actions for iOS 26+ (shown below glass header) */}
-      {supportsLiquidGlass && isSelectionMode && (
+      {/* Selection Mode Actions (shown below header) */}
+      {isSelectionMode && (
         <View style={[styles.glassSelectionBar, { marginTop: insets.top + 68 }]}>
           <TouchableOpacity
             style={[
@@ -680,12 +521,6 @@ export default function WardrobeScreen() {
 }
 
 const styles = StyleSheet.create({
-  clearFilterButton: {},
-  clearFilterText: {
-    color: '#FF3B30',
-    fontSize: 14,
-    fontWeight: '500',
-  },
   container: {
     backgroundColor: '#fff',
     flex: 1,
@@ -693,20 +528,7 @@ const styles = StyleSheet.create({
   containerTransparent: {
     backgroundColor: 'transparent',
   },
-  // iOS 26+ Glass Components (absolute positioned, no container)
-  glassSearchBar: {
-    position: 'absolute',
-    left: 16,
-    right: 72, // Space for menu button (48px + 8px gap + 16px margin)
-    zIndex: 9999,
-    elevation: 9999, // Android
-  },
-  glassMenu: {
-    position: 'absolute',
-    right: 16,
-    zIndex: 10000, // Maximum z-index to be on top of everything
-    elevation: 10000, // Android
-  },
+  // Selection bar (shown below header when in selection mode)
   glassSelectionBar: {
     position: 'absolute',
     left: 0,
@@ -715,137 +537,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     gap: 8,
-  },
-  // Classic Header Styles
-  safeArea: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
-  headerContent: {
-    marginHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: '#000000',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  syncIndicator: {
-    marginLeft: 4,
-  },
-  filterBadge: {
-    marginLeft: 4,
-  },
-  filterBadgeText: {
-    color: '#FFF',
-    fontSize: 20,
-  },
-  filterBar: {
-    alignItems: 'center',
-    borderBottomColor: '#E5E5E5',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  filterBarLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  filterBarCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBarRight: {
-    minWidth: 80,
-    alignItems: 'flex-end',
-  },
-  gridToggleButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  filterButton: {
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  filterButtonActive: {
-    backgroundColor: '#000',
-  },
-  filterButtonText: {
-    color: '#000',
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  filterButtonTextActive: {
-    color: '#FFF',
-  },
-  itemCount: {
-    color: '#666',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  searchContainer: {
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    color: '#000',
-    flex: 1,
-    fontSize: 16,
-    paddingVertical: 12,
-  },
-  selectButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 16,
-  },
-  selectButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
   },
   selectionActionButton: {
     flex: 1,

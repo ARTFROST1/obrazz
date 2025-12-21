@@ -210,7 +210,9 @@ Screen-Specific Styling:
 - Wardrobe screen: Add new item (navigates to /add-item)
 
 Note: Both screens now have consistent layout with FAB at bottom.
-Wardrobe header на iOS 26+ может рендериться как Liquid Glass (поиск + меню) поверх UI; на iOS < 26 / Android используется классический header.
+Wardrobe и Outfits headers на iOS 26+ могут рендериться как Liquid Glass (поиск + меню) поверх UI; на iOS < 26 / Android используется fallback-версия (custom `SearchBar` + `DropdownMenu`).
+
+Outfits — особый кейс: экран намеренно всегда тёмный (независимо от системной темы).
 
 States:
 - Default: 100% opacity, scale(1)

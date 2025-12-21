@@ -15,4 +15,6 @@ export { OutfitEmptyState } from './OutfitEmptyState';
 export { OutfitFilter } from './OutfitFilter';
 export type { OutfitFilterState } from './OutfitFilter';
 export { OutfitGrid } from './OutfitGrid';
+export { OutfitHeader } from './OutfitHeader';
+export type { OutfitHeaderMenuItem } from './OutfitHeader';
 export { OutfitPreview } from './OutfitPreview';

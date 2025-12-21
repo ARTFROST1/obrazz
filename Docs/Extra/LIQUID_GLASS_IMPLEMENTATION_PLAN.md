@@ -31,7 +31,16 @@
 - `components/ui/glass/GlassDropdownMenu.tsx`
 - `components/ui/FAB.tsx`
 
-### 3) Back / Favorite buttons (iOS 26+)
+### 3) Outfits (header + FAB) на iOS 26+ + always-dark screen
+
+- `app/(tabs)/outfits.tsx`
+  - Использует тот же deferred enable + run-once паттерн, что и Wardrobe.
+  - Header: `components/outfit/OutfitHeader.tsx` (Glass на iOS 26+, fallback на остальных).
+  - FAB: `components/ui/FAB.tsx` (Glass на iOS 26+ при `liquidGlassEnabled`).
+  - **Важно:** экран Outfits намеренно всегда тёмный на всех платформах.
+    - Для fallback UI используется `forceDark` в `SearchBar`/`DropdownMenu`.
+
+### 4) Back / Favorite buttons (iOS 26+)
 
 - `components/ui/glass/GlassBackButton.tsx`
 - `components/ui/glass/GlassIconButton.tsx`
@@ -42,7 +51,7 @@
   - `components/outfit/ItemSelectionStepNew.tsx`
   - `components/outfit/CompositionStep.tsx`
 
-### 4) Tab bar (iOS)
+### 5) Tab bar (iOS)
 
 Tab bar на iOS использует `NativeTabs` и системные материалы (`systemChromeMaterial*`). На iOS 26 это визуально соответствует “Liquid Glass”-стилистике.
 
@@ -80,6 +89,7 @@ Tab bar на iOS использует `NativeTabs` и системные мат�
 
 - Platform constants: `utils/platform.ts`
 - Wardrobe enable algorithm: `app/(tabs)/wardrobe.tsx`
+- Outfits enable algorithm: `app/(tabs)/outfits.tsx`
 - Glass components: `components/ui/glass/*`
 
 ---
@@ -119,102 +129,33 @@ export function MyGlassButton({ onPress }: { onPress: () => void }) {
 }
 ```
 
-### Wardrobe — особый кейс
+### Wardrobe / Outfits — особый кейс
 
 Если вы видите баг “контент без стекла” на **первом холодном открытии**, повторите стратегию Wardrobe:
 
 - включайте стеклянную ветку **отложенно** (focus + root layout + after-interactions + 2x RAF)
 - после первого включения — **run-once** (не выключать на blur)
 
-См. `app/(tabs)/wardrobe.tsx`.
+См. `app/(tabs)/wardrobe.tsx` и `app/(tabs)/outfits.tsx`.
 
 ---
 
-Документ intentionally оставлен коротким и актуальным. Устаревшие черновики/планы удалены, чтобы не конфликтовать с текущей реализацией.
+## 🧪 Мини-чеклист (ручная проверка)
 
-- [x] Улучшить стили: borderRadius 24, overflow hidden
+- iOS 26+ cold start → сразу открыть Wardrobe/Outfits: glass фон должен примениться сразу.
+- Переключение табов туда-сюда: glass UI не должен «переинициализироваться»/мигать.
+- Dropdown: открывается/закрывается, действия срабатывают.
+- Android / iOS < 26: fallback UI функционален и не ломает UX.
 
-**Улучшения v2 (2025-12-21):**
+---
 
-- [x] **Search bar:** увеличен borderRadius до 24px, height до 48px
-- [x] **Dropdown:** custom dropdown реализован сейчас; нативный UIMenu возможен позже (см. флаг в `GlassDropdownMenu.tsx`)
-- [x] **Trigger button:** размер увеличен до 48x48, borderRadius 24
-- [x] **Паддинги:** улучшены для лучшего визуального восприятия
+## 📚 Ресурсы
 
-### Phase 3: Headers
-
-- [ ] Создать `GlassHeader` компонент
-- [ ] Обновить заголовки всех tab screens
-- [ ] Добавить scroll edge effect
-
-### Phase 4: Modals
-
-- [ ] Создать `GlassModalHeader`
-- [ ] Обновить модальные окна
-
-### Phase 5: Toolbars
-
-- [ ] Создать `GlassToolbar`
-- [ ] Обновить toolbar в outfit creation
-
-### Phase 6: Search & Chips
-
-- [ ] Обновить другие search bars (если появятся) на `GlassSearchBar`
-- [ ] Опционально: Glass filter chips
-
-### Phase 7: Testing & QA
-
-- [ ] Тестирование на iOS 26+
-- [ ] Тестирование на iOS < 26
-- [ ] Тестирование на Android
-- [ ] Accessibility testing (Reduce Transparency)
-- [ ] Performance profiling
-- [ ] Dark/Light mode verification
+- Expo GlassEffect: https://docs.expo.dev/versions/latest/sdk/glass-effect/
+- Expo Router Native Tabs: https://docs.expo.dev/router/advanced/native-tabs/
+- React Native PlatformColor: https://reactnative.dev/docs/platformcolor
 
 ---
 
 **Автор:** GitHub Copilot  
-**Дата создания:** 2025-12-21  
-**Последнее обновление:** 2025-12-21  
-**Реализовано:** FAB (Floating Action Button) ✅
-
----
-
-## 📚 Дополнительные ресурсы
-
-### Официальная документация
-
-- **Expo GlassEffect:** https://docs.expo.dev/versions/latest/sdk/glass-effect/
-- **Expo Router Native Tabs:** https://docs.expo.dev/router/advanced/native-tabs/
-- **React Native Platform:** https://reactnative.dev/docs/platform
-- **PlatformColor:** https://reactnative.dev/docs/platformcolor
-
-### GitHub Repositories
-
-- **expo-glass-effect:** https://github.com/expo/expo/tree/main/packages/expo-glass-effect
-- **expo-router:** https://github.com/expo/expo/tree/main/packages/expo-router
-
-### Видео
-
-- **Liquid Glass Tabs with Expo Router:** https://www.youtube.com/watch?v=QqNZXdGFl44  
-  **Реализовано:** FAB (Floating Action Button) ✅
-
----
-
-## 📚 Дополнительные ресурсы
-
-### Официальная документация
-
-- **Expo GlassEffect:** https://docs.expo.dev/versions/latest/sdk/glass-effect/
-- **Expo Router Native Tabs:** https://docs.expo.dev/router/advanced/native-tabs/
-- **React Native Platform:** https://reactnative.dev/docs/platform
-- **PlatformColor:** https://reactnative.dev/docs/platformcolor
-
-### GitHub Repositories
-
-- **expo-glass-effect:** https://github.com/expo/expo/tree/main/packages/expo-glass-effect
-- **expo-router:** https://github.com/expo/expo/tree/main/packages/expo-router
-
-### Видео
-
-- **Liquid Glass Tabs with Expo Router:** https://www.youtube.com/watch?v=QqNZXdGFl44
+**Последнее обновление:** 2025-12-21

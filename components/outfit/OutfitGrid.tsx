@@ -1,14 +1,15 @@
+import { getTabBarPadding } from '@constants/Layout';
 import React from 'react';
 import {
-  FlatList,
-  View,
-  StyleSheet,
-  RefreshControl,
   ActivityIndicator,
-  useColorScheme,
+  FlatList,
   Platform,
+  RefreshControl,
+  StyleSheet,
+  useColorScheme,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { getTabBarPadding } from '@constants/Layout';
 import type { Outfit } from '../../types/models';
 import { OutfitCard } from './OutfitCard';
 import { OutfitEmptyState } from './OutfitEmptyState';
@@ -29,6 +30,7 @@ export interface OutfitGridProps {
   numColumns?: number;
   isSelectable?: boolean;
   selectedOutfits?: Set<string>;
+  contentContainerStyle?: ViewStyle;
 }
 
 /**
@@ -63,6 +65,7 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
   numColumns = 2,
   isSelectable = false,
   selectedOutfits = new Set(),
+  contentContainerStyle,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -119,7 +122,11 @@ export const OutfitGrid: React.FC<OutfitGridProps> = ({
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       numColumns={numColumns}
-      contentContainerStyle={[styles.container, outfits.length === 0 && styles.emptyContainer]}
+      contentContainerStyle={[
+        styles.container,
+        outfits.length === 0 && styles.emptyContainer,
+        contentContainerStyle,
+      ]}
       columnWrapperStyle={numColumns > 1 ? styles.row : undefined}
       showsVerticalScrollIndicator={false}
       refreshControl={

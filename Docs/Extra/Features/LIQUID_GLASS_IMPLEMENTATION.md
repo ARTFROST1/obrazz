@@ -191,8 +191,8 @@ tintColor={PlatformColor('label')}
 
 Контент автоматически учитывает таб-бар. Обновлены компоненты:
 
-- `components/wardrobe/ItemGrid.tsx` - paddingBottom 100px (iOS)
-- `components/outfit/OutfitGrid.tsx` - paddingBottom 100px (iOS)
+- `components/wardrobe/ItemGrid.tsx` - на iOS небольшой `paddingBottom` (NativeTabs учитывает safe-area), на Android используется `getTabBarPadding()`
+- `components/outfit/OutfitGrid.tsx` - на iOS небольшой `paddingBottom` (NativeTabs учитывает safe-area), на Android используется `getTabBarPadding()`
 - `app/(tabs)/profile.tsx` - contentContainerStyle с paddingBottom
 
 ## Тестирование
@@ -225,4 +225,4 @@ tintColor={PlatformColor('label')}
 ---
 
 **Автор:** AI Assistant  
-**Последнее обновление:** 2025-11-06
+**Последнее обновление:** 2025-12-21

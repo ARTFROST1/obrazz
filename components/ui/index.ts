@@ -9,3 +9,8 @@ export type { LoaderProps } from './Loader';
 
 export { FAB } from './FAB';
 export type { FABProps } from './FAB';
+
+export { SearchBar } from './SearchBar';
+
+export { DropdownMenu } from './DropdownMenu';
+export type { DropdownMenuItem } from './DropdownMenu';
