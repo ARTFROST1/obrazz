@@ -1,3 +1,4 @@
+import { getDisplayItemTitle } from '@/utils/item/displayItemTitle';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import {
@@ -19,6 +20,7 @@ interface ItemCardProps {
   isSelectable?: boolean;
   isSelected?: boolean;
   numColumns?: number;
+  hasSourceUrl?: boolean; // Indicator for items imported from web with buy link
 }
 
 const { width } = Dimensions.get('window');
@@ -38,6 +40,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   isSelectable = false,
   isSelected = false,
   numColumns = 2,
+  hasSourceUrl = false,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const cardWidth = getCardWidth(numColumns);
@@ -103,7 +106,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.title} numberOfLines={1}>
-          {item.title || 'Untitled'}
+          {getDisplayItemTitle(item, 'Untitled')}
         </Text>
       </View>
     </TouchableOpacity>
@@ -147,6 +150,27 @@ const styles = StyleSheet.create({
     right: 8,
     top: 8,
     width: 30,
+  },
+  webSourceIndicator: {
+    position: 'absolute',
+    left: 8,
+    top: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    padding: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   image: {
     height: '100%',

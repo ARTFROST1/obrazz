@@ -12,7 +12,7 @@ import {
   OutfitSortOptions,
 } from '../../types/models/outfit';
 import { Season, StyleTag } from '../../types/models/user';
-import { getErrorMessage, logError } from '../../utils/errors/errorHandler';
+import { getErrorMessage, isNetworkError, logError } from '../../utils/errors/errorHandler';
 
 // Database record interface (snake_case)
 interface OutfitDbRecord {
@@ -47,6 +47,11 @@ const parseSupabaseError = (error: unknown): string => {
   if (!error) return 'Unknown error';
 
   const message = getErrorMessage(error);
+
+  // Network / timeout errors (common on mobile)
+  if (isNetworkError(error)) {
+    return 'Network error (timeout). Please check your connection and try again.';
+  }
 
   // Check if the error message is HTML (Cloudflare error page, etc.)
   if (message.includes('<!DOCTYPE') || message.includes('<html')) {

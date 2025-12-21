@@ -66,6 +66,19 @@ export default function GalleryBottomSheet() {
     const sourceUrl = activeTab?.currentUrl || '';
     const sourceName = activeTab?.shopName || 'Магазин';
 
+    console.log('[GalleryBottomSheet] 🚀 Add Now clicked:', {
+      selectedCount: selectedImages.length,
+      sourceUrl,
+      sourceName,
+      imagesWithProductUrl: selectedImages.filter((img) => img.productUrl).length,
+    });
+    selectedImages.forEach((img, idx) => {
+      console.log(`[GalleryBottomSheet] Image ${idx + 1}:`, {
+        hasProductUrl: !!img.productUrl,
+        productUrl: img.productUrl?.substring(0, 60),
+      });
+    });
+
     // Convert to CartItems
     const cartItems: CartItem[] = selectedImages.map((image) => ({
       id: `${image.id}_${Date.now()}_${Math.random()}`,
@@ -99,6 +112,12 @@ export default function GalleryBottomSheet() {
     const selectedImages = detectedImages.filter((img) => selectedImageIds.has(img.id));
     const sourceUrl = activeTab?.currentUrl || '';
     const sourceName = activeTab?.shopName || 'Магазин';
+
+    console.log('[GalleryBottomSheet] 🛒 Add to Cart clicked:', {
+      selectedCount: selectedImages.length,
+      sourceUrl,
+      sourceName,
+    });
 
     await addToCart(selectedImages, sourceUrl, sourceName);
 

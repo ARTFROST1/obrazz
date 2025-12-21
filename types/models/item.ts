@@ -35,13 +35,25 @@ export interface ItemMetadata {
   imageHeight?: number;
   dominantColors?: string[];
   aiTags?: string[];
-  source?: 'camera' | 'gallery' | 'web' | 'builtin';
+  source?: 'camera' | 'gallery' | 'web' | 'builtin' | 'web_capture_manual';
   sourceUrl?: string;
+  sourceName?: string;
   price?: number;
   colors?: Color[];
   primaryColor?: Color;
   brand?: string;
   size?: string;
+
+  /**
+   * Auto-generated title marker.
+   * If present, UI is allowed to localize the visible title.
+   * User-entered titles MUST NOT set this.
+   */
+  autoTitle?: {
+    kind: 'categoryCounter';
+    category: ItemCategory;
+    number: number;
+  };
 }
 
 export type ItemCategory =

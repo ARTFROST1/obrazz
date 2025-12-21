@@ -1,4 +1,5 @@
 import { PIXIAN_API_ID, PIXIAN_API_SECRET, PIXIAN_TEST_MODE } from '@config/env';
+import { Buffer } from 'buffer';
 import * as FileSystem from 'expo-file-system/legacy';
 
 interface PixianOptions {
@@ -33,6 +34,114 @@ class BackgroundRemoverService {
     this.apiSecret = PIXIAN_API_SECRET || '';
   }
 
+  private getBasicAuthHeaderValue(): string {
+    const raw = `${this.apiId}:${this.apiSecret}`;
+    // btoa is not guaranteed in Hermes / React Native; Buffer is.
+    const encoded = Buffer.from(raw, 'utf8').toString('base64');
+    return `Basic ${encoded}`;
+  }
+
+  private getMimeTypeFromUri(uri: string): string {
+    const lower = uri.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.heic') || lower.endsWith('.heif')) return 'image/heic';
+    return 'application/octet-stream';
+  }
+
+  private getFileNameFromUri(uri: string): string {
+    const sanitized = uri.split('?')[0];
+    const last = sanitized.split('/').pop();
+    if (last && last.includes('.')) return last;
+    const ext = this.getMimeTypeFromUri(uri) === 'image/png' ? 'png' : 'jpg';
+    return `image.${ext}`;
+  }
+
+  private async ensureLocalFileUri(uri: string): Promise<string> {
+    if (/^https?:\/\//i.test(uri)) {
+      const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+      if (!dir) {
+        throw new Error('No writable directory available to download remote image');
+      }
+
+      const target = `${dir}pixian_input_${Date.now()}`;
+      console.log('[BackgroundRemover] Downloading remote image to:', target);
+      const downloaded = await FileSystem.downloadAsync(uri, target);
+      return downloaded.uri;
+    }
+
+    return uri;
+  }
+
+  private getOutputUriFromContentType(contentType: string | null): string {
+    const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+    if (!dir) {
+      throw new Error('No writable directory available to save processed image');
+    }
+
+    const ct = (contentType ?? '').toLowerCase();
+    const ext = ct.includes('jpeg') || ct.includes('jpg') ? 'jpg' : 'png';
+    return `${dir}pixian_nobg_${Date.now()}.${ext}`;
+  }
+
+  private async fetchWithTimeout(
+    input: RequestInfo,
+    init: RequestInit,
+    timeoutMs: number,
+  ): Promise<Response> {
+    return await Promise.race([
+      fetch(input, init),
+      new Promise<Response>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs),
+      ),
+    ]);
+  }
+
+  private async checkPixianReachable(timeoutMs: number = 10000): Promise<void> {
+    const authHeaderValue = this.getBasicAuthHeaderValue();
+    const startedAt = Date.now();
+
+    try {
+      const response = await this.fetchWithTimeout(
+        this.accountUrl,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: authHeaderValue,
+            Accept: 'application/json',
+          },
+        },
+        timeoutMs,
+      );
+
+      const elapsed = Date.now() - startedAt;
+      console.log('[BackgroundRemover] Pixian /account reachable:', {
+        status: response.status,
+        elapsedMs: elapsed,
+      });
+
+      // 200 = ok, 401 = creds issue; both prove network reachability.
+      if (response.status === 401) {
+        // Credentials might be wrong, but network is fine.
+        return;
+      }
+
+      if (!response.ok) {
+        console.warn('[BackgroundRemover] Pixian /account unexpected status:', response.status);
+      }
+    } catch (error) {
+      const elapsed = Date.now() - startedAt;
+      console.error('[BackgroundRemover] Pixian /account check failed:', {
+        elapsedMs: elapsed,
+        error: error instanceof Error ? { name: error.name, message: error.message } : error,
+      });
+      throw new Error(
+        'Cannot reach Pixian.ai from this device/network. Check VPN/firewall/DNS and try again.',
+      );
+    }
+  }
+
   /**
    * Remove background from image using Pixian.ai API
    *
@@ -50,22 +159,29 @@ class BackgroundRemoverService {
     console.log('[BackgroundRemover] Starting background removal for:', imageUri);
 
     try {
+      // Fast connectivity check to distinguish network issues from request formatting problems.
+      await this.checkPixianReachable(10000);
+
+      const localInputUri = await this.ensureLocalFileUri(imageUri);
+
       // Verify source file exists
-      const sourceInfo = await FileSystem.getInfoAsync(imageUri);
+      const sourceInfo = await FileSystem.getInfoAsync(localInputUri);
       if (!sourceInfo.exists) {
-        throw new Error(`Source image does not exist: ${imageUri}`);
+        throw new Error(`Source image does not exist: ${localInputUri}`);
       }
       console.log('[BackgroundRemover] Source file exists, size:', sourceInfo.size);
 
-      // Read image as base64
+      // Prepare form data.
+      // NOTE: Using `image.base64` is significantly more reliable in Expo/RN than
+      // multipart file streaming on some iOS setups (where uploads can hang).
+      const formData = new FormData();
+
       console.log('[BackgroundRemover] Reading image as base64...');
-      const base64Image = await FileSystem.readAsStringAsync(imageUri, {
+      const base64Image = await FileSystem.readAsStringAsync(localInputUri, {
         encoding: 'base64',
       });
       console.log('[BackgroundRemover] Base64 length:', base64Image.length);
 
-      // Prepare form data
-      const formData = new FormData();
       formData.append('image.base64', base64Image);
 
       // Add test mode parameter (use environment variable if not explicitly set)
@@ -100,20 +216,65 @@ class BackgroundRemoverService {
         formData.append('result.jpeg_quality', String(options['result.jpeg_quality']));
       }
 
-      // Create Basic Auth header
-      const credentials = btoa(`${this.apiId}:${this.apiSecret}`);
+      const authHeaderValue = this.getBasicAuthHeaderValue();
 
-      // Make API request
+      // Make API request with timeout and retry logic
       console.log('[BackgroundRemover] Making API request to Pixian.ai...');
-      const response = await fetch(this.apiUrl, {
+      console.log('[BackgroundRemover] API URL:', this.apiUrl);
+      console.log('[BackgroundRemover] Auth configured:', !!this.apiId && !!this.apiSecret);
+
+      let response: Response | undefined;
+
+      const requestInit: RequestInit = {
         method: 'POST',
         headers: {
-          Authorization: `Basic ${credentials}`,
+          Authorization: authHeaderValue,
+          // Explicitly set Accept header for better compatibility
+          Accept: 'image/png, image/jpeg, image/*, */*',
         },
         body: formData,
-      });
+      };
+
+      const timeouts = [45000, 90000];
+      let lastError: unknown = undefined;
+
+      for (let attempt = 0; attempt < timeouts.length; attempt++) {
+        const timeoutMs = timeouts[attempt];
+        const startedAt = Date.now();
+        try {
+          console.log(
+            '[BackgroundRemover] Pixian request attempt:',
+            attempt + 1,
+            'timeoutMs:',
+            timeoutMs,
+          );
+          response = await this.fetchWithTimeout(this.apiUrl, requestInit, timeoutMs);
+          console.log(
+            '[BackgroundRemover] Pixian request completed in ms:',
+            Date.now() - startedAt,
+          );
+          lastError = undefined;
+          break;
+        } catch (err) {
+          lastError = err;
+          console.error('[BackgroundRemover] Pixian request failed attempt:', attempt + 1, {
+            name: err instanceof Error ? err.name : undefined,
+            message: err instanceof Error ? err.message : String(err),
+            elapsedMs: Date.now() - startedAt,
+          });
+        }
+      }
+
+      if (!response) {
+        const message = lastError instanceof Error ? lastError.message : 'Unknown network error';
+        throw new Error(message);
+      }
 
       console.log('[BackgroundRemover] API response status:', response.status);
+      console.log('[BackgroundRemover] API response headers:', {
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length'),
+      });
 
       if (!response.ok) {
         let errorMessage = 'Failed to remove background';
@@ -136,50 +297,25 @@ class BackgroundRemoverService {
       console.log('[BackgroundRemover] Input size:', inputSize);
       console.log('[BackgroundRemover] Result size:', resultSize);
 
-      // Get the result as blob
-      console.log('[BackgroundRemover] Processing response blob...');
-      const blob = await response.blob();
-      const reader = new FileReader();
+      // Save response (binary image) to file system
+      console.log('[BackgroundRemover] Processing response binary...');
+      const contentType = response.headers.get('content-type');
+      const processedPath = this.getOutputUriFromContentType(contentType);
+      const arrayBuffer = await response.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
 
-      return new Promise((resolve, reject) => {
-        reader.onloadend = async () => {
-          try {
-            console.log('[BackgroundRemover] Converting blob to base64...');
-            const base64data = reader.result as string;
-            const base64 = base64data.split(',')[1]; // Remove data:image/png;base64, prefix
-
-            // Save to file system
-            const processedPath = imageUri.replace(/\.(jpg|jpeg)$/i, '_nobg.png');
-            console.log('[BackgroundRemover] Saving processed image to:', processedPath);
-
-            await FileSystem.writeAsStringAsync(processedPath, base64, {
-              encoding: 'base64',
-            });
-
-            // Verify the file was saved
-            const savedInfo = await FileSystem.getInfoAsync(processedPath);
-            if (!savedInfo.exists) {
-              throw new Error('Failed to save processed image - file does not exist');
-            }
-            console.log(
-              '[BackgroundRemover] Processed image saved successfully, size:',
-              savedInfo.size,
-            );
-
-            resolve(processedPath);
-          } catch (error) {
-            console.error('[BackgroundRemover] Error saving processed image:', error);
-            reject(error);
-          }
-        };
-
-        reader.onerror = (error) => {
-          console.error('[BackgroundRemover] FileReader error:', error);
-          reject(error);
-        };
-
-        reader.readAsDataURL(blob);
+      console.log('[BackgroundRemover] Saving processed image to:', processedPath);
+      await FileSystem.writeAsStringAsync(processedPath, base64, {
+        encoding: 'base64',
       });
+
+      const savedInfo = await FileSystem.getInfoAsync(processedPath);
+      if (!savedInfo.exists) {
+        throw new Error('Failed to save processed image - file does not exist');
+      }
+      console.log('[BackgroundRemover] Processed image saved successfully, size:', savedInfo.size);
+
+      return processedPath;
     } catch (error) {
       console.error('[BackgroundRemover] Error removing background:', error);
       if (error instanceof Error) {
@@ -216,12 +352,12 @@ class BackgroundRemoverService {
     }
 
     try {
-      const credentials = btoa(`${this.apiId}:${this.apiSecret}`);
+      const authHeaderValue = this.getBasicAuthHeaderValue();
 
       const response = await fetch(this.accountUrl, {
         method: 'GET',
         headers: {
-          Authorization: `Basic ${credentials}`,
+          Authorization: authHeaderValue,
         },
       });
 

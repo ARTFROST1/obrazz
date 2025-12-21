@@ -1,8 +1,20 @@
+import i18n from '@lib/i18n/config';
 import { supabase } from '@lib/supabase/client';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ItemCategory, ItemMetadata, WardrobeItem } from '../../types/models/item';
 import { Season, StyleTag } from '../../types/models/user';
+import { getUserFriendlyError } from '../../utils/errors/errorHandler';
+
+function formatAutoTitleFromMetadata(meta?: Partial<ItemMetadata>): string | undefined {
+  const auto = meta?.autoTitle;
+  if (!auto || auto.kind !== 'categoryCounter') return undefined;
+
+  const key = `categories:items.${auto.category}`;
+  const label = i18n.t(key);
+  const categoryLabel = typeof label === 'string' && label !== key ? label : String(auto.category);
+  return `${categoryLabel} ${auto.number}`;
+}
 
 // Database record interface (snake_case)
 interface ItemDbRecord {
@@ -85,7 +97,7 @@ class ItemService {
       // Prepare item data for Supabase
       const itemData = {
         user_id: input.userId,
-        name: input.title || 'Untitled Item',
+        name: input.title || formatAutoTitleFromMetadata(input.metadata) || 'Untitled Item',
         category: input.category,
         color: input.primaryColor.hex,
         style: input.styles,
@@ -105,7 +117,10 @@ class ItemService {
           price: input.price,
           imageLocalPath: localImagePath,
           backgroundRemoved: false,
-          source: 'gallery',
+          source: input.metadata?.source || 'gallery',
+          sourceUrl: input.metadata?.sourceUrl,
+          sourceName: input.metadata?.sourceName,
+          autoTitle: input.metadata?.autoTitle,
         },
       };
 
@@ -149,11 +164,29 @@ class ItemService {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('[ItemService.getUserItems] Supabase error:', error);
-        console.error('[ItemService.getUserItems] Error code:', error.code);
-        console.error('[ItemService.getUserItems] Error details:', error.details);
-        console.error('[ItemService.getUserItems] Error hint:', error.hint);
-        throw new Error(`Database error: ${error.message}`);
+        // Only log Supabase-specific fields if they exist (network errors won't have them)
+        const hasSupabaseFields = 'code' in error || 'details' in error || 'hint' in error;
+
+        if (hasSupabaseFields) {
+          console.error('[ItemService.getUserItems] Supabase error:', error);
+          if ((error as any).code) {
+            console.error('[ItemService.getUserItems] Error code:', (error as any).code);
+          }
+          if ((error as any).details) {
+            console.error('[ItemService.getUserItems] Error details:', (error as any).details);
+          }
+          if ((error as any).hint) {
+            console.error('[ItemService.getUserItems] Error hint:', (error as any).hint);
+          }
+        } else {
+          // Network/timeout errors - less verbose
+          console.error(
+            '[ItemService.getUserItems] Network error:',
+            (error as any).message || error,
+          );
+        }
+
+        throw new Error(`Database error: ${(error as any).message || 'Unknown error'}`);
       }
 
       console.log('[ItemService.getUserItems] Fetched items count:', data?.length || 0);
@@ -179,8 +212,9 @@ class ItemService {
 
       return mappedItems;
     } catch (error) {
+      const friendly = getUserFriendlyError(error);
       console.error('[ItemService.getUserItems] Error fetching items:', error);
-      throw new Error('Failed to fetch wardrobe items');
+      throw new Error(friendly || 'Failed to fetch wardrobe items');
     }
   }
 
@@ -238,6 +272,14 @@ class ItemService {
    */
   async updateItem(itemId: string, updates: UpdateItemInput): Promise<WardrobeItem> {
     try {
+      if (!updates || Object.keys(updates).length === 0) {
+        console.warn('[ItemService.updateItem] Skipping update - no fields provided', {
+          itemId,
+          updates,
+        });
+        return this.getItemById(itemId);
+      }
+
       // ⚠️ Validate colors - cannot be empty
       if (updates.colors !== undefined && updates.colors.length === 0) {
         throw new Error('At least one color is required');
@@ -262,6 +304,12 @@ class ItemService {
       if (updates.brand !== undefined) metadataUpdates.brand = updates.brand;
       if (updates.size !== undefined) metadataUpdates.size = updates.size;
       if (updates.price !== undefined) metadataUpdates.price = updates.price;
+
+      // If a title is explicitly provided, treat it as a user-entered title
+      // and clear autoTitle marker in metadata to prevent localization.
+      if (typeof updates.title === 'string' && updates.title.trim().length > 0) {
+        metadataUpdates.autoTitle = null;
+      }
 
       if (Object.keys(metadataUpdates).length > 0) {
         // Fetch current metadata and merge
@@ -580,7 +628,9 @@ class ItemService {
         aiTags: metadata.aiTags,
         source: metadata.source || 'gallery',
         sourceUrl: metadata.sourceUrl,
+        sourceName: metadata.sourceName,
         price: metadata.price,
+        autoTitle: metadata.autoTitle,
       },
     };
   }

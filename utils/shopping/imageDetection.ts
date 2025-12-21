@@ -5,10 +5,23 @@
  */
 export const imageDetectionScript = `
 (function() {
-  console.log('[ImageDetection] Initializing detection system...');
+  var __obrazzDebug = !!window.__OBRAZZ_DEBUG;
   
   // Pre-compiled regex for keywords (faster than array.some)
   const keywordPattern = /product|clothing|fashion|dress|shirt|pants|jacket|shoe|skirt|coat|sweater|jeans|apparel|wear|style|outfit|товар|одежда|item|model|look|collection/i;
+
+  function getImageSrc(img) {
+    // Prefer currentSrc (handles srcset / <picture>), then common lazy-load attrs.
+    return (
+      img.currentSrc ||
+      img.src ||
+      img.getAttribute('data-src') ||
+      img.getAttribute('data-original') ||
+      img.getAttribute('data-lazy') ||
+      img.getAttribute('data-image') ||
+      ''
+    );
+  }
 
   // Helper function to find product URL from image parent elements
   function findProductUrl(img) {
@@ -20,10 +33,15 @@ export const imageDetectionScript = `
       // Check if current element is a link
       if (element.tagName === 'A' && element.href) {
         const href = element.href;
-        // Filter out non-product links (cart, search, category lists, etc.)
-        if (!/\\/(cart|search|category|collection|catalog|list|filter)[\\/\\?]/i.test(href) &&
-            !/\\/(login|register|account|checkout)/i.test(href)) {
+        if (__obrazzDebug) console.log('[ProductUrl] Depth', depth, 'found link:', href);
+        // Filter out clearly non-product links.
+        // IMPORTANT: do NOT filter out "catalog" — many stores use /catalog/... for product pages.
+        if (!/\/(cart|checkout|login|register|account)\b/i.test(href) &&
+            !/\bsearch\b/i.test(href)) {
+          if (__obrazzDebug) console.log('[ProductUrl] Valid product URL:', href);
           return href;
+        } else {
+          if (__obrazzDebug) console.log('[ProductUrl] Filtered out:', href);
         }
       }
       // Check for data attributes that might contain product URLs
@@ -38,21 +56,18 @@ export const imageDetectionScript = `
 
   // Helper function to check if image is likely clothing
   function isClothingImage(img) {
-    // Skip if image not loaded yet
-    if (!img.complete) return false;
-
-    // Minimum size filter (200x200px)
+    // Minimum size filter (relaxed: many stores render 120-180px thumbnails)
     const width = img.naturalWidth || img.width;
     const height = img.naturalHeight || img.height;
 
-    if (width < 200 || height < 200) return false;
+    if (width < 120 || height < 120) return false;
 
-    // Aspect ratio check (0.5 to 1.5, preferably 0.6 to 1.2)
+    // Aspect ratio check (relaxed)
     const aspectRatio = width / height;
-    if (aspectRatio < 0.5 || aspectRatio > 1.5) return false;
+    if (aspectRatio < 0.35 || aspectRatio > 2.5) return false;
 
     // Use regex for faster keyword matching
-    const src = img.src;
+    const src = getImageSrc(img);
     const alt = img.alt || '';
     const className = img.className || '';
     const parentClass = img.parentElement?.className || '';
@@ -62,8 +77,8 @@ export const imageDetectionScript = `
                        keywordPattern.test(className) || 
                        keywordPattern.test(parentClass);
 
-    // If has keyword or good aspect ratio (0.6-1.2), likely clothing
-    return hasKeyword || (aspectRatio >= 0.6 && aspectRatio <= 1.2);
+    // If has keyword or decent aspect ratio, likely clothing
+    return hasKeyword || (aspectRatio >= 0.5 && aspectRatio <= 1.8);
   }
 
   // Fast hash function for URL deduplication
@@ -78,12 +93,11 @@ export const imageDetectionScript = `
 
   // Main detection function - exposed globally for direct calls
   window.__obrazzDetectImages = function() {
-    console.log('[ImageDetection] 🔍 Starting detection...');
-    console.log('[ImageDetection] ReactNativeWebView available:', !!window.ReactNativeWebView);
+    if (__obrazzDebug) console.log('[ImageDetection] Starting detection...');
     const startTime = performance.now();
     
     const images = document.querySelectorAll('img');
-    console.log('[ImageDetection] Found', images.length, 'img elements on page');
+    if (__obrazzDebug) console.log('[ImageDetection] Found', images.length, 'img elements on page');
     
     const detectedImages = [];
     const seenUrls = new Set();
@@ -100,21 +114,29 @@ export const imageDetectionScript = `
       loadedImages++;
 
       if (isClothingImage(img)) {
+        const imgSrc = getImageSrc(img);
+
+        // Skip invalid / non-network sources
+        if (!imgSrc || /^data:/i.test(imgSrc) || /^blob:/i.test(imgSrc)) continue;
+
         // Skip duplicates by URL
-        if (seenUrls.has(img.src)) continue;
-        seenUrls.add(img.src);
+        if (seenUrls.has(imgSrc)) continue;
+        seenUrls.add(imgSrc);
 
         // Generate unique ID with fast hash
         const timestamp = Date.now();
-        const urlHash = fastHash(img.src);
+        const urlHash = fastHash(imgSrc);
         const id = \`img_\${timestamp}_\${counter++}_\${urlHash}\`;
 
         // Try to find product URL from parent elements
         const productUrl = findProductUrl(img);
+        if (__obrazzDebug && productUrl) {
+          console.log('[ImageDetection] Product URL found:', imgSrc.substring(0, 80), '→', productUrl);
+        }
 
         detectedImages.push({
           id: id,
-          url: img.src,
+          url: imgSrc,
           width: img.naturalWidth || img.width,
           height: img.naturalHeight || img.height,
           alt: img.alt || '',
@@ -124,13 +146,15 @@ export const imageDetectionScript = `
     }
 
     const endTime = performance.now();
-    console.log('[ImageDetection] ✅ Detection completed in', Math.round(endTime - startTime), 'ms');
-    console.log('[ImageDetection] Stats:', {
-      total: totalImages,
-      loaded: loadedImages,
-      detected: detectedImages.length,
-      unloaded: totalImages - loadedImages
-    });
+    if (__obrazzDebug) {
+      console.log('[ImageDetection] Detection completed in', Math.round(endTime - startTime), 'ms');
+      console.log('[ImageDetection] Stats:', {
+        total: totalImages,
+        loaded: loadedImages,
+        detected: detectedImages.length,
+        unloaded: totalImages - loadedImages,
+      });
+    }
 
     // Send results back to React Native
     try {
@@ -146,9 +170,9 @@ export const imageDetectionScript = `
             processingTime: Math.round(endTime - startTime)
           }
         });
-        console.log('[ImageDetection] 📤 Sending', detectedImages.length, 'images to React Native');
+        if (__obrazzDebug) console.log('[ImageDetection] Sending', detectedImages.length, 'images to React Native');
         window.ReactNativeWebView.postMessage(message);
-        console.log('[ImageDetection] ✅ Message sent successfully');
+        if (__obrazzDebug) console.log('[ImageDetection] Message sent successfully');
       } else {
         console.error('[ImageDetection] ❌ ReactNativeWebView.postMessage is NOT available!');
         console.error('[ImageDetection] window.ReactNativeWebView:', window.ReactNativeWebView);
@@ -159,8 +183,9 @@ export const imageDetectionScript = `
     }
   };
 
-  console.log('[ImageDetection] ✅ Detection system ready');
-  console.log('[ImageDetection] Call window.__obrazzDetectImages() to scan');
+  if (__obrazzDebug) {
+    console.log('[ImageDetection] Detection system ready');
+  }
 })();
 true;
 `;

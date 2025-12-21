@@ -1,0 +1,188 @@
+Title: Image Background Removal API - Pixian.AI
+
+URL Source: https://pixian.ai/api
+
+Markdown Content:
+Pixian.AI offers a full-fledged image background removal API. The API removes image backgrounds fully automatically and with best-in-class fidelity.
+
+### Quickstart
+
+POST a bitmap image and get a background-removed result back:
+
+*   [File](https://pixian.ai/api#image-file-0)
+*   [URL](https://pixian.ai/api#image-url-0)
+
+*   [cURL](https://pixian.ai/api#-1)
+*   [Java](https://pixian.ai/api#java-1)
+*   [.NET](https://pixian.ai/api#csharp-1)
+*   [Node.js](https://pixian.ai/api#js-1)
+*   [PHP](https://pixian.ai/api#php-1)
+*   [Python](https://pixian.ai/api#python-1)
+*   [Ruby](https://pixian.ai/api#ruby-1)
+
+$ curl https://api.pixian.ai/api/v2/remove-background \ -u xyz123:[secret] \ -F image=@example.jpeg \ -o pixian_result.png
+
+// Requires: org.apache.httpcomponents.client5:httpclient5-fluentRequest request = Request.post("https://api.pixian.ai/api/v2/remove-background") .addHeader("Authorization", "Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd") .body( MultipartEntityBuilder.create() .addBinaryBody("image", new File("example.jpeg")) // TODO: Replace with your image // TODO: Add more upload parameters here .build() );ClassicHttpResponse response = (ClassicHttpResponse) request.execute().returnResponse();if (response.getCode() == 200) { // Write result to disk, TODO: or wherever you'd like try (FileOutputStream out = new FileOutputStream("pixian_result.png")) { response.getEntity().writeTo(out); }} else { System.out.println("Request Failed: Status: " + response.getCode() + ", Reason: " + response.getReasonPhrase());}
+
+using (var client = new HttpClient())using (var form = new MultipartFormDataContent()){ client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", "INSERT_API_KEY_HERE"); form.Add(new ByteArrayContent(File.ReadAllBytes("example.jpeg")), "image", "example.jpeg"); // TODO: Replace with your image // TODO: Add more upload parameters here var response = client.PostAsync("https://api.pixian.ai/api/v2/remove-background", form).Result; if (response.IsSuccessStatusCode) { // Write result to disk, TODO: or wherever you'd like FileStream outStream = new FileStream("pixian_result.png", FileMode.Create, FileAccess.Write, FileShare.None); response.Content.CopyToAsync(outStream).ContinueWith((copyTask) => { outStream.Close(); }); } else { Console.WriteLine("Request Failed: Status: " + response.StatusCode + ", Reason: " + response.ReasonPhrase); }}
+
+// Requires "request" to be installed (see https://www.npmjs.com/package/request)var request = require('request');var fs = require('fs'); request.post({ url: 'https://api.pixian.ai/api/v2/remove-background', formData: { image: fs.createReadStream('example.jpeg'), // TODO: Replace with your image // TODO: Add more upload options here }, auth: {user: 'xyz123', pass: '[secret]'}, followAllRedirects: true, encoding: null}, function(error, response, body) { if (error) { console.error('Request failed:', error); } else if (!response || response.statusCode != 200) { console.error('Error:', response && response.statusCode, body.toString('utf8')); } else { // Save result fs.writeFileSync("pixian_result.png", body); }});
+
+$ch = curl_init('https://api.pixian.ai/api/v2/remove-background'); curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd')); curl_setopt($ch, CURLOPT_POSTFIELDS, array( 'image' => curl_file_create('example.jpeg'), // TODO: Add more upload options here )); curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); $data = curl_exec($ch);if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) { // Save result file_put_contents("pixian_result.png", $data);} else { echo "Error: " . $data;} curl_close($ch);
+
+# Requires "requests" to be installed (see https://pypi.org/project/requests/)import requests response = requests.post( 'https://api.pixian.ai/api/v2/remove-background', files={'image': open('example.jpeg', 'rb')}, data={ # TODO: Add more upload options here }, auth=('xyz123', '[secret]'))if response.status_code == requests.codes.ok: # Save result with open('pixian_result.png', 'wb') as out: out.write(response.content)else: print("Error:", response.status_code, response.text)
+
+# Requires: gem install httpclient require 'httpclient' client = HTTPClient.new default_header: { "Authorization" => "Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd"} response = client.post("https://api.pixian.ai/api/v2/remove-background", { "image" => File.open("example.jpeg", "rb"), # TODO: Replace with your image # TODO: Add more upload parameters here})if response.status == 200 then # Write result to disk, TODO: or wherever you'd like File.open("pixian_result.png", 'w') { |file| file.write(response.body) }else puts "Error: Code: " + response.status.to_s + ", Reason: " + response.reason end
+
+*   [cURL](https://pixian.ai/api#-2)
+*   [Java](https://pixian.ai/api#java-2)
+*   [.NET](https://pixian.ai/api#csharp-2)
+*   [Node.js](https://pixian.ai/api#js-2)
+*   [PHP](https://pixian.ai/api#php-2)
+*   [Python](https://pixian.ai/api#python-2)
+*   [Ruby](https://pixian.ai/api#ruby-2)
+
+$ curl https://api.pixian.ai/api/v2/remove-background \ -u xyz123:[secret] \ -F 'image.url=https://example.com/example.jpeg' \ -o pixian_result.png
+
+// Requires: org.apache.httpcomponents.client5:httpclient5-fluentRequest request = Request.post("https://api.pixian.ai/api/v2/remove-background") .addHeader("Authorization", "Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd") .body( MultipartEntityBuilder.create() .addTextBody("image.url", "https://example.com/example.jpeg") // TODO: Replace with your image URL // TODO: Add more upload parameters here .build() );ClassicHttpResponse response = (ClassicHttpResponse) request.execute().returnResponse();if (response.getCode() == 200) { // Write result to disk, TODO: or wherever you'd like try (FileOutputStream out = new FileOutputStream("pixian_result.png")) { response.getEntity().writeTo(out); }} else { System.out.println("Request Failed: Status: " + response.getCode() + ", Reason: " + response.getReasonPhrase());}
+
+using (var client = new HttpClient())using (var form = new MultipartFormDataContent()){ client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", "INSERT_API_KEY_HERE"); form.Add(new StringContent("https://example.com/example.jpeg"), "image.url"); // TODO: Replace with your image URL // TODO: Add more upload parameters here var response = client.PostAsync("https://api.pixian.ai/api/v2/remove-background", form).Result; if (response.IsSuccessStatusCode) { // Write result to disk, TODO: or wherever you'd like FileStream outStream = new FileStream("pixian_result.png", FileMode.Create, FileAccess.Write, FileShare.None); response.Content.CopyToAsync(outStream).ContinueWith((copyTask) => { outStream.Close(); }); } else { Console.WriteLine("Request Failed: Status: " + response.StatusCode + ", Reason: " + response.ReasonPhrase); }}
+
+// Requires "request" to be installed (see https://www.npmjs.com/package/request)var request = require('request');var fs = require('fs'); request.post({ url: 'https://api.pixian.ai/api/v2/remove-background', formData: { 'image.url': 'https://example.com/example.jpeg', // TODO: Replace with your image // TODO: Add more upload options here }, auth: {user: 'xyz123', pass: '[secret]'}, followAllRedirects: true, encoding: null}, function(error, response, body) { if (error) { console.error('Request failed:', error); } else if (!response || response.statusCode != 200) { console.error('Error:', response && response.statusCode, body.toString('utf8')); } else { // Save result fs.writeFileSync("pixian_result.png", body); }});
+
+$ch = curl_init('https://api.pixian.ai/api/v2/remove-background'); curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd')); curl_setopt($ch, CURLOPT_POSTFIELDS, array( 'image.url' => 'https://example.com/example.jpeg', // TODO: Add more upload options here )); curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); $data = curl_exec($ch);if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) { // Save result file_put_contents("pixian_result.png", $data);} else { echo "Error: " . $data;} curl_close($ch);
+
+# Requires "requests" to be installed (see https://pypi.org/project/requests/)import requests response = requests.post( 'https://api.pixian.ai/api/v2/remove-background', data={ 'image.url': 'https://example.com/example.jpeg', # TODO: Add more upload options here }, auth=('xyz123', '[secret]'))if response.status_code == requests.codes.ok: # Save result with open('pixian_result.png', 'wb') as out: out.write(response.content)else: print("Error:", response.status_code, response.text)
+
+# Requires: gem install httpclient require 'httpclient' client = HTTPClient.new default_header: { "Authorization" => "Basic cHh4YmJ6Yjk2bjJ3OGFtOltzZWNyZXRd"} response = client.post("https://api.pixian.ai/api/v2/remove-background", { "image.url" => "https://example.com/example.jpeg", # TODO: Replace with your image URL # TODO: Add more upload parameters here})if response.status == 200 then # Write result to disk, TODO: or wherever you'd like File.open("pixian_result.png", 'w') { |file| file.write(response.body) }else puts "Error: Code: " + response.status.to_s + ", Reason: " + response.reason end
+
+### Pricing
+
+It is free to integrate with and test out the API, no purchase required.
+
+Production results require a credit pack purchase. Please see the [pricing page](https://pixian.ai/pricing).
+
+### Authentication & Security
+
+The API uses standard [HTTP basic access authentication](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side). All requests to the API must be made over HTTPS and include your API Credentials, with the API Id as the user and API Secret as the password.
+
+Your http client library must support [Server Name Indication (SNI)](http://en.wikipedia.org/wiki/Server_Name_Indication) to successfully make requests. If you're getting weird handshake errors, this is most likely it.
+
+### Rate Limiting
+
+Usage of the API is rate limited with generous allowances and no hard upper bound.
+
+During normal end-user-driven operation you are unlikely to run into any rate limiting as usage then tends to ebb and flow in a way that the service handles gracefully.
+
+However, for batch jobs we recommend starting out with at most 5 threads, adding 1 new thread every 5 minutes until you have reached the desired level of parallelism. Please reach out before starting if you need more than 100 concurrent threads.
+
+If you submit too many requests you will start getting `429 Too Many Requests` responses. When this happens you should apply linear back off: on the first such response, wait 5 seconds until submitting the next request. On the second consecutive 429 response, wait 2*5=10 seconds until submitting the next request. On the third wait 3*5=15 seconds, etc.
+
+You can reset the back off counter after a successful request, and you should apply the back off on a per-thread basis (i.e. the threads should operate independently of each other).
+
+### Timeouts
+
+While API requests are normally completed within seconds, it is possible during transient load spikes to experience longer processing times.
+
+To ensure your client library doesn't prematurely terminate API requests it should be configured with an idle timeout of at least 180 seconds.
+
+### Error JSON Object
+
+We use conventional HTTP statuses to indicate success or failure of an API request, and include important error information in the returned Error JSON Object.
+
+We strive to always return an Error JSON Object with any problematic request. However, it is always theoretically possible to have internal server failures that lead to a non-JSON error response.
+
+| Attributes |
+| --- |
+| status | The HTTP status of the response, repeated here to help with debugging. |
+| code | Pixian.AI internal error code. |
+| message | Human-readable error message, intended to be helpful in debugging. |
+
+If the HTTP status for your request is 200 then no Error JSON Object will be returned, and you can safely assume that the request broadly speaking succeeded.
+
+Some HTTP Client libraries raise exceptions for HTTP statuses in the `400`-`599` range. You will need to catch those exceptions and handle them appropriately.
+
+| HTTP Status | Meaning |
+| --- | --- |
+| `200`-`299` | Success |
+| `400`-`499` | There's a problem with the information provided in the request (e.g. a parameter was missing). Please review the error message to figure out how to fix it. |
+| `500`-`599` | There's been a Pixian.AI internal error. Wait a moment then try again, and if the problem persists please email us. |
+
+{ "error" : { "status" : 400, "code" : 1006, "message" : "Failed to read the supplied image. " }}
+
+### Delta PNG Format  Lower Latency & Bandwidth
+
+Pixian.AI is proud to be the first background removal service to offer the Delta PNG output format. Delta PNGs are faster to encode and much smaller than regular PNGs. This makes them highly suitable for latency and bandwidth sensitive applications, like mobile apps.
+
+[Learn more ![Image 1: Right arrow](https://dq2gn5p12glyq.cloudfront.net/p/assets/images/right-arrow-white_d2ba81f54cd360efa5cec03118c3737d.svg)](https://pixian.ai/api/deltaPng)
+
+Remove Background `POST`
+
+`https://api.pixian.ai/api/v2/remove-background`
+--------------------------------------------------------------------------
+
+To remove the background from an image, you do a standard HTTP POST file upload. Keep in mind that the [Content-Type](http://en.wikipedia.org/wiki/MIME#Form_Data) has to be `multipart/form-data` when uploading binary files.
+
+| Parameters |
+| --- |
+| The input image must be provided as one of: image Binary _Optional_ A binary file. image.base64 String _Optional_ A base64-encoded string. The string can be at most 1 megabyte in size. image.url String _Optional_ A URL to fetch and process. Must be a .bmp, .gif, .jpeg, .png, or .tiff file. The maximum image upload size (= width × height) is 32,000,000 pixels, which gets shrunk to `max_pixels`. |
+| test `true` `false` Boolean, default: `false` | Pass in `true` to indicate that this is a test image. Omit or pass in `false` for production images. Test images are free to process, but the result will have a watermark embedded. |
+| max_pixels Integer, `100` to `25000000`, default: `25000000` | The maximum input image size (= width × height). Images larger than this will be shrunk to this size before processing. |
+| background.color Format: '#RRGGBB', e.g. `#0055FF` _Optional_ | Background color to apply to the result. Omit to leave a transparent background. Be sure to include the '#' prefix. |
+| result.crop_to_foreground `true` `false` Boolean, default: `false` | Whether to crop the result to the foreground object. Very useful together with `result.margin` and `result.target_size` to get a nicely sized and centered result every time. |
+| result.margin Format: '(x.y%|px){1,4}', e.g. `10px 20% 5px 15%`, default: `0px` | Margin to add to the result. It's added regardless of if the result is cropped to the foreground or not. If `result.target_size` is specified, then the margin is inset, i.e. it doesn't expand the effective target size. The supported units are `%` and `px`. It follows CSS semantics, so you can use any of: * `[all]` * `[top/bottom] [left/right]` * `[top] [left/right] [bottom]` * `[top] [right] [bottom] [left]` |
+| result.target_size Format: 'w h', e.g. `1920 1080` _Optional_ | Enforce a specific result size in pixels. The result will be scaled to fit within the specified size. If there's excess space then it's always horizontally centered, with `result.vertical_alignment` controlling the vertical treatment. |
+| result.vertical_alignment `top` `middle` `bottom` Enum, default: `middle` | Specifies how to allocate excess vertical space when `result.target_size` is used. |
+| output.format `auto` `png` `jpeg` `delta_png` Enum, default: `auto` | Output format. `auto` is interpreted as `png` for transparent results, and `jpeg` for opaque results, i.e. when a `background.color` has been specified. `delta_png` is an advanced, fast, and highly compact format especially useful for low-latency, bandwidth-constrained situations like mobile apps. It encodes the background as transparent black `0x00000000` and the foreground as transparent white `0x00FFFFFF`. Partially transparent pixels have their actual color values. Together with the input image you can use this to reconstruct the full result. [Learn more about the Delta PNG format](https://pixian.ai/api/deltaPng) `background.color`, `result.crop_to_foreground`, `result.margin`, `result.target_size`, and `result.vertical_alignment` are ignored when using `delta_png`. The result must be the same size as the input image, otherwise your decoding will fail, so `max_pixels` must not have caused the input to be shrunk. |
+| output.jpeg_quality Integer, `1` to `100`, default: `75` | The quality to use when encoding JPEG results. |
+|  |
+
+| Result Headers |
+| --- |
+| `X-Credits-Charged` | The actual credits charged. |
+| `X-Credits-Calculated` | The calculated credits that would have been charged if this were a production request. _Only returned for test requests._ |
+| `X-Input-Orientation` | The EXIF orientation tag we read from and applied to the input image. It's an integer value from 1 to 8, inclusive. This is useful if your image loading library doesn't support EXIF orientation. [Read more about EXIF orientation here](https://magnushoff.com/articles/jpeg-orientation/) |
+| `X-Input-Size` | `[width] [height]` of the input image in pixels, before any size constraints were applied. |
+| `X-Result-Size` | `[width] [height]` of the result image, in pixels. |
+| `X-Input-Foreground` | `[top] [left] [width] [height]` bounding box of the foreground in the input image coordinates. |
+| `X-Result-Foreground` | `[top] [left] [width] [height]` bounding box of the foreground in the result image coordinates. |
+
+Account Status `GET`
+
+`https://api.pixian.ai/api/v2/account`
+------------------------------------------------------------
+
+Fetch basic information about your account, such as the number of credits you have left.
+
+| Parameters |
+| --- |
+| _None_ |  |
+
+| Response Attributes |
+| --- |
+| creditPack | The most recently purchased credit pack, or 'none'. |
+| state | `'active'`You have purchased a credit pack that is not dormant. `'dormant'`Your credit pack (if any) is dormant and you will need to purchase a new one to continue using the API. |
+| useBefore | Indicates when your credit pack will go dormant. You will need to buy another credit pack before this date to continue using the API. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format. |
+| credits | The number of API credits left in your account. Can be fractional, so be sure to parse as a Double. |
+
+$ curl "https://api.pixian.ai/api/v2/account" \ -u pxxbbzb96n2w8am:[secret]
+
+{ "creditPack" : "none", "state" : "dormant", "useBefore" : "1970-01-01T00:00:00Z", "credits" : 0}
+
+### API Changelog
+
+| Date | Change |
+| --- | --- |
+| Feb 12, 2025 | Added Account Status API endpoint. |
+| Mar 4, 2024 | Added section about timeouts. |
+| Jan 16, 2024 | Documented the Error JSON Object. |
+| Jan 11, 2024 | Now actually returning the `X-Credits-Charged` header and added the `X-Credits-Calculated` header for test requests. |
+| Jun 13, 2023 | Updated the API to version 2 and the parameters from camelCase to snake_case for easier readability. Previous version of the API is deprecated but still available. |
+| May 3, 2023 | Greatly expanded the API parameters. |
+| Apr 28, 2023 | Updated the API endpoint. |
+| Mar 21, 2023 | Initial release. |
+
+*   [Remove Backgrounds](https://pixian.ai/api)
+*   [Face Stickers](https://pixian.ai/api/face-stickers)
+*   [Delta PNG Format](https://pixian.ai/api/deltaPng)
+*   [Migrating](https://pixian.ai/api/migrate)

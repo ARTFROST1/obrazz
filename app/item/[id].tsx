@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNetworkStatus } from '@services/sync';
 import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { getDisplayItemTitle } from '@utils/item/displayItemTitle';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -120,6 +121,8 @@ export default function ItemDetailScreen() {
       setItem(cachedItem);
       setLoading(false);
       console.log('[ItemDetail] Loaded from cache instantly');
+      console.log('[ItemDetail] Item metadata:', JSON.stringify(cachedItem.metadata, null, 2));
+      console.log('[ItemDetail] Has sourceUrl:', !!cachedItem.metadata?.sourceUrl);
       return;
     }
 
@@ -136,6 +139,9 @@ export default function ItemDetailScreen() {
       const itemData = await itemServiceOffline.getItemById(id);
       if (itemData) {
         setItem(itemData);
+        console.log('[ItemDetail] Loaded from service');
+        console.log('[ItemDetail] Item metadata:', JSON.stringify(itemData.metadata, null, 2));
+        console.log('[ItemDetail] Has sourceUrl:', !!itemData.metadata?.sourceUrl);
       } else {
         Alert.alert('Error', 'Item not found');
         router.back();
@@ -362,9 +368,9 @@ export default function ItemDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* Overlay Buttons - Fixed Top */}
+      <View style={styles.topOverlay}>
         <GlassBackButton onPress={() => router.back()} size="medium" />
-        <Text style={styles.title}>Item Details</Text>
         <GlassIconButton
           icon={item.isFavorite ? 'heart' : 'heart-outline'}
           onPress={handleToggleFavorite}
@@ -374,7 +380,7 @@ export default function ItemDetailScreen() {
         />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Image */}
         <View style={styles.imageContainer}>
           <Image
@@ -383,11 +389,10 @@ export default function ItemDetailScreen() {
             resizeMode="contain"
           />
         </View>
-
         {/* Basic Info */}
         <View style={styles.section}>
           <View style={styles.titleRow}>
-            <Text style={styles.itemTitle}>{item.title || 'Untitled Item'}</Text>
+            <Text style={styles.itemTitle}>{getDisplayItemTitle(item, 'Untitled Item')}</Text>
             <TouchableOpacity
               onPress={() => router.push(`/add-item?id=${item.id}`)}
               style={styles.editButton}
@@ -790,11 +795,20 @@ export default function ItemDetailScreen() {
                   });
                 }
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons name="open-outline" size={20} color="#007AFF" />
-              <Text style={styles.sourceButtonText}>Открыть в магазине</Text>
-              <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+              <View style={styles.sourceButtonContent}>
+                <View style={styles.sourceButtonLeft}>
+                  <Ionicons name="storefront-outline" size={24} color="#FFFFFF" />
+                  <View style={styles.sourceButtonTextContainer}>
+                    <Text style={styles.sourceButtonTitle}>Открыть в магазине</Text>
+                    {item.metadata?.sourceName && (
+                      <Text style={styles.sourceButtonSubtitle}>{item.metadata.sourceName}</Text>
+                    )}
+                  </View>
+                </View>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              </View>
             </TouchableOpacity>
           </View>
         )}
@@ -818,8 +832,76 @@ export default function ItemDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  backButton: {
-    padding: 8,
+  container: {
+    backgroundColor: '#FFF',
+    flex: 1,
+  },
+  topOverlay: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 500,
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  section: {
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  itemTitle: {
+    color: '#000',
+    fontSize: 24,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  editButton: {
+    padding: 4,
+  },
+  addedDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addedSticker: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  addedText: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginTop: 8,
+    marginBottom: 16,
   },
   chip: {
     backgroundColor: '#F8F8F8',
@@ -830,40 +912,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  chipScrollContainer: {
-    paddingRight: 16,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
   chipSelected: {
     backgroundColor: '#000',
     borderColor: '#000',
   },
   chipText: {
     color: '#000',
-    fontSize: 14,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  chipTextSelected: {
-    color: '#FFF',
-  },
-  colorCircle: {
-    borderColor: '#E5E5E5',
-    borderRadius: 14,
-    borderWidth: 2,
-    height: 28,
-    marginRight: 8,
-    width: 28,
-  },
-  container: {
-    backgroundColor: '#FFF',
-    flex: 1,
-  },
-  content: {
-    flex: 1,
   },
   deleteButton: {
     alignItems: 'center',
@@ -882,43 +936,42 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sourceButton: {
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+    backgroundColor: '#000000',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  sourceButtonContent: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  sourceButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'center',
-  },
-  favoriteButton: {
-    padding: 8,
-  },
-  header: {
     alignItems: 'center',
-    borderBottomColor: '#E5E5E5',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingTop: 60,
-    paddingVertical: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
   },
-  image: {
-    height: '100%',
-    width: '100%',
+  sourceButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flex: 1,
   },
-  imageContainer: {
-    aspectRatio: 3 / 4,
-    backgroundColor: '#F8F8F8',
-    marginBottom: 24,
-    width: '100%',
+  sourceButtonTextContainer: {
+    flex: 1,
+  },
+  sourceButtonTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  sourceButtonSubtitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    opacity: 0.7,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    flex: 1,
+    justifyContent: 'center',
   },
   infoItem: {
     flex: 1,
@@ -934,35 +987,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textTransform: 'capitalize',
     maxWidth: 120,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  itemTitle: {
-    color: '#000',
-    fontSize: 24,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  editButton: {
-    padding: 4,
-  },
-  // Added date row below title
-  addedDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  addedSticker: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  addedText: {
-    fontSize: 14,
-    color: '#8E8E93',
   },
   inlineRow: {
     flexDirection: 'row',
@@ -987,24 +1011,6 @@ const styles = StyleSheet.create({
     maxWidth: 280,
     rowGap: 8,
   },
-  notFilled: {
-    color: '#999',
-    fontStyle: 'italic',
-    textTransform: 'none',
-  },
-  notSelected: {
-    color: '#999',
-    fontSize: 16,
-    fontStyle: 'italic',
-    marginLeft: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E5E5E5',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  // Metadata Grid Styles - 6 cards (2 rows x 3 columns)
   metadataGrid: {
     gap: 10,
     paddingHorizontal: 0,
@@ -1143,24 +1149,9 @@ const styles = StyleSheet.create({
   colorPickerItemSelected: {
     borderColor: '#000',
   },
-  loadingContainer: {
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    flex: 1,
-    justifyContent: 'center',
-  },
   row: {
     flexDirection: 'row',
     gap: 16,
-  },
-  section: {
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
   },
   statItem: {
     alignItems: 'center',
@@ -1197,9 +1188,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  title: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: '600',
+  colorCircle: {
+    borderColor: '#E5E5E5',
+    borderRadius: 14,
+    borderWidth: 2,
+    height: 28,
+    marginRight: 8,
+    width: 28,
+  },
+  chipScrollContainer: {
+    paddingRight: 16,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  notFilled: {
+    color: '#999',
+    fontStyle: 'italic',
+    textTransform: 'none',
+  },
+  notSelected: {
+    color: '#999',
+    fontSize: 16,
+    fontStyle: 'italic',
+    marginLeft: 8,
   },
 });

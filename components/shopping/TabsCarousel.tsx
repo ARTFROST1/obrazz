@@ -1,13 +1,20 @@
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Carousel with store names for switching between browser tabs
  * Simple text-based tabs without favicons
  */
 export default function TabsCarousel() {
-  const { tabs, activeTabId, switchTab } = useShoppingBrowserStore();
+  const { tabs, activeTabId, switchTab } = useShoppingBrowserStore(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      activeTabId: state.activeTabId,
+      switchTab: state.switchTab,
+    })),
+  );
 
   if (!tabs || tabs.length === 0) {
     return null;
@@ -15,7 +22,10 @@ export default function TabsCarousel() {
 
   const handleTabPress = (tabId: string) => {
     if (tabId && tabId !== activeTabId) {
-      console.log('[TabsCarousel] Switching to tab:', tabId);
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log('[TabsCarousel] Switching to tab:', tabId);
+      }
       switchTab(tabId);
     }
   };

@@ -17,13 +17,24 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function DetectedItemSheet() {
   const router = useRouter();
 
-  const { detectedImages, selectedImage, showDetectedSheet, selectImage, showDetectionSheet } =
-    useShoppingBrowserStore();
+  const {
+    detectedImages,
+    selectedImage,
+    showDetectedSheet,
+    selectImage,
+    showDetectionSheet,
+    tabs,
+    activeTabId,
+  } = useShoppingBrowserStore();
 
   const imageToShow = selectedImage || detectedImages[0];
 
   const handleAddToWardrobe = async () => {
     if (!imageToShow) return;
+
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    const sourceUrl = imageToShow.productUrl || activeTab?.currentUrl || '';
+    const sourceName = activeTab?.shopName || 'Магазин';
 
     // Close sheet
     showDetectionSheet(false);
@@ -34,12 +45,18 @@ export default function DetectedItemSheet() {
       params: {
         imageUrl: imageToShow.url,
         source: 'web',
+        sourceUrl,
+        sourceName,
       },
     });
   };
 
   const handleManualCrop = async () => {
     if (!imageToShow) return;
+
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    const sourceUrl = imageToShow.productUrl || activeTab?.currentUrl || '';
+    const sourceName = activeTab?.shopName || 'Магазин';
 
     // Close sheet
     showDetectionSheet(false);
@@ -51,6 +68,8 @@ export default function DetectedItemSheet() {
         imageUrl: imageToShow.url,
         source: 'web',
         manualCrop: 'true',
+        sourceUrl,
+        sourceName,
       },
     });
   };

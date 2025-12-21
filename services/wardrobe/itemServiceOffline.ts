@@ -8,8 +8,10 @@
  */
 
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
+import { createAutoTitle, getOrGenerateItemTitle } from '@utils/item/generateItemTitle';
 import { createLogger } from '@utils/logger';
 import { WardrobeItem } from '../../types/models/item';
+import { getErrorMessage, isNetworkError } from '../../utils/errors/errorHandler';
 import { isOnline } from '../sync/networkMonitor';
 import { syncQueue } from '../sync/syncQueue';
 import { syncService } from '../sync/syncService';
@@ -40,6 +42,29 @@ const generateTempId = (): string => {
  */
 class ItemServiceOfflineManager {
   private isSyncing: boolean = false;
+  private nextSyncAllowedAt: number = 0;
+  private syncBackoffMs: number = 0;
+
+  private canStartBackgroundSync(): boolean {
+    return Date.now() >= this.nextSyncAllowedAt;
+  }
+
+  private noteBackgroundSyncSuccess(): void {
+    this.syncBackoffMs = 0;
+    this.nextSyncAllowedAt = 0;
+  }
+
+  private noteBackgroundSyncFailure(error: unknown): void {
+    // Exponential backoff only for network-ish failures.
+    if (!isNetworkError(error)) return;
+
+    const min = 5_000;
+    const max = 120_000;
+    const next = this.syncBackoffMs > 0 ? Math.min(max, this.syncBackoffMs * 2) : min;
+
+    this.syncBackoffMs = next;
+    this.nextSyncAllowedAt = Date.now() + next;
+  }
 
   /**
    * Initialize the offline service
@@ -68,8 +93,14 @@ class ItemServiceOfflineManager {
     logger.info(`Returning ${cachedItems.length} cached items`);
 
     // Trigger background sync if online
-    if (isOnline() && !this.isSyncing) {
+    if (isOnline() && !this.isSyncing && this.canStartBackgroundSync()) {
       this.syncItemsInBackground(userId).catch((error) => {
+        if (isNetworkError(error)) {
+          logger.warn('Background sync skipped/failed (network)', {
+            message: getErrorMessage(error),
+          });
+          return;
+        }
         logger.error('Background sync failed', error);
       });
     }
@@ -93,13 +124,28 @@ class ItemServiceOfflineManager {
     const tempId = generateTempId();
     const localItem = this.inputToLocalItem(input, tempId);
 
+    // Log creation for debugging
+    this.logItemCreation(localItem);
+
     // Add to store immediately - this makes UI responsive
     store.addItem(localItem);
     logger.info('Item created locally', { tempId });
 
+    // Prepare input for server sync.
+    // IMPORTANT: payload MUST include the same auto-title marker, otherwise
+    // later queued CREATE can fall back to "Untitled Item" again.
+    const inputWithTitle: CreateItemInput = {
+      ...input,
+      title: localItem.title,
+      metadata: {
+        ...input.metadata,
+        autoTitle: localItem.metadata?.autoTitle,
+      },
+    };
+
     if (isOnline()) {
       // Sync in background - don't block UI
-      this.syncCreateItemInBackground(tempId, input, store).catch((error) => {
+      this.syncCreateItemInBackground(tempId, inputWithTitle, store).catch((error) => {
         logger.error('Background sync failed for new item', error);
       });
     } else {
@@ -108,7 +154,7 @@ class ItemServiceOfflineManager {
         type: 'CREATE',
         entity: 'item',
         entityId: tempId,
-        payload: input,
+        payload: inputWithTitle,
         userId: input.userId,
       });
     }
@@ -201,6 +247,16 @@ class ItemServiceOfflineManager {
       ...updates,
       updatedAt: new Date(),
     };
+
+    // If user explicitly sets a title, it becomes a user title.
+    // Remove autoTitle marker to prevent any locale-based reformatting.
+    if (typeof updates.title === 'string' && updates.title.trim().length > 0) {
+      updatedItem.title = updates.title.trim();
+      updatedItem.metadata = {
+        ...(updatedItem.metadata ?? { backgroundRemoved: false }),
+        autoTitle: undefined,
+      };
+    }
     store.updateItem(itemId, updatedItem);
     logger.info('Item updated locally', { itemId });
 
@@ -365,6 +421,7 @@ class ItemServiceOfflineManager {
    */
   private async syncItemsInBackground(userId: string): Promise<void> {
     if (this.isSyncing) return;
+    if (!this.canStartBackgroundSync()) return;
     this.isSyncing = true;
 
     const store = useWardrobeStore.getState();
@@ -384,9 +441,20 @@ class ItemServiceOfflineManager {
       store.setItems(mergedItems);
       store.setError(null);
 
+      this.noteBackgroundSyncSuccess();
+
       logger.info(`Background sync complete: ${mergedItems.length} items`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Sync failed';
+      this.noteBackgroundSyncFailure(error);
+
+      if (isNetworkError(error)) {
+        // Keep cached items; don't surface as an app error.
+        logger.warn('Background sync failed (network)', { message: getErrorMessage(error) });
+        store.setError(null);
+        return;
+      }
+
+      const message = getErrorMessage(error) || 'Sync failed';
       logger.error('Background sync failed', error);
       store.setError(message);
     } finally {
@@ -465,10 +533,24 @@ class ItemServiceOfflineManager {
       }
 
       case 'UPDATE': {
-        const { itemId, updates } = operation.payload as {
+        const payload = operation.payload as {
           itemId: string;
-          updates: UpdateItemInput;
+          updates?: UpdateItemInput;
+          isFavorite?: boolean;
         };
+        const { itemId } = payload;
+        const updates: UpdateItemInput | undefined =
+          payload.updates ??
+          (payload.isFavorite !== undefined ? { isFavorite: payload.isFavorite } : undefined);
+
+        if (!updates) {
+          logger.warn('Skipped UPDATE operation with no updates', {
+            operationId: operation.id,
+            itemId,
+          });
+          break;
+        }
+
         const serverItem = await itemService.updateItem(itemId, updates);
         store.updateItem(itemId, serverItem);
 
@@ -491,12 +573,27 @@ class ItemServiceOfflineManager {
 
   /**
    * Convert CreateItemInput to local WardrobeItem
+   * Auto-generates title if not provided: "{Category} {N}"
    */
   private inputToLocalItem(input: CreateItemInput, tempId: string): WardrobeItem {
+    // Get existing items for auto-title generation
+    const store = useWardrobeStore.getState();
+    const existingItems = store.items;
+
+    const trimmedUserTitle = typeof input.title === 'string' ? input.title.trim() : '';
+
+    // Generate title: use user input or auto-generate "{Localized Category} N"
+    const auto =
+      trimmedUserTitle.length === 0 ? createAutoTitle(input.category, existingItems) : null;
+    const title =
+      trimmedUserTitle.length > 0
+        ? trimmedUserTitle
+        : (auto?.title ?? getOrGenerateItemTitle(undefined, input.category, existingItems));
+
     return {
       id: tempId,
       userId: input.userId,
-      title: input.title || 'Untitled',
+      title,
       category: input.category,
       subcategory: input.subcategory,
       colors: input.colors,
@@ -519,8 +616,21 @@ class ItemServiceOfflineManager {
         source: 'gallery',
         backgroundRemoved: false,
         ...input.metadata,
+        autoTitle: auto?.autoTitle,
       },
     };
+  }
+
+  /**
+   * Log item creation for debugging
+   */
+  private logItemCreation(item: WardrobeItem): void {
+    console.log('[ItemServiceOffline] 📝 Item created:', {
+      id: item.id,
+      title: item.title,
+      metadata: item.metadata,
+      hasSourceUrl: !!item.metadata?.sourceUrl,
+    });
   }
 }
 

@@ -14,7 +14,7 @@ export const pageOptimizationScript = `
   if (window.__obrazzOptimizationInitialized) return;
   window.__obrazzOptimizationInitialized = true;
 
-  console.log('[PageOptimization] Initializing performance optimizations...');
+  var __obrazzDebug = !!window.__OBRAZZ_DEBUG;
 
   // Block common ad/tracking domains
   const blockedDomains = [
@@ -32,7 +32,7 @@ export const pageOptimizationScript = `
   window.fetch = function(...args) {
     const url = args[0]?.toString() || '';
     if (blockedDomains.some(domain => url.includes(domain))) {
-      console.log('[PageOptimization] Blocked tracking request:', url.substring(0, 50));
+      if (__obrazzDebug) console.log('[PageOptimization] Blocked tracking request:', url.substring(0, 80));
       return Promise.reject(new Error('Blocked by Obrazz'));
     }
     return originalFetch.apply(this, args);
@@ -106,7 +106,7 @@ export const pageOptimizationScript = `
   // Run cleanup after page load
   setTimeout(removeUnnecessaryElements, 1000);
 
-  console.log('[PageOptimization] Optimizations initialized');
+  if (__obrazzDebug) console.log('[PageOptimization] Optimizations initialized');
 })();
 true;
 `;
@@ -117,6 +117,9 @@ true;
  */
 export const preloadOptimizationScript = `
 (function() {
+  // Keep logs disabled by default in production.
+  if (typeof window.__OBRAZZ_DEBUG === 'undefined') window.__OBRAZZ_DEBUG = false;
+
   // Set viewport for mobile optimization
   if (!document.querySelector('meta[name="viewport"]')) {
     const viewport = document.createElement('meta');
@@ -140,7 +143,7 @@ export const preloadOptimizationScript = `
     document.head.appendChild(link);
   });
 
-  console.log('[PreloadOptimization] DNS prefetch configured');
+  if (window.__OBRAZZ_DEBUG) console.log('[PreloadOptimization] DNS prefetch configured');
 })();
 true;
 `;

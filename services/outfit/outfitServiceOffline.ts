@@ -13,6 +13,7 @@ import {
   OutfitFilter,
   OutfitSortOptions,
 } from '../../types/models/outfit';
+import { getErrorMessage, isNetworkError } from '../../utils/errors/errorHandler';
 import { useNetworkStore } from '../sync/networkMonitor';
 import { syncQueue } from '../sync/syncQueue';
 import { syncService } from '../sync/syncService';
@@ -23,6 +24,26 @@ const logger = createLogger('OutfitServiceOffline');
 
 class OutfitServiceOffline {
   private isSyncing = false;
+  private nextSyncAllowedAt: number = 0;
+  private syncBackoffMs: number = 0;
+
+  private canStartBackgroundSync(): boolean {
+    return Date.now() >= this.nextSyncAllowedAt;
+  }
+
+  private noteBackgroundSyncSuccess(): void {
+    this.syncBackoffMs = 0;
+    this.nextSyncAllowedAt = 0;
+  }
+
+  private noteBackgroundSyncFailure(error: unknown): void {
+    if (!isNetworkError(error)) return;
+    const min = 5_000;
+    const max = 120_000;
+    const next = this.syncBackoffMs > 0 ? Math.min(max, this.syncBackoffMs * 2) : min;
+    this.syncBackoffMs = next;
+    this.nextSyncAllowedAt = Date.now() + next;
+  }
 
   constructor() {
     // Register sync handler for outfit operations
@@ -45,8 +66,15 @@ class OutfitServiceOffline {
     logger.info('Returning cached outfits', { count: cachedOutfits.length });
 
     // Sync in background if online
-    if (network.isOnline && !this.isSyncing) {
+    if (network.isOnline && !this.isSyncing && this.canStartBackgroundSync()) {
       this.syncOutfitsInBackground(userId, filter, sort).catch((error) => {
+        if (isNetworkError(error)) {
+          logger.warn('Background sync skipped/failed (network)', {
+            message: getErrorMessage(error),
+          });
+          return;
+        }
+
         logger.error('Background sync failed', { error });
       });
     }
@@ -318,6 +346,7 @@ class OutfitServiceOffline {
     sort?: OutfitSortOptions,
   ): Promise<void> {
     if (this.isSyncing) return;
+    if (!this.canStartBackgroundSync()) return;
 
     this.isSyncing = true;
     logger.debug('Starting background sync');
@@ -332,7 +361,16 @@ class OutfitServiceOffline {
 
       store.setOutfits(mergedOutfits);
       logger.info('Background sync complete', { count: serverOutfits.length });
+
+      this.noteBackgroundSyncSuccess();
     } catch (error) {
+      this.noteBackgroundSyncFailure(error);
+
+      if (isNetworkError(error)) {
+        logger.warn('Background sync failed (network)', { message: getErrorMessage(error) });
+        return;
+      }
+
       logger.error('Background sync failed', { error });
     } finally {
       this.isSyncing = false;

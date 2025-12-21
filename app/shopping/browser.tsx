@@ -25,6 +25,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import { WebView } from 'react-native-webview';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function ShoppingBrowserScreen() {
   const router = useRouter();
@@ -36,10 +37,23 @@ export default function ShoppingBrowserScreen() {
     safetyTimeout: NodeJS.Timeout | null;
   }>({ current: null, safetyTimeout: null });
   const lastUrlRef = useRef<string>('');
+  const currentUrlRef = useRef<string>('');
+  const lastNavUiUpdateAtRef = useRef<number>(0);
+
+  const debugLog = (...args: unknown[]) => {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(...args);
+    }
+  };
 
   const {
     tabs,
     activeTabId,
+    showGallerySheet,
+    isScanning,
+    hasScanned,
+    detectedImages,
     updateTabUrl,
     setDetectedImages,
     reset,
@@ -47,13 +61,23 @@ export default function ShoppingBrowserScreen() {
     setHasScanned,
     resetScanState,
     showGallery,
-    showGallerySheet,
-    isScanning,
-    hasScanned,
-    detectedImages,
-  } = useShoppingBrowserStore();
-
-  const [, setLoading] = useState(true);
+  } = useShoppingBrowserStore(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      activeTabId: state.activeTabId,
+      showGallerySheet: state.showGallerySheet,
+      isScanning: state.isScanning,
+      hasScanned: state.hasScanned,
+      detectedImages: state.detectedImages,
+      updateTabUrl: state.updateTabUrl,
+      setDetectedImages: state.setDetectedImages,
+      reset: state.reset,
+      setScanning: state.setScanning,
+      setHasScanned: state.setHasScanned,
+      resetScanState: state.resetScanState,
+      showGallery: state.showGallery,
+    })),
+  );
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
@@ -73,10 +97,10 @@ export default function ShoppingBrowserScreen() {
   // Reset state when switching tabs - FIXED: removed resetScanState from deps to prevent infinite loop
   useEffect(() => {
     if (activeTabId) {
-      console.log('[Browser] Tab switched to:', activeTabId);
-      setLoading(true);
+      debugLog('[Browser] Tab switched to:', activeTabId);
       resetScanState(); // Call it but don't include in deps
       lastUrlRef.current = activeTab?.currentUrl || '';
+      currentUrlRef.current = activeTab?.currentUrl || '';
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabId]); // Only depend on activeTabId, not activeTab or resetScanState
@@ -128,9 +152,21 @@ export default function ShoppingBrowserScreen() {
   }, [canGoBack, handleExit]);
 
   const handleNavigationStateChange = (navState: WebViewNavigation) => {
-    setCanGoBack(navState.canGoBack);
-    setCanGoForward(navState.canGoForward);
-    setCurrentUrl(navState.url);
+    currentUrlRef.current = navState.url;
+
+    // WebView can emit many nav events (redirects, SPA route changes).
+    // Throttle UI updates to avoid blocking the JS thread.
+    const now = Date.now();
+    const shouldUpdateUi =
+      now - lastNavUiUpdateAtRef.current > 120 ||
+      (navState.loading === false && now - lastNavUiUpdateAtRef.current > 20);
+
+    if (shouldUpdateUi) {
+      lastNavUiUpdateAtRef.current = now;
+      setCanGoBack((prev) => (prev === navState.canGoBack ? prev : navState.canGoBack));
+      setCanGoForward((prev) => (prev === navState.canGoForward ? prev : navState.canGoForward));
+      setCurrentUrl((prev) => (prev === navState.url ? prev : navState.url));
+    }
 
     // Normalize URL: remove hash and query params for comparison
     const normalizeUrl = (url: string) => {
@@ -155,16 +191,14 @@ export default function ShoppingBrowserScreen() {
       lastUrlRef.current = navState.url;
     }
 
-    // Update tab URL only if it's actually different
-    if (activeTabId && navState.url !== activeTab?.currentUrl) {
-      updateTabUrl(activeTabId, navState.url);
-    }
+    // IMPORTANT: don't update tab URL on every nav tick.
+    // Commit final URL in onLoadEnd to avoid store churn and UI freezes.
   };
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const rawData = event.nativeEvent.data;
-      console.log('[WebView Message] Raw data received, length:', rawData?.length);
+      debugLog('[WebView Message] Raw data received, length:', rawData?.length);
 
       if (!rawData) {
         console.warn('[WebView Message] Empty data received');
@@ -172,13 +206,20 @@ export default function ShoppingBrowserScreen() {
       }
 
       const data = JSON.parse(rawData);
-      console.log('[WebView Message] Parsed data type:', data?.type);
+      debugLog('[WebView Message] Parsed data type:', data?.type);
 
       if (data.type === 'IMAGES_DETECTED') {
         const images: DetectedImage[] = data.images || [];
-        console.log('[WebView Message] ✅ IMAGES_DETECTED event received!');
-        console.log('[WebView Message] Detected images count:', images.length);
-        console.log('[WebView Message] Stats:', data.stats);
+        debugLog('[WebView Message] IMAGES_DETECTED received, count:', images.length);
+        debugLog('[WebView Message] Stats:', data.stats);
+
+        // Log error if present
+        if (data.error) {
+          console.error('[WebView Message] ⚠️ Detection error:', data.error);
+          if (data.debug) {
+            debugLog('[WebView Message] Debug info:', data.debug);
+          }
+        }
 
         // Clear safety timeout
         if (detectionTimeoutRef.current.safetyTimeout) {
@@ -191,19 +232,39 @@ export default function ShoppingBrowserScreen() {
         setHasScanned(true);
 
         if (images.length > 0) {
-          console.log('[WebView Message] First image:', images[0]);
+          debugLog('[WebView Message] First image:', {
+            url: images[0].url?.substring(0, 60),
+            hasProductUrl: !!images[0].productUrl,
+            productUrl: images[0].productUrl?.substring(0, 60),
+          });
           setDetectedImages(images);
 
           // Auto-open gallery sheet
-          console.log('[Browser] Auto-opening gallery sheet with detected items');
+          debugLog('[Browser] Auto-opening gallery sheet with detected items');
           setTimeout(() => {
             showGallery(true);
           }, 300);
         } else {
-          console.log('[WebView Message] No images detected');
+          debugLog('[WebView Message] No images detected');
+
+          // Keep scan available; user can retry on the same page.
+          setHasScanned(false);
+
+          if (data.error) {
+            Alert.alert('Ошибка обнаружения', String(data.error));
+          } else {
+            Alert.alert(
+              'Ничего не найдено',
+              'На этой странице не обнаружено вещей. Перейдите на страницу конкретного товара или вырежьте вручную.',
+              [
+                { text: 'Закрыть', style: 'cancel' },
+                { text: 'Вырезать вручную', onPress: () => setShowCropOverlay(true) },
+              ],
+            );
+          }
         }
       } else {
-        console.log('[WebView Message] Unknown message type:', data.type);
+        debugLog('[WebView Message] Unknown message type:', data.type);
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -220,15 +281,19 @@ export default function ShoppingBrowserScreen() {
   };
 
   const handleLoadEnd = () => {
-    setLoading(false);
+    // Commit final URL to the active tab once the load finishes.
+    const finalUrl = currentUrlRef.current || activeTab?.currentUrl || '';
+    if (activeTabId && finalUrl && finalUrl !== activeTab?.currentUrl) {
+      updateTabUrl(activeTabId, finalUrl);
+    }
 
     // Clear any pending detection
     if (detectionTimeoutRef.current.current) {
       clearTimeout(detectionTimeoutRef.current.current);
     }
 
-    const currentPageUrl = currentUrl || activeTab?.currentUrl || '';
-    console.log('[Browser] Page loaded:', currentPageUrl.substring(0, 50));
+    const currentPageUrl = finalUrl || currentUrl || '';
+    debugLog('[Browser] Page loaded:', currentPageUrl.substring(0, 80));
 
     // Reset scan state on new page load only if gallery is not shown
     if (!showGallerySheet) {
@@ -242,56 +307,58 @@ export default function ShoppingBrowserScreen() {
   };
 
   const handleScan = () => {
-    console.log('[Browser] 🔍 Manual scan triggered');
+    debugLog('[Browser] Manual scan triggered');
+    debugLog('[Browser] Current URL:', currentUrlRef.current || currentUrl);
+    debugLog('[Browser] WebView ref available:', !!webViewRef.current);
     setScanning(true);
 
     // Safety timeout: reset scanning state after 7 seconds if no response
     const safetyTimeout = setTimeout(() => {
       console.warn('[Browser] ⚠️ Detection timeout - no response received, resetting state');
       setScanning(false);
-      setHasScanned(true);
+      setHasScanned(false);
+      Alert.alert(
+        'Таймаут',
+        'Не удалось обнаружить вещи на странице. Попробуйте другую страницу товара или выполните вырезание вручную.',
+        [
+          { text: 'Закрыть', style: 'cancel' },
+          { text: 'Вырезать вручную', onPress: () => setShowCropOverlay(true) },
+        ],
+      );
     }, 7000);
 
     // Trigger detection
     if (webViewRef.current) {
       detectionTimeoutRef.current.current = setTimeout(() => {
         if (webViewRef.current) {
-          console.log('[Browser] ⚡ Injecting and running detection');
-          // Re-inject detection script + call it immediately
-          webViewRef.current.injectJavaScript(`
-            ${imageDetectionScript}
-            
-            // Call detection immediately after injection
+          // Detection script is already injected via `injectedJavaScript`.
+          // Keep injected payload minimal to avoid JS-thread stalls.
+          debugLog('[Browser] Triggering detection function');
+          const detectionCode = `
             (function() {
               try {
-                console.log('[Browser] Calling __obrazzDetectImages...');
                 if (typeof window.__obrazzDetectImages === 'function') {
                   window.__obrazzDetectImages();
-                } else {
-                  console.error('[Browser] __obrazzDetectImages function not found!');
-                  // Send empty result to unblock UI
-                  if (window.ReactNativeWebView?.postMessage) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                      type: 'IMAGES_DETECTED',
-                      images: [],
-                      error: 'Detection function not available'
-                    }));
-                  }
+                } else if (window.ReactNativeWebView?.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'IMAGES_DETECTED',
+                    images: [],
+                    error: 'Detection function not available'
+                  }));
                 }
               } catch (e) {
-                console.error('[Browser] Error calling detection:', e);
-                // Send error back to React Native
                 if (window.ReactNativeWebView?.postMessage) {
                   window.ReactNativeWebView.postMessage(JSON.stringify({
                     type: 'IMAGES_DETECTED',
                     images: [],
-                    error: e.message
+                    error: (e && e.message) ? e.message : String(e)
                   }));
                 }
               }
             })();
             true;
-          `);
+          `;
+          webViewRef.current.injectJavaScript(detectionCode);
         }
       }, 500); // Short delay to show scanning state
 
@@ -305,7 +372,6 @@ export default function ShoppingBrowserScreen() {
   };
 
   const handleError = () => {
-    setLoading(false);
     Alert.alert('Ошибка', 'Не удалось загрузить страницу', [
       {
         text: 'Попробовать снова',
@@ -323,8 +389,10 @@ export default function ShoppingBrowserScreen() {
   };
 
   const handleCropComplete = (croppedUri: string) => {
-    console.log('[Browser] Crop complete, navigating to add-item:', croppedUri);
+    debugLog('[Browser] Crop complete, navigating to add-item:', croppedUri);
     setShowCropOverlay(false);
+
+    const sourceUrl = currentUrl || activeTab?.currentUrl || '';
 
     // Navigate to add-item screen with cropped image
     router.push({
@@ -332,12 +400,13 @@ export default function ShoppingBrowserScreen() {
       params: {
         imageUrl: croppedUri,
         source: 'web_capture_manual',
+        sourceUrl,
       },
     });
   };
 
   const handleCropCancel = () => {
-    console.log('[Browser] Crop cancelled');
+    debugLog('[Browser] Crop cancelled');
     setShowCropOverlay(false);
   };
 
@@ -404,6 +473,7 @@ export default function ShoppingBrowserScreen() {
               allowsBackForwardNavigationGestures
               // Cache & Storage - Android optimizations
               cacheEnabled={true}
+              cacheMode={Platform.OS === 'android' ? 'LOAD_CACHE_ELSE_NETWORK' : undefined}
               domStorageEnabled={true}
               sharedCookiesEnabled
               incognito={false}
@@ -413,6 +483,8 @@ export default function ShoppingBrowserScreen() {
               nestedScrollEnabled={Platform.OS === 'android'}
               overScrollMode="never"
               // Performance Optimization
+              javaScriptEnabled
+              javaScriptCanOpenWindowsAutomatically={false}
               setBuiltInZoomControls={false}
               scrollEnabled={true}
               // Security

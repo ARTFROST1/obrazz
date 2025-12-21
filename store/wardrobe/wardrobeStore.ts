@@ -78,7 +78,17 @@ export const useWardrobeStore = create<WardrobeState>()(
 
       setItems: (items) => set({ items }),
 
-      addItem: (item) => set((state) => ({ items: [item, ...state.items] })),
+      addItem: (item) =>
+        set((state) => {
+          const existingIndex = state.items.findIndex((i) => i.id === item.id);
+          if (existingIndex === -1) {
+            return { items: [item, ...state.items] };
+          }
+
+          const nextItems = [...state.items];
+          nextItems[existingIndex] = item;
+          return { items: nextItems };
+        }),
 
       updateItem: (id, updates) =>
         set((state) => ({

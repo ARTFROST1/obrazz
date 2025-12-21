@@ -33,12 +33,16 @@ export default function AddItemScreen() {
   const {
     id: itemId,
     imageUrl: webImageUrl,
+    sourceUrl: webSourceUrl,
+    sourceName: webSourceName,
     source: imageSource,
     manualCrop: manualCropParam,
   } = useLocalSearchParams<{
     id?: string;
     imageUrl?: string;
-    source?: 'web' | 'camera' | 'gallery';
+    sourceUrl?: string;
+    sourceName?: string;
+    source?: 'web' | 'web_capture_manual' | 'camera' | 'gallery';
     manualCrop?: string;
   }>();
   const { user } = useAuthStore();
@@ -55,7 +59,13 @@ export default function AddItemScreen() {
   } = useShoppingBrowserStore();
 
   const isEditMode = !!itemId;
-  const isFromWeb = imageSource === 'web' && !!webImageUrl;
+  // IMPORTANT:
+  // - In batch mode we navigate to /add-item without imageUrl param, so webImageUrl is empty.
+  // - Still, the item is a web-import and must persist sourceUrl.
+  const isWebSource = imageSource === 'web' || imageSource === 'web_capture_manual' || isBatchMode;
+  const isFromWeb = isWebSource && !!webImageUrl;
+
+  const isHttpUrl = (url?: string) => (typeof url === 'string' ? /^https?:\/\//i.test(url) : false);
 
   // State
   const [step, setStep] = useState<1 | 2>(1);
@@ -186,6 +196,10 @@ export default function AddItemScreen() {
     if (isEditMode && itemId) {
       loadItemData();
     } else if (isFromWeb && webImageUrl) {
+      // Auto-fill brand from web source if available
+      if (webSourceName && !brand) {
+        setBrand(webSourceName);
+      }
       // Load image from web capture
       handleWebCaptureImage(webImageUrl, manualCropParam === 'true');
     } else if (!webImageUrl && isBatchMode) {
@@ -200,7 +214,7 @@ export default function AddItemScreen() {
         setSelectedColors([]);
         setSelectedStyles([]);
         setSelectedSeasons([]);
-        setBrand('');
+        setBrand(batchItem.sourceName || ''); // Auto-fill brand from store name
         setSize('');
         setPrice('');
 
@@ -405,8 +419,11 @@ export default function AddItemScreen() {
 
       if (isEditMode) {
         // Update existing item
+        const titleTrimmed = title.trim();
+        const originalTitleTrimmed = String(originalItem?.title ?? '').trim();
+        const isTitleChanged = titleTrimmed !== originalTitleTrimmed;
+
         const updateData: any = {
-          title: title || undefined,
           category,
           colors: selectedColors.map((hex) => ({ hex })),
           primaryColor: { hex: selectedColors[0] },
@@ -417,6 +434,12 @@ export default function AddItemScreen() {
           price: price ? parseFloat(price) : undefined,
         };
 
+        // Only include title if the user changed it.
+        // This prevents auto-generated titles from being treated as "user titles" on every edit.
+        if (isTitleChanged) {
+          updateData.title = titleTrimmed.length > 0 ? titleTrimmed : undefined;
+        }
+
         // Only include imageUri if it has changed
         if (
           imageUri &&
@@ -426,8 +449,7 @@ export default function AddItemScreen() {
           updateData.imageUri = imageUri;
         }
 
-        const updatedItem = await itemServiceOffline.updateItem(itemId!, updateData);
-        updateItem(itemId!, updatedItem);
+        await itemServiceOffline.updateItem(itemId!, updateData);
       } else {
         // Create new item
         if (!user?.id) {
@@ -435,20 +457,50 @@ export default function AddItemScreen() {
           return;
         }
 
-        // Get product URL from batch item if available
-        let finalSourceUrl = webImageUrl;
+        // Decide which buy link to persist.
+        // Priority:
+        // 1) batchItem.image.productUrl (best: specific product page)
+        // 2) batchItem.sourceUrl (fallback: page where image was found)
+        // 3) sourceUrl passed via route params (manual crop / single add)
+        // 4) webImageUrl ONLY if it is an http(s) URL (never store local file URI)
+        let finalSourceUrl: string | undefined = undefined;
+
+        if (isHttpUrl(webSourceUrl)) {
+          finalSourceUrl = webSourceUrl;
+        } else if (isHttpUrl(webImageUrl)) {
+          finalSourceUrl = webImageUrl;
+        }
+
+        console.log('[AddItem] Initial webImageUrl:', webImageUrl);
+        console.log('[AddItem] webSourceUrl (param):', webSourceUrl);
+        console.log('[AddItem] isBatchMode:', isBatchMode);
         if (isBatchMode) {
           const batchItem = batchQueue[currentBatchIndex];
+          console.log('[AddItem] Batch item:', {
+            hasProductUrl: !!batchItem?.image?.productUrl,
+            productUrl: batchItem?.image?.productUrl,
+            sourceUrl: batchItem?.sourceUrl,
+          });
           if (batchItem?.image?.productUrl) {
             // Use productUrl if available (specific product page)
             finalSourceUrl = batchItem.image.productUrl;
+            console.log('[AddItem] ✅ Using productUrl:', finalSourceUrl);
           } else if (batchItem?.sourceUrl) {
             // Fallback to sourceUrl (page where image was found)
             finalSourceUrl = batchItem.sourceUrl;
+            console.log('[AddItem] ✅ Using sourceUrl:', finalSourceUrl);
           }
         }
 
-        const newItem = await itemServiceOffline.createItem({
+        const itemMetadata = {
+          source: imageSource || 'camera',
+          sourceUrl: isWebSource ? finalSourceUrl : undefined,
+        };
+        console.log('[AddItem] 📦 Creating item with metadata:', itemMetadata);
+        console.log('[AddItem] isWebSource:', isWebSource);
+        console.log('[AddItem] isFromWeb (webImageUrl present):', isFromWeb);
+
+        await itemServiceOffline.createItem({
           userId: user.id,
           title: title || undefined,
           category,
@@ -460,13 +512,8 @@ export default function AddItemScreen() {
           brand: brand || undefined,
           size: size || undefined,
           price: price ? parseFloat(price) : undefined,
-          metadata: {
-            source: imageSource || 'camera',
-            sourceUrl: isFromWeb ? finalSourceUrl : undefined,
-          },
+          metadata: itemMetadata,
         });
-
-        addItem(newItem);
       }
 
       // Handle batch mode
@@ -540,7 +587,7 @@ export default function AddItemScreen() {
             </TouchableOpacity>
           )}
 
-          {imageUri && backgroundRemoverService.isConfigured() && (
+          {imageUri && (
             <TouchableOpacity
               style={[styles.addPhotoButton, removingBg && styles.disabledButton]}
               onPress={handleRemoveBackground}

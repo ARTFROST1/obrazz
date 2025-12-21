@@ -371,6 +371,17 @@ export const useShoppingBrowserStore = create<ShoppingBrowserState>((set, get) =
 
   // NEW: Cart actions
   addToCart: async (images, sourceUrl, sourceName) => {
+    console.log('[Cart] 🛒 Adding to cart:', {
+      imageCount: images.length,
+      sourceUrl,
+      sourceName,
+      imagesWithProductUrl: images.filter((i) => i.productUrl).length,
+    });
+    images.forEach((img, idx) => {
+      if (img.productUrl) {
+        console.log(`[Cart] Image ${idx + 1} has productUrl:`, img.productUrl);
+      }
+    });
     const { cartItems } = get();
     const newItems: CartItem[] = images.map((image) => ({
       id: `${image.id}_${Date.now()}`,

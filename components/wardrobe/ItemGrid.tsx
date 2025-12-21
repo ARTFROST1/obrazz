@@ -52,6 +52,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
       isSelectable={isSelectable}
       isSelected={selectedItems.has(item.id)}
       numColumns={numColumns}
+      hasSourceUrl={!!item.metadata?.sourceUrl}
     />
   );
 
