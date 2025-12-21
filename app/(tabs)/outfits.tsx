@@ -580,15 +580,9 @@ export default function OutfitsScreen() {
         selectedOutfits={selectedOutfits}
       />
 
-      {/* FAB - Create New Outfit */}
+      {/* FAB - Create New Outfit (iOS 26 Liquid Glass on supported devices) */}
       {!isSelectionMode && (
-        <FAB
-          icon="add"
-          onPress={handleCreateOutfit}
-          backgroundColor={isDark ? '#FFFFFF' : '#000000'}
-          iconColor={isDark ? '#000000' : '#FFFFFF'}
-          accessibilityLabel="Create new outfit"
-        />
+        <FAB icon="add" onPress={handleCreateOutfit} accessibilityLabel="Create new outfit" />
       )}
 
       {/* Outfit Filter Modal */}

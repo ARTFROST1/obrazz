@@ -1,6 +1,6 @@
 import CartItemRow from '@/components/shopping/CartItemRow';
 import { useShoppingBrowserStore } from '@/store/shoppingBrowserStore';
-import { Ionicons } from '@expo/vector-icons';
+import { GlassBackButton } from '@components/ui/glass';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -71,9 +71,7 @@ export default function CartScreen() {
 
       {/* Header with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButtonHeader} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000000" />
-        </TouchableOpacity>
+        <GlassBackButton onPress={() => router.back()} size="medium" />
         <Text style={styles.headerTitle}>Корзина</Text>
         {count > 0 ? (
           <TouchableOpacity style={styles.clearButtonHeader} onPress={handleClearCart}>

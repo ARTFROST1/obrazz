@@ -1,16 +1,17 @@
+import { getTabBarPadding } from '@constants/Layout';
 import React from 'react';
 import {
-  View,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  Text,
   ActivityIndicator,
+  FlatList,
   Platform,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
 } from 'react-native';
-import { getTabBarPadding } from '@constants/Layout';
-import { ItemCard } from './ItemCard';
 import { WardrobeItem } from '../../types/models/item';
+import { ItemCard } from './ItemCard';
 
 interface ItemGridProps {
   items: WardrobeItem[];
@@ -25,6 +26,7 @@ interface ItemGridProps {
   isSelectable?: boolean;
   selectedItems?: Set<string>;
   numColumns?: number;
+  contentContainerStyle?: ViewStyle;
 }
 
 export const ItemGrid: React.FC<ItemGridProps> = ({
@@ -40,6 +42,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   isSelectable = false,
   selectedItems = new Set(),
   numColumns = 3,
+  contentContainerStyle,
 }) => {
   const renderItem = ({ item }: { item: WardrobeItem }) => (
     <ItemCard
@@ -78,7 +81,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
       keyExtractor={(item) => item.id}
       numColumns={numColumns}
       columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={renderEmpty}
       ListHeaderComponent={ListHeaderComponent}

@@ -1,6 +1,6 @@
 # 📚 Extra Documentation - Obrazz
 
-**Последнее обновление:** 20 декабря 2025  
+**Последнее обновление:** 21 декабря 2025  
 **Организация:** Тематические папки
 
 ---
@@ -116,6 +116,14 @@
 ### Проблема с функцией?
 
 → [Features/](Features/) (как работает) или [Fixes/](Fixes/) (известные решения)
+
+### Liquid Glass UI (iOS 26+)?
+
+→ Реализация Wardrobe: [WARDROBE_LIQUID_GLASS_REFACTORING.md](WARDROBE_LIQUID_GLASS_REFACTORING.md)
+
+→ Фикс “первого холодного открытия”: [../Fixes/LIQUID_GLASS_INITIALIZATION_FIX.md](../Fixes/LIQUID_GLASS_INITIALIZATION_FIX.md)
+
+→ Общие правила/архитектура: [LIQUID_GLASS_IMPLEMENTATION_PLAN.md](LIQUID_GLASS_IMPLEMENTATION_PLAN.md)
 
 ### Новый разработчик в команде?
 

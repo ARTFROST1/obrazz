@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from '@hooks/useTranslation';
+import { IS_IOS_26_OR_NEWER } from '@utils/platform';
 import { Tabs } from 'expo-router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import React from 'react';
@@ -8,19 +9,8 @@ import { Platform, PlatformColor, useColorScheme } from 'react-native';
 
 import Colors from '../../constants/Colors';
 
-// Check if iOS version supports liquid glass (iOS 26+)
-// For iOS < 26, blurEffect still works but may need explicit background
-const getIOSVersion = (): number => {
-  if (Platform.OS !== 'ios') return 0;
-  const version = Platform.Version;
-  if (typeof version === 'string') {
-    return parseInt(version.split('.')[0], 10);
-  }
-  return version;
-};
-
-const iosVersion = getIOSVersion();
-const supportsLiquidGlass = Platform.OS === 'ios' && iosVersion >= 26;
+// Shared platform detection (computed once per JS bundle load)
+const supportsLiquidGlass = IS_IOS_26_OR_NEWER;
 
 // Tab bar icon component for Android
 function TabBarIcon(props: {

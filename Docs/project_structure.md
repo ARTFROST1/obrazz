@@ -194,6 +194,7 @@ components/
 │   ├── Input.tsx ✅           # Form input with validation
 │   ├── Loader.tsx ✅          # Loading spinner
 │   ├── FAB.tsx ✅             # Floating Action Button
+│   ├── glass/ ✅               # iOS 26+ Liquid Glass UI components (expo-glass-effect)
 │   └── index.ts ✅            # Barrel export
 ├── common/ ✅                 # Common components (Stage 4.9) - 5 components
 │   ├── ImageCropper.tsx ✅    # Custom 3:4 crop with pinch-to-zoom

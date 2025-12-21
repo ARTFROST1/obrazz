@@ -1,6 +1,7 @@
 import { DismissKeyboardView } from '@components/common/DismissKeyboardView';
 import { SyncStatusIndicator } from '@components/sync';
 import { FAB } from '@components/ui';
+import { GlassDropdownItem, GlassDropdownMenu, GlassSearchBar } from '@components/ui/glass';
 import { FilterState, ItemFilter } from '@components/wardrobe/ItemFilter';
 import { ItemGrid } from '@components/wardrobe/ItemGrid';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,10 +11,12 @@ import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import { debounce } from '@utils/debounce';
+import { CAN_USE_LIQUID_GLASS, IS_IOS_26_OR_NEWER } from '@utils/platform';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  InteractionManager,
   LayoutAnimation,
   Platform,
   SafeAreaView,
@@ -25,6 +28,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WardrobeItem } from '../../types/models';
 
 // Enable LayoutAnimation on Android
@@ -36,6 +40,16 @@ export default function WardrobeScreen() {
   const { t } = useTranslation('wardrobe');
   const { user } = useAuthStore();
   const { isOnline } = useNetworkStatus();
+  const insets = useSafeAreaInsets();
+
+  // Shared platform detection (computed once per JS bundle load)
+  const isIOS26 = IS_IOS_26_OR_NEWER;
+  const canUseLiquidGlass = CAN_USE_LIQUID_GLASS;
+  const [rootLayoutReady, setRootLayoutReady] = useState(false);
+  const [useLiquidGlassUI, setUseLiquidGlassUI] = useState(false);
+  const [isScreenFocused, setIsScreenFocused] = useState(false);
+  const supportsLiquidGlass = canUseLiquidGlass && useLiquidGlassUI;
+
   const {
     items,
     filter,
@@ -58,6 +72,58 @@ export default function WardrobeScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [gridColumns, setGridColumns] = useState<2 | 3>(3);
+
+  // Enable Liquid Glass only after the screen is focused AND navigation/animations are done.
+  // This matches the observed behavior: glass effect becomes correct after leaving/returning.
+  useEffect(() => {
+    if (!canUseLiquidGlass) {
+      setUseLiquidGlassUI(false);
+      return;
+    }
+
+    // Once enabled, keep it enabled (do not re-run the init on every focus).
+    if (useLiquidGlassUI) return;
+
+    if (!isScreenFocused || !rootLayoutReady) return;
+
+    if (__DEV__) {
+      console.log('[WardrobeScreen] LiquidGlass enable check', {
+        isIOS26,
+        available: canUseLiquidGlass,
+        rootLayoutReady,
+        isScreenFocused,
+      });
+    }
+
+    let cancelled = false;
+    let raf1: number | null = null;
+    let raf2: number | null = null;
+
+    const interactionTask = InteractionManager.runAfterInteractions(() => {
+      if (cancelled) return;
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => {
+          if (cancelled) return;
+          LayoutAnimation.configureNext({
+            duration: 250,
+            create: {
+              type: LayoutAnimation.Types.easeInEaseOut,
+              property: LayoutAnimation.Properties.opacity,
+            },
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+          });
+          setUseLiquidGlassUI(true);
+        });
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      interactionTask.cancel();
+      if (raf1 != null) cancelAnimationFrame(raf1);
+      if (raf2 != null) cancelAnimationFrame(raf2);
+    };
+  }, [canUseLiquidGlass, isIOS26, isScreenFocused, rootLayoutReady, useLiquidGlassUI]);
 
   // Offline-first load: use cached items immediately, sync in background
   const loadItems = useCallback(async () => {
@@ -101,6 +167,8 @@ export default function WardrobeScreen() {
   // Now uses offline-first approach: show cached immediately, sync in background
   useFocusEffect(
     useCallback(() => {
+      setIsScreenFocused(true);
+
       // If hydrated and have cached items, show them immediately
       if (isHydrated && items.length > 0) {
         console.log('[WardrobeScreen] Using', items.length, 'cached items');
@@ -120,6 +188,10 @@ export default function WardrobeScreen() {
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
       }
+
+      return () => {
+        setIsScreenFocused(false);
+      };
     }, [loadItems, items.length, user?.id, isHydrated, isOnline]),
   );
 
@@ -315,10 +387,58 @@ export default function WardrobeScreen() {
     filter.isFavorite ||
     filter.searchQuery;
 
-  return (
-    <DismissKeyboardView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-      {/* Header */}
+  // Dropdown menu items for iOS 26+ glass header
+  const dropdownItems: GlassDropdownItem[] = useMemo(
+    () => [
+      {
+        id: 'select',
+        icon: isSelectionMode ? 'close-circle-outline' : 'checkmark-circle-outline',
+        label: isSelectionMode ? t('common:actions.cancel') : t('common:actions.select'),
+        onPress: handleToggleSelectionMode,
+      },
+      {
+        id: 'filter',
+        icon: 'filter',
+        label: t('filter.filterButton'),
+        onPress: () => setShowFilter(true),
+        isActive: !!hasActiveFilters,
+      },
+      {
+        id: 'grid',
+        icon: gridColumns === 2 ? 'grid-outline' : 'grid',
+        label: gridColumns === 2 ? t('filter.threeColumns') : t('filter.twoColumns'),
+        onPress: handleToggleGridColumns,
+      },
+    ],
+    [
+      isSelectionMode,
+      hasActiveFilters,
+      gridColumns,
+      t,
+      handleToggleSelectionMode,
+      handleToggleGridColumns,
+    ],
+  );
+
+  // Render iOS 26+ Glass Header (absolute positioned, no container)
+  const renderGlassHeader = () => (
+    <>
+      <GlassSearchBar
+        value={searchQuery}
+        onChangeText={handleSearch}
+        placeholder={t('search.placeholder')}
+        style={{ ...styles.glassSearchBar, top: insets.top + 8 }}
+      />
+      <GlassDropdownMenu
+        items={dropdownItems}
+        style={{ ...styles.glassMenu, top: insets.top + 8 }}
+      />
+    </>
+  );
+
+  // Render classic header (iOS < 26, Android)
+  const renderClassicHeader = () => (
+    <>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -453,6 +573,20 @@ export default function WardrobeScreen() {
           </>
         )}
       </View>
+    </>
+  );
+
+  return (
+    <DismissKeyboardView
+      style={[styles.container, supportsLiquidGlass && styles.containerTransparent]}
+      onLayout={() => setRootLayoutReady(true)}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+
+      {/* Conditional Header: Classic for iOS < 26 / Android, or during glass initialization */}
+      {/* Show classic header until glass UI is enabled */}
+      {/* On iOS 26+ when Liquid Glass is available, do NOT render classic header (prevents flash). */}
+      {!canUseLiquidGlass && renderClassicHeader()}
 
       {/* Items Grid */}
       <ItemGrid
@@ -468,6 +602,10 @@ export default function WardrobeScreen() {
         isSelectable={isSelectionMode}
         selectedItems={selectedItems}
         numColumns={gridColumns}
+        contentContainerStyle={
+          // Apply top padding as soon as we know we're on iOS 26+ (even before glass UI is enabled)
+          canUseLiquidGlass ? { paddingTop: isSelectionMode ? 130 : 90 } : undefined
+        }
       />
 
       {/* Filter Modal */}
@@ -484,15 +622,58 @@ export default function WardrobeScreen() {
         }}
       />
 
-      {/* FAB - Add New Item */}
+      {/* FAB - Add New Item (iOS 26 Liquid Glass on supported devices) */}
       {!isSelectionMode && (
         <FAB
           icon="add"
           onPress={handleAddItem}
-          backgroundColor="#000000"
-          iconColor="#FFFFFF"
           accessibilityLabel="Add new item"
+          liquidGlassEnabled={supportsLiquidGlass}
         />
+      )}
+
+      {/* iOS 26+ Glass Header - RENDERED LAST to be on top of everything */}
+      {supportsLiquidGlass && renderGlassHeader()}
+
+      {/* Selection Mode Actions for iOS 26+ (shown below glass header) */}
+      {supportsLiquidGlass && isSelectionMode && (
+        <View style={[styles.glassSelectionBar, { marginTop: insets.top + 68 }]}>
+          <TouchableOpacity
+            style={[
+              styles.selectionActionButton,
+              { backgroundColor: 'rgba(255,255,255,0.9)', borderColor: '#E5E5E5' },
+            ]}
+            onPress={handleSelectAll}
+          >
+            <Ionicons name="checkmark-done" size={20} color="#000" />
+            <Text style={styles.selectionActionText}>
+              {selectedItems.size === filteredItems.length
+                ? t('selection.deselectAll')
+                : t('selection.selectAll')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.selectionActionButton,
+              styles.deleteActionButton,
+              { backgroundColor: 'rgba(255,255,255,0.9)', borderColor: '#E5E5E5' },
+              selectedItems.size === 0 && styles.disabledButton,
+            ]}
+            onPress={handleDeleteSelected}
+            disabled={selectedItems.size === 0}
+          >
+            <Ionicons
+              name="trash"
+              size={20}
+              color={selectedItems.size === 0 ? '#CCC' : '#FF3B30'}
+            />
+            <Text
+              style={[styles.deleteActionText, selectedItems.size === 0 && styles.disabledText]}
+            >
+              {t('common:actions.delete')} ({selectedItems.size})
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
     </DismissKeyboardView>
   );
@@ -509,6 +690,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flex: 1,
   },
+  containerTransparent: {
+    backgroundColor: 'transparent',
+  },
+  // iOS 26+ Glass Components (absolute positioned, no container)
+  glassSearchBar: {
+    position: 'absolute',
+    left: 16,
+    right: 72, // Space for menu button (48px + 8px gap + 16px margin)
+    zIndex: 9999,
+    elevation: 9999, // Android
+  },
+  glassMenu: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10000, // Maximum z-index to be on top of everything
+    elevation: 10000, // Android
+  },
+  glassSelectionBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 99,
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  // Classic Header Styles
   safeArea: {
     backgroundColor: '#FFFFFF',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,

@@ -200,18 +200,17 @@ Margin: 16px from bottom and right
 Z-index: Above all content, below modals
 
 Screen-Specific Styling:
-- Outfits screen:
-  - Background: #000000 (Black in Light mode) / #FFFFFF (White in Dark mode)
-  - Icon Color: #FFFFFF (White in Light mode) / #000000 (Black in Dark mode)
-  - Action: Create new outfit (navigates to /outfit/create)
 
-- Wardrobe screen:
-  - Background: #000000 (Black)
-  - Icon Color: #FFFFFF (White)
-  - Action: Add new item (navigates to /add-item)
+Одна реализация (`components/ui/FAB.tsx`) используется на разных экранах:
+- **iOS 26+ (при доступном Liquid Glass):** `GlassView` из `expo-glass-effect`; цвет иконки — динамический `PlatformColor('label')`
+- **iOS < 26 / Android:** fallback-версия; по умолчанию background `#000000`, icon `#FFFFFF` (можно переопределять пропсами)
+
+Действия по экранам:
+- Outfits screen: Create new outfit (navigates to /outfit/create)
+- Wardrobe screen: Add new item (navigates to /add-item)
 
 Note: Both screens now have consistent layout with FAB at bottom.
-Header removed from Wardrobe screen to match Outfits screen design.
+Wardrobe header на iOS 26+ может рендериться как Liquid Glass (поиск + меню) поверх UI; на iOS < 26 / Android используется классический header.
 
 States:
 - Default: 100% opacity, scale(1)

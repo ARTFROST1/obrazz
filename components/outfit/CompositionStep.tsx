@@ -1,3 +1,4 @@
+import { GlassBackButton } from '@components/ui/glass';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { useOutfitStore } from '@store/outfit/outfitStore';
@@ -46,9 +47,7 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </TouchableOpacity>
+        <GlassBackButton onPress={onBack} size="medium" />
         <Text style={styles.title}>{t('create.step2Title')}</Text>
         <TouchableOpacity
           onPress={onSave}

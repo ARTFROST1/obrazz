@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Liquid Glass UI Enhancement (December 21, 2025)
+
+#### Added
+
+- **Wardrobe Liquid Glass Header (iOS 26+)**
+  - `components/ui/glass/GlassSearchBar.tsx` — стеклянный поиск (TextInput внутри GlassView)
+  - `components/ui/glass/GlassDropdownMenu.tsx` — стеклянная кнопка-триггер + dropdown
+  - На iOS 26+ включается только при `CAN_USE_LIQUID_GLASS` и отложенном enable на Wardrobe (см. ниже)
+  - Custom dropdown по умолчанию (работает в Expo Go): белый фон + чёрный текст (стабильно и предсказуемо)
+  - Опционально: native UIMenu через `@react-native-menu/menu` (требует нативную сборку)
+
+- **GlassBackButton Component** - iOS 26+ Liquid Glass circular back button
+  - Native liquid glass effect with translucency and refraction on iOS 26+
+  - Semi-transparent fallback for iOS < 26 and Android
+  - Auto-adapts to light/dark mode
+  - Three sizes: small (36px), medium (44px), large (56px)
+  - Press handling via `Pressable` on iOS 26+; GlassView is the visual container (no extra layout wrappers)
+  - Default icon color on iOS 26+ uses dynamic `PlatformColor('label')` when `iconColor` is not provided
+  - Component location: `components/ui/glass/GlassBackButton.tsx`
+
+- **GlassIconButton Component** - iOS 26+ Liquid Glass circular icon button
+  - Same liquid glass features as GlassBackButton
+  - Customizable icon from Ionicons library
+  - Used for favorite (heart), star, and other action buttons
+  - Default icon color on iOS 26+ uses dynamic `PlatformColor('label')` when `iconColor` is not provided
+  - Component location: `components/ui/glass/GlassIconButton.tsx`
+
+- **Updated Screens with Glass Buttons**
+  - `app/item/[id].tsx` - Item Details (back button + favorite heart)
+  - `app/outfit/[id].tsx` - Outfit Details (back button + favorite star)
+  - `app/shopping/cart.tsx` - Shopping Cart (back button)
+  - `components/outfit/ItemSelectionStepNew.tsx` - Outfit creation Step 1 (back button)
+  - `components/outfit/CompositionStep.tsx` - Outfit creation Step 2 (back button)
+
+#### Technical Details
+
+- Uses `expo-glass-effect` library (already in package.json)
+- Shared platform detection in `utils/platform.ts`:
+  - `IS_IOS_26_OR_NEWER`
+  - `CAN_USE_LIQUID_GLASS` (iOS 26+ + `isLiquidGlassAvailable()`)
+- Glass components consume `CAN_USE_LIQUID_GLASS` (no per-file version helpers)
+- Wardrobe glass UI is enabled with deferred timing (focus + layout + after-interactions), and kept enabled (run-once) to avoid re-init on tab switches
+- Interactive touch feedback on iOS 26+
+
 ### Stage 4: Manual Outfit Creator
 
 - Outfit editor canvas with drag & drop

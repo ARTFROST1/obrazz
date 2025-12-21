@@ -1,3 +1,4 @@
+import { GlassBackButton } from '@components/ui/glass';
 import { CATEGORIES, getCategoryIcon, getCategoryLabel } from '@constants/categories';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
@@ -188,9 +189,7 @@ export function ItemSelectionStepNew({ onNext, onBack }: ItemSelectionStepNewPro
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </TouchableOpacity>
+        <GlassBackButton onPress={onBack} size="medium" />
         <Text style={styles.title}>{t('create.step1Title')}</Text>
         <View style={styles.headerRight}>
           <Text style={styles.selectedCount}>{selectedCount}</Text>

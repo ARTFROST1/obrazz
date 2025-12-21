@@ -22,7 +22,9 @@
     "seasons": "Сезоны",
     "showFavorites": "Показать избранное",
     "hideFilters": "Скрыть фильтры",
-    "clearAll": "Очистить всё"
+    "clearAll": "Очистить всё",
+    "twoColumns": "2 колонки",
+    "threeColumns": "3 колонки"
   },
   "selection": {
     "selectAll": "Выбрать всё",

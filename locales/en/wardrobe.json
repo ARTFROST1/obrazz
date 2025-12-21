@@ -22,7 +22,9 @@
     "seasons": "Seasons",
     "showFavorites": "Show Favorites",
     "hideFilters": "Hide Filters",
-    "clearAll": "Clear All"
+    "clearAll": "Clear All",
+    "twoColumns": "2 Columns",
+    "threeColumns": "3 Columns"
   },
   "selection": {
     "selectAll": "Select All",

@@ -1,8 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Platform, StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { TAB_BAR_TOTAL_HEIGHT } from '@constants/Layout';
+import { Ionicons } from '@expo/vector-icons';
+import { CAN_USE_LIQUID_GLASS } from '@utils/platform';
+import { GlassView } from 'expo-glass-effect';
+import React from 'react';
+import {
+  Platform,
+  PlatformColor,
+  StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+  useColorScheme,
+} from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 export interface FABProps {
   icon: string;
@@ -14,14 +24,21 @@ export interface FABProps {
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
   testID?: string;
+  /**
+   * Optional override to control when Liquid Glass is enabled.
+   * Useful to delay GlassView mount until after first layout.
+   */
+  liquidGlassEnabled?: boolean;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView);
 
 /**
  * Floating Action Button (FAB)
  *
  * Reusable FAB component following Material Design principles.
+ * Uses native iOS 26 Liquid Glass on supported devices, with graceful fallback.
  * Used for primary actions like creating new content.
  *
  * @example
@@ -38,14 +55,36 @@ export const FAB: React.FC<FABProps> = ({
   onPress,
   iconColor = '#FFFFFF',
   backgroundColor = '#000000',
-  size = 56,
+  size = 64,
   hideOnScroll = false,
   style,
   accessibilityLabel = 'Floating action button',
   testID = 'fab',
+  liquidGlassEnabled,
 }) => {
+  const colorScheme = useColorScheme();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+
+  // Check iOS 26+ support for native liquid glass
+  const supportsLiquidGlass = liquidGlassEnabled ?? CAN_USE_LIQUID_GLASS;
+
+  // CRITICAL: Delay mounting GlassView until component is stable
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    if (supportsLiquidGlass) {
+      // Small delay to ensure proper initialization
+      const timer = setTimeout(() => setMounted(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setMounted(true);
+    }
+  }, [supportsLiquidGlass]);
+
+  // Dynamic icon color based on theme
+  const dynamicIconColor =
+    Platform.OS === 'ios' && supportsLiquidGlass ? PlatformColor('label') : iconColor;
 
   const handlePressIn = () => {
     scale.value = withSpring(0.95, {
@@ -70,12 +109,36 @@ export const FAB: React.FC<FABProps> = ({
     width: size,
     height: size,
     borderRadius: size / 2,
-    backgroundColor,
   };
 
+  // iOS 26+: Native Liquid Glass Button
+  if (supportsLiquidGlass && mounted) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.95}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        testID={testID}
+        style={[styles.container, style]}
+      >
+        <AnimatedGlassView
+          style={[styles.fab, fabStyle, animatedStyle]}
+          glassEffectStyle="regular"
+          isInteractive
+        >
+          <Ionicons name={icon as any} size={28} color={dynamicIconColor} />
+        </AnimatedGlassView>
+      </TouchableOpacity>
+    );
+  }
+
+  // Fallback: Standard button for iOS < 26, Android, or during mount delay
   return (
     <AnimatedTouchable
-      style={[styles.fab, fabStyle, animatedStyle, style]}
+      style={[styles.container, styles.fab, fabStyle, animatedStyle, { backgroundColor }, style]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -84,16 +147,18 @@ export const FAB: React.FC<FABProps> = ({
       accessibilityRole="button"
       testID={testID}
     >
-      <Ionicons name={icon as any} size={24} color={iconColor} />
+      <Ionicons name={icon as any} size={28} color={dynamicIconColor} />
     </AnimatedTouchable>
   );
 };
 
 const styles = StyleSheet.create({
-  fab: {
+  container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : TAB_BAR_TOTAL_HEIGHT + 16, // iOS: above native tabs, Android: above floating tab bar + spacing
+    bottom: Platform.OS === 'ios' ? 120 : TAB_BAR_TOTAL_HEIGHT + 16,
     right: 16,
+  },
+  fab: {
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({

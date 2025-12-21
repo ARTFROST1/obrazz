@@ -1,4 +1,5 @@
 import { OutfitCanvas } from '@components/outfit/OutfitCanvas';
+import { GlassBackButton, GlassIconButton } from '@components/ui/glass';
 import { Ionicons } from '@expo/vector-icons';
 import { outfitServiceOffline } from '@services/outfit/outfitServiceOffline';
 import { useNetworkStatus } from '@services/sync';
@@ -433,20 +434,18 @@ export default function OutfitDetailScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
-        </TouchableOpacity>
+        <GlassBackButton onPress={() => router.back()} size="medium" />
         <Text style={styles.headerTitle} numberOfLines={1}>
           {outfit.title || 'Outfit'}
         </Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleToggleFavorite} style={styles.iconButton}>
-            <Ionicons
-              name={isFavorite ? 'star' : 'star-outline'}
-              size={24}
-              color={isFavorite ? '#FFD700' : '#000'}
-            />
-          </TouchableOpacity>
+          <GlassIconButton
+            icon={isFavorite ? 'star' : 'star-outline'}
+            onPress={handleToggleFavorite}
+            size="medium"
+            iconColor={isFavorite ? '#FFD700' : undefined}
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          />
         </View>
       </View>
 

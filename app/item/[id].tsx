@@ -1,3 +1,4 @@
+import { GlassBackButton, GlassIconButton } from '@components/ui/glass';
 import { Ionicons } from '@expo/vector-icons';
 import { useNetworkStatus } from '@services/sync';
 import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
@@ -362,17 +363,15 @@ export default function ItemDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#000" />
-        </TouchableOpacity>
+        <GlassBackButton onPress={() => router.back()} size="medium" />
         <Text style={styles.title}>Item Details</Text>
-        <TouchableOpacity onPress={handleToggleFavorite} style={styles.favoriteButton}>
-          <Ionicons
-            name={item.isFavorite ? 'heart' : 'heart-outline'}
-            size={28}
-            color={item.isFavorite ? '#FF3B30' : '#000'}
-          />
-        </TouchableOpacity>
+        <GlassIconButton
+          icon={item.isFavorite ? 'heart' : 'heart-outline'}
+          onPress={handleToggleFavorite}
+          size="medium"
+          iconColor={item.isFavorite ? '#FF3B30' : undefined}
+          accessibilityLabel={item.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

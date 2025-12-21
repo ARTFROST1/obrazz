@@ -1,8 +1,8 @@
 # Obrazz Documentation
 
-**Last Updated:** December 14, 2025  
+**Last Updated:** December 21, 2025  
 **Current Version:** 1.0.0  
-**Stage:** 4.11 Complete (Shopping Browser + Web Capture)
+**Stage:** 4.12 Complete (Offline-First Architecture + iOS 26+ Liquid Glass updates)
 
 ---
 
@@ -134,6 +134,16 @@ UI/UX specifications:
 - Spacing guidelines
 
 **Use this for:** Implementing UI components
+
+---
+
+#### 9.5. **Liquid Glass (iOS 26+)** 🫧
+
+Implementation notes and troubleshooting for iOS 26+ Liquid Glass UI (with safe fallback on iOS < 26 / Android):
+
+- **[Extra/WARDROBE_LIQUID_GLASS_REFACTORING.md](Extra/WARDROBE_LIQUID_GLASS_REFACTORING.md)** — Wardrobe header + FAB implementation details
+- **[Fixes/LIQUID_GLASS_INITIALIZATION_FIX.md](Fixes/LIQUID_GLASS_INITIALIZATION_FIX.md)** — “first cold open” initialization fix and rationale
+- **[Extra/LIQUID_GLASS_IMPLEMENTATION_PLAN.md](Extra/LIQUID_GLASS_IMPLEMENTATION_PLAN.md)** — project-wide Liquid Glass conventions (single source of truth)
 
 ---
 

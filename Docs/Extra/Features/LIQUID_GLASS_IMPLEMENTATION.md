@@ -1,16 +1,25 @@
-# iOS Liquid Glass Tab Bar Implementation
+# iOS Tab Bar (NativeTabs) + System Materials
 
 **Дата реализации:** 2025-11-06  
-**Expo SDK:** 54.0.0  
+**Обновлено:** 2025-12-21  
+**Expo SDK:** 54.x  
 **Статус:** ✅ Реализовано
 
 ## Обзор
 
-Внедрен официальный iOS liquid glass эффект для bottom navigation используя нативный `UITabBarController` от Apple через Expo Router's `NativeTabs` API.
+Bottom navigation на iOS реализован через Expo Router `NativeTabs` (нативный `UITabBarController`) и системные материалы (`systemChromeMaterial*`).
+
+Важно:
+
+- Это **системный материал/blur**, доступный и на более ранних версиях iOS.
+- На **iOS 26+** визуально это соответствует Apple “Liquid Glass” стилистике.
+- Для **кастомных стеклянных контролов** (поиск/кнопки) используется отдельный механизм `expo-glass-effect`.
 
 ## Что такое Liquid Glass?
 
-Liquid Glass - это фирменный эффект Apple с iOS 15+, который создает полупрозрачный размытый фон с эффектом матового стекла. Контент плавно проходит под таб-баром, создавая ощущение глубины и иерархии.
+Liquid Glass — визуальный материал Apple, представленный в iOS 26. Он похож на “blur/material”, но с акцентом на преломление/текучесть.
+
+Для Tab Bar мы используем **системные материалы** через `NativeTabs`, а для кастомных view — `expo-glass-effect`.
 
 ## Технические детали
 
@@ -42,9 +51,9 @@ import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 ### Ключевые возможности
 
-#### 1. **Автоматический Liquid Glass эффект**
+#### 1. **Системный материал (blur/material)**
 
-- ✅ Нативное размытие из `UITabBarController`
+- ✅ Нативный системный материал из `UITabBarController`
 - ✅ Полупрозрачный фон
 - ✅ Адаптация под dark/light режим
 - ✅ Smooth transitions
@@ -116,7 +125,7 @@ tintColor={PlatformColor('label')}
 }
 ```
 
-> **Примечание:** `expo-blur` установлен для будущих компонентов. Для `NativeTabs` он не требуется - эффект liquid glass идет из коробки от `UITabBarController`.
+> **Примечание:** `expo-blur` не обязателен для `NativeTabs` — системный материал идет из коробки через `UITabBarController`.
 
 ## Преимущества нового подхода
 
@@ -211,27 +220,7 @@ tintColor={PlatformColor('label')}
 
 ## Следующие шаги
 
-### Возможные улучшения:
-
-1. **Badges на табах**
-
-   ```typescript
-   <Badge value={3} />
-   ```
-
-2. **Search tab для iOS 26**
-
-   ```typescript
-   <NativeTabs.Trigger name="search" role="search">
-     <Label>Search</Label>
-   </NativeTabs.Trigger>
-   ```
-
-3. **Кастомные цвета**
-   Экспериментировать с `PlatformColor` для брендинга
-
-4. **Accessibility**
-   Добавить ARIA labels и hints
+Документ оставляем как справку по текущей реализации. Развитие Liquid Glass UI (не только Tab Bar) описано отдельно в документации по Wardrobe/Glass-компонентам.
 
 ---
 

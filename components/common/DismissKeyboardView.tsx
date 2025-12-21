@@ -1,14 +1,15 @@
 import React from 'react';
 import {
-  TouchableWithoutFeedback,
   Keyboard,
-  View,
-  ViewStyle,
-  StyleSheet,
   StyleProp,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+  ViewProps,
+  ViewStyle,
 } from 'react-native';
 
-interface DismissKeyboardViewProps {
+interface DismissKeyboardViewProps extends ViewProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
@@ -22,6 +23,7 @@ export function DismissKeyboardView({
   children,
   style,
   disabled = false,
+  ...viewProps
 }: DismissKeyboardViewProps) {
   const handlePress = () => {
     if (!disabled) {
@@ -31,7 +33,9 @@ export function DismissKeyboardView({
 
   return (
     <TouchableWithoutFeedback onPress={handlePress} accessible={false}>
-      <View style={[styles.container, style]}>{children}</View>
+      <View {...viewProps} style={[styles.container, style]}>
+        {children}
+      </View>
     </TouchableWithoutFeedback>
   );
 }
