@@ -124,11 +124,7 @@ const getSeasonSticker = (season?: string): string => {
 
 export default function OutfitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const {
-    outfits,
-    updateOutfit: updateOutfitInStore,
-    deleteOutfit: deleteOutfitFromStore,
-  } = useOutfitStore();
+  const { outfits } = useOutfitStore();
   const { isOnline } = useNetworkStatus();
 
   const [outfit, setOutfit] = useState<Outfit | null>(null);

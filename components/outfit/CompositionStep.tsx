@@ -29,7 +29,6 @@ export function CompositionStep({ onSave, onBack }: CompositionStepProps) {
     currentBackground,
     canvasSettings,
     updateItemTransform,
-    removeItemFromCanvas,
     setBackground,
     clearCanvas,
     undo,

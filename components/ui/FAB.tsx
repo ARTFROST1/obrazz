@@ -10,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ViewStyle,
-  useColorScheme,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -62,7 +61,6 @@ export const FAB: React.FC<FABProps> = ({
   testID = 'fab',
   liquidGlassEnabled,
 }) => {
-  const colorScheme = useColorScheme();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 

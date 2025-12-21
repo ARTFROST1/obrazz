@@ -22,13 +22,13 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import { WebView } from 'react-native-webview';
 
 export default function ShoppingBrowserScreen() {
   const router = useRouter();
-  const safeAreaInsets = useSafeAreaInsets();
+  // const safeAreaInsets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
   const webViewContainerRef = useRef<View>(null);
   const detectionTimeoutRef = useRef<{

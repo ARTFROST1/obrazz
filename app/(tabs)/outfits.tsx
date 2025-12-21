@@ -59,19 +59,11 @@ export default function OutfitsScreen() {
   const [isScreenFocused, setIsScreenFocused] = useState(false);
   const supportsLiquidGlass = canUseLiquidGlass && useLiquidGlassUI;
 
-  const {
-    outfits,
-    setOutfits,
-    deleteOutfit: removeOutfitFromStore,
-    isLoading,
-    setLoading,
-    setError,
-    isHydrated,
-    setSyncStatus,
-  } = useOutfitStore();
+  const { outfits, setOutfits, isLoading, setLoading, setError, isHydrated, setSyncStatus } =
+    useOutfitStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'private' | 'shared' | 'public'>('all');
+  const [filterBy] = useState<'all' | 'private' | 'shared' | 'public'>('all');
   const [refreshing, setRefreshing] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [outfitFilters, setOutfitFilters] = useState<OutfitFilterState>({
@@ -136,6 +128,36 @@ export default function OutfitsScreen() {
     };
   }, [canUseLiquidGlass, isIOS26, isScreenFocused, rootLayoutReady, useLiquidGlassUI]);
 
+  // Load outfits helper declared before usage in effects
+  const loadOutfits = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      // Don't show loading spinner if we have cached data
+      if (outfits.length === 0) {
+        setLoading(true);
+      }
+      setSyncStatus('syncing');
+
+      // Offline-first: returns cached immediately, syncs in background
+      const userOutfits = await outfitServiceOffline.getUserOutfits(user.id);
+      setOutfits(userOutfits);
+      setSyncStatus('synced');
+    } catch (error) {
+      console.error('Error loading outfits:', error);
+      setSyncStatus('error');
+      // Only show error if we have no cached data
+      if (outfits.length === 0) {
+        setError('Failed to load outfits');
+        if (isOnline) {
+          Alert.alert('Error', 'Failed to load your outfits');
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, outfits.length, isOnline, setLoading, setSyncStatus, setOutfits, setError]);
+
   // ✅ Load outfits when screen is focused (after creating/editing)
   // Uses offline-first approach: returns cached immediately, syncs in background
   useFocusEffect(
@@ -167,35 +189,6 @@ export default function OutfitsScreen() {
       };
     }, [loadOutfits, outfits.length, user?.id, isHydrated, isOnline]),
   );
-
-  const loadOutfits = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      // Don't show loading spinner if we have cached data
-      if (outfits.length === 0) {
-        setLoading(true);
-      }
-      setSyncStatus('syncing');
-
-      // Offline-first: returns cached immediately, syncs in background
-      const userOutfits = await outfitServiceOffline.getUserOutfits(user.id);
-      setOutfits(userOutfits);
-      setSyncStatus('synced');
-    } catch (error) {
-      console.error('Error loading outfits:', error);
-      setSyncStatus('error');
-      // Only show error if we have no cached data
-      if (outfits.length === 0) {
-        setError('Failed to load outfits');
-        if (isOnline) {
-          Alert.alert('Error', 'Failed to load your outfits');
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, outfits.length, isOnline]);
 
   const handleRefresh = useCallback(async () => {
     if (!user?.id) {
@@ -318,10 +311,10 @@ export default function OutfitsScreen() {
     setOutfitFilters(filters);
   };
 
-  const handleToggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
+  const handleToggleSelectionMode = useCallback(() => {
+    setIsSelectionMode((prev) => !prev);
     setSelectedOutfits(new Set());
-  };
+  }, []);
 
   const handleSelectAll = () => {
     if (selectedOutfits.size === filteredOutfits.length) {

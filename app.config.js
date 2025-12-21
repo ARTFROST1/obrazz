@@ -52,7 +52,7 @@ export default {
       output: 'static',
       favicon: './assets/images/favicon.png',
     },
-    plugins: ['expo-router', 'expo-camera', 'expo-image-picker'],
+    plugins: ['expo-router', 'expo-camera', 'expo-image-picker', 'expo-web-browser'],
     experiments: {
       typedRoutes: true,
     },

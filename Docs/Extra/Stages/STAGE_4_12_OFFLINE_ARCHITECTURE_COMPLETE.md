@@ -501,6 +501,7 @@ Currently uses "last-write-wins" strategy. Could add UI for manual conflict reso
    ```
 
 4. **Add Cache-First Loading**
+
    ```typescript
    const loadEntity = async (id: string) => {
      // Check cache first

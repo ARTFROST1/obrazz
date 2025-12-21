@@ -1,19 +1,22 @@
 /**
  * Store Logos Mapping
  * Maps store IDs to their local logo assets
+ * Updated for Russian market stores
  */
 
 // Type-safe logo imports
 export const STORE_LOGOS = {
-  '1': require('@/assets/images/stores/zara.png'),
-  '2': require('@/assets/images/stores/hm.png'),
-  '3': require('@/assets/images/stores/asos.png'),
-  '4': require('@/assets/images/stores/nike.png'),
-  '5': require('@/assets/images/stores/adidas.png'),
-  '6': require('@/assets/images/stores/gap.png'),
-  '7': require('@/assets/images/stores/mango.png'),
-  '8': require('@/assets/images/stores/pullandbear.png'),
-  '9': require('@/assets/images/stores/bershka.png'),
+  '1': require('@/assets/images/stores/1.png'),
+  '2': require('@/assets/images/stores/2.png'),
+  '3': require('@/assets/images/stores/3.png'),
+  '4': require('@/assets/images/stores/4.png'),
+  '5': require('@/assets/images/stores/5.png'),
+  '6': require('@/assets/images/stores/6.png'),
+  '7': require('@/assets/images/stores/7.png'),
+  '8': require('@/assets/images/stores/8.png'),
+  '9': require('@/assets/images/stores/9.png'),
+  '10': require('@/assets/images/stores/10.png'),
+  '11': require('@/assets/images/stores/11.png'),
 } as const;
 
 /**

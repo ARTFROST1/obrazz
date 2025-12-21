@@ -94,7 +94,7 @@ const getStyleSticker = (style?: string): string => {
 
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { items, updateItem, removeItemLocally: deleteItemFromStore } = useWardrobeStore();
+  const { items } = useWardrobeStore();
   const { isOnline } = useNetworkStatus();
 
   const [item, setItem] = useState<WardrobeItem | null>(null);
@@ -231,7 +231,7 @@ export default function ItemDetailScreen() {
     if (!item) return;
 
     try {
-      const updatedItem = await itemServiceOffline.updateItem(item.id, { category });
+      await itemServiceOffline.updateItem(item.id, { category });
       setItem({ ...item, category });
       setActiveMetadataCard(null);
     } catch (error) {

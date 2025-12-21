@@ -5,88 +5,141 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORES_KEY = '@shopping_browser_stores';
 const HISTORY_KEY = '@shopping_browser_history';
+const STORES_VERSION_KEY = '@shopping_browser_stores_version';
+const CURRENT_STORES_VERSION = '2.0'; // Increment this when DEFAULT_STORES changes
 
 export const DEFAULT_STORES: Store[] = [
   {
     id: '1',
-    name: 'ZARA',
-    url: 'https://www.zara.com',
+    name: 'Wildberries',
+    url: 'https://www.wildberries.ru/wbrands',
     logoLocal: STORE_LOGOS['1'],
     isDefault: true,
     order: 1,
   },
   {
     id: '2',
-    name: 'H&M',
-    url: 'https://www2.hm.com',
+    name: 'Ozon',
+    url: 'https://www.ozon.ru/category/odezhda-obuv-i-aksessuary-7500/',
     logoLocal: STORE_LOGOS['2'],
     isDefault: true,
     order: 2,
   },
   {
     id: '3',
-    name: 'ASOS',
-    url: 'https://www.asos.com',
+    name: 'Lamoda',
+    url: 'https://www.lamoda.ru/c/355/clothes-zhenskaya-odezhda/',
     logoLocal: STORE_LOGOS['3'],
     isDefault: true,
     order: 3,
   },
   {
     id: '4',
-    name: 'Nike',
-    url: 'https://www.nike.com',
+    name: 'Befree',
+    url: 'https://befree.ru/zhenskaya',
     logoLocal: STORE_LOGOS['4'],
     isDefault: true,
     order: 4,
   },
   {
     id: '5',
-    name: 'Adidas',
-    url: 'https://www.adidas.com',
+    name: 'ТВОЕ',
+    url: 'https://tvoe.ru/catalog/jenshchinam/odejda/',
     logoLocal: STORE_LOGOS['5'],
     isDefault: true,
     order: 5,
   },
   {
     id: '6',
-    name: 'Reserved',
-    url: 'https://www.reserved.com',
+    name: 'Zarina',
+    url: 'https://zarina.ru/',
     logoLocal: STORE_LOGOS['6'],
     isDefault: true,
     order: 6,
   },
   {
     id: '7',
-    name: 'Mango',
-    url: 'https://shop.mango.com',
+    name: 'Gloria Jeans',
+    url: 'https://www.gloria-jeans.ru/catalog/girls',
     logoLocal: STORE_LOGOS['7'],
     isDefault: true,
     order: 7,
   },
   {
     id: '8',
-    name: 'Pull&Bear',
-    url: 'https://www.pullandbear.com',
+    name: 'Henderson',
+    url: 'https://henderson.ru/catalog/apparel/',
     logoLocal: STORE_LOGOS['8'],
     isDefault: true,
     order: 8,
   },
   {
     id: '9',
-    name: 'Bershka',
-    url: 'https://www.bershka.com',
+    name: 'MAAG',
+    url: 'https://maag-fashion.com/collections/women-sale-t-shirts/',
     logoLocal: STORE_LOGOS['9'],
     isDefault: true,
     order: 9,
+  },
+  {
+    id: '10',
+    name: 'ECRU',
+    url: 'https://www.ecrubrand.com/collections',
+    logoLocal: STORE_LOGOS['10'],
+    isDefault: true,
+    order: 10,
+  },
+  {
+    id: '11',
+    name: 'DUB',
+    url: 'https://www.dubapparels.com/bestsellers',
+    logoLocal: STORE_LOGOS['11'],
+    isDefault: true,
+    order: 11,
   },
 ];
 
 class StoreService {
   /**
+   * Check if stores need update based on version
+   */
+  private async checkStoresVersion(): Promise<boolean> {
+    try {
+      const storedVersion = await AsyncStorage.getItem(STORES_VERSION_KEY);
+      return storedVersion === CURRENT_STORES_VERSION;
+    } catch (error) {
+      console.error('[StoreService] Error checking version:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Update stores version
+   */
+  private async updateStoresVersion(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORES_VERSION_KEY, CURRENT_STORES_VERSION);
+    } catch (error) {
+      console.error('[StoreService] Error updating version:', error);
+    }
+  }
+
+  /**
    * Get all stores (default + custom)
+   * Automatically updates to new defaults if version changed
    */
   async getStores(): Promise<Store[]> {
     try {
+      // Check if stores version is current
+      const isCurrentVersion = await this.checkStoresVersion();
+
+      if (!isCurrentVersion) {
+        console.log('[StoreService] Stores version outdated, resetting to defaults');
+        await this.saveStores(DEFAULT_STORES);
+        await this.updateStoresVersion();
+        return DEFAULT_STORES;
+      }
+
       const stored = await AsyncStorage.getItem(STORES_KEY);
       if (stored) {
         try {
@@ -112,6 +165,7 @@ class StoreService {
       }
       // First time or invalid data - return defaults
       await this.saveStores(DEFAULT_STORES);
+      await this.updateStoresVersion();
       return DEFAULT_STORES;
     } catch (error) {
       console.error('[StoreService] Error loading stores:', error);
@@ -241,9 +295,11 @@ class StoreService {
 
   /**
    * Reset to defaults
+   * Also updates version to current
    */
   async resetToDefaults(): Promise<void> {
     await this.saveStores(DEFAULT_STORES);
+    await this.updateStoresVersion();
   }
 }
 

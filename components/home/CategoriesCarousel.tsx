@@ -1,4 +1,5 @@
 import { ItemCategory } from '@/types/models/item';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -9,58 +10,58 @@ const TILE_GAP = 12;
 interface CategoryItem {
   id: ItemCategory;
   label: string;
-  icon: string;
-  color: string;
+  iconName: string;
+  iconLibrary: 'Ionicons' | 'MaterialCommunityIcons';
 }
 
 const CATEGORY_DATA: CategoryItem[] = [
   {
     id: 'headwear',
     label: 'Головные уборы',
-    icon: '🎩',
-    color: '#FF6B6B',
+    iconName: 'hat-fedora',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'outerwear',
     label: 'Верхняя одежда',
-    icon: '🧥',
-    color: '#4ECDC4',
+    iconName: 'coat-rack',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'tops',
     label: 'Верх',
-    icon: '👕',
-    color: '#45B7D1',
+    iconName: 'tshirt-crew',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'bottoms',
     label: 'Низ',
-    icon: '👖',
-    color: '#96CEB4',
+    iconName: 'human-handsdown',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'footwear',
     label: 'Обувь',
-    icon: '👟',
-    color: '#FFEAA7',
+    iconName: 'shoe-sneaker',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'accessories',
     label: 'Аксессуары',
-    icon: '⌚',
-    color: '#DDA0DD',
+    iconName: 'watch',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'fullbody',
     label: 'Полный образ',
-    icon: '👗',
-    color: '#F8B500',
+    iconName: 'tshirt-crew-outline',
+    iconLibrary: 'MaterialCommunityIcons',
   },
   {
     id: 'other',
     label: 'Другое',
-    icon: '📦',
-    color: '#A0A0A0',
+    iconName: 'grid',
+    iconLibrary: 'Ionicons',
   },
 ];
 
@@ -75,12 +76,13 @@ export default function CategoriesCarousel({ onCategoryPress }: CategoriesCarous
     }
   };
 
+  const renderIcon = (item: CategoryItem) => {
+    const IconComponent = item.iconLibrary === 'Ionicons' ? Ionicons : MaterialCommunityIcons;
+    return <IconComponent name={item.iconName as any} size={32} color="#000" />;
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Категории</Text>
-        <Text style={styles.sectionSubtitle}>Быстрый доступ к гардеробу</Text>
-      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -94,9 +96,7 @@ export default function CategoriesCarousel({ onCategoryPress }: CategoriesCarous
             onPress={() => handleCategoryPress(item.id)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-              <Text style={styles.icon}>{item.icon}</Text>
-            </View>
+            <View style={styles.iconContainer}>{renderIcon(item)}</View>
             <Text style={styles.label} numberOfLines={2}>
               {item.label}
             </Text>
@@ -109,21 +109,8 @@ export default function CategoriesCarousel({ onCategoryPress }: CategoriesCarous
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 28,
-  },
-  header: {
-    paddingHorizontal: 16,
+    marginTop: 20,
     marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
   },
   scrollContent: {
     paddingRight: 16,
@@ -142,14 +129,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  icon: {
-    fontSize: 32,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   label: {
     fontSize: 11,

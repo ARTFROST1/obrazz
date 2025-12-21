@@ -52,7 +52,6 @@ export default function WardrobeScreen() {
     filter,
     setItems,
     setFilter,
-    clearFilter,
     getFilteredItems,
     isLoading,
     setLoading,
@@ -257,17 +256,18 @@ export default function WardrobeScreen() {
     });
   };
 
-  const handleClearFilter = () => {
-    clearFilter();
-    setSearchQuery('');
-  };
+  // Clear filter helper (not currently used)
+  // const handleClearFilter = () => {
+  //   clearFilter();
+  //   setSearchQuery('');
+  // };
 
-  const handleToggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
+  const handleToggleSelectionMode = React.useCallback(() => {
+    setIsSelectionMode((prev) => !prev);
     setSelectedItems(new Set());
-  };
+  }, []);
 
-  const handleToggleGridColumns = () => {
+  const handleToggleGridColumns = React.useCallback(() => {
     LayoutAnimation.configureNext({
       duration: 300,
       update: {
@@ -276,7 +276,7 @@ export default function WardrobeScreen() {
       },
     });
     setGridColumns(gridColumns === 2 ? 3 : 2);
-  };
+  }, [gridColumns]);
 
   const handleSelectAll = () => {
     if (selectedItems.size === filteredItems.length) {

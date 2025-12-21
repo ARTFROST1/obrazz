@@ -24,9 +24,10 @@ const USE_NATIVE_MENU = false; // false = временный custom dropdown (р
 let MenuView: any = null;
 if (USE_NATIVE_MENU) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const menuModule = require('@react-native-menu/menu');
     MenuView = menuModule.MenuView;
-  } catch (e) {
+  } catch {
     console.warn(
       '[GlassDropdownMenu] Native MenuView not available, falling back to custom dropdown',
     );
