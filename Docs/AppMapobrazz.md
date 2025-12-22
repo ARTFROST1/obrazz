@@ -329,29 +329,29 @@
 
 ### 🚧 Planned (Stage 5+)
 
-#### Stage 5: AI-анализ вещей при загрузке
+#### Stage 5: AI-функции (The New Black API)
 
-- Auto-detection of category, color, style, season
-- Mistral Small API integration
-- User confirmation/correction flow
+- Virtual Try-On — примерка вещей на фото пользователя
+- Fashion Models — генерация модели в одежде
+- Variations — вариации дизайна вещей
+- Rails Backend как прокси к The New Black API
+- Токены: FREE 5/мес, PRO 50/мес, MAX 150/мес
 
-#### Stage 6: AI-стилист (подбор образов)
+#### Stage 6: Ruby on Rails Backend
 
-- Style/season/occasion parameter selection
-- NestJS microservice for outfit generation
-- 3 outfit variants visualization
-- Mistral Nemo API (~0.03₽/request)
-- Rate limits: FREE 30/mo, PRO 60/mo, MAX 100/mo
+- JWT авторизация (Devise + Doorkeeper)
+- Admin panel (ActiveAdmin)
+- Token balance management
+- Webhooks for YooMoney/RevenueCat
 
-#### Stage 7: AI-примерка на фото
+#### Stage 7: Подписки и биллинг
 
-- User photo upload
-- Single outfit image generation (not collage)
-- Gemini 2.5 Flash API (~3₽/generation)
-- Temporary storage (create on try-on, delete after)
-- Rate limits: FREE 5 bonus, PRO 30/mo, MAX 50/mo
+- YooMoney integration (Russia) via website
+- IAP integration (global) via RevenueCat
+- Plans: PRO (399₽/mo), MAX (799₽/mo)
+- Purchasable token packs: 10-300 токенов
 
-#### Stage 8: Subscription & Billing
+#### Stage 8: Геймификация и streak
 
 - YooMoney integration (Russia) via website
 - IAP integration (global) via RevenueCat
@@ -909,76 +909,106 @@ Edit previously saved outfits with full access to replace items and re-arrange e
 
 #### Purpose
 
-Автоматический подбор сочетаний вещей из гардероба пользователя с учётом цветовой гармонии, стиля и сезона.
+Примерка вещей из гардероба на фото пользователя с помощью The New Black Virtual Try-On API.
 
 #### Inputs (UI)
 
-- Стиль (picker): casual, formal, street, boho, etc.
-- Сезон (required): весна, лето, осень, зима
-- Событие (optional): работа, свидание, прогулка
-- Ограничения (optional): обязательно включить вещь, исключить категорию
+- Фото пользователя (из галереи или камера)
+- Вещь из гардероба для примерки
+- Опционально: текстовый промпт для уточнения
 
 #### Process (high level)
 
-1. Client отправляет запрос: user_id + параметры подбора
-2. NestJS микросервис получает метаданные вещей из БД
-3. Mistral Nemo анализирует и подбирает сочетания по:
-   - Цветовой гармонии
-   - Совместимости стилей
-   - Сезонности
-4. Возвращает 3 варианта образов с item IDs
-5. Client визуализирует образы на canvas
+1. Client отправляет запрос на Rails Backend: user_id + model_photo + clothing_photo
+2. Rails проверяет токен-баланс пользователя
+3. Rails вызывает The New Black Virtual Try-On API
+4. Результат сохраняется в Supabase Storage (т.к. The New Black удаляет через 48ч)
+5. Списывается 1 токен, результат возвращается клиенту
 
 #### UX
 
-- Загрузка с объяснением логики подбора
-- 3 варианта образов в карусели
-- Возможность заменить отдельные элементы
-- Сохранение понравившегося образа
+- Прогресс-бар генерации (5-15 секунд)
+- Предпросмотр результата
+- Сохранение в галерею примерок
+- Шеринг результата
 
-#### Rate limits
+#### Token cost
 
-| План | Лимит/мес   |
+**1 токен = 1 генерация**
+
+| План | Токенов/мес |
 | ---- | ----------- |
-| FREE | 30 (1/день) |
-| PRO  | 60          |
-| MAX  | 100         |
+| FREE | 5           |
+| PRO  | 50          |
+| MAX  | 150         |
 
-**API:** Mistral Nemo (~0.03₽/запрос на 100 вещей)
+**API:** The New Black Virtual Try-On (~$0.08-0.125/генерация)
 
 ---
 
-### G.2. AI-примерка на фото 🚧 PLANNED
+### G.2. AI Fashion Models 🚧 PLANNED
 
 #### Purpose
 
-Виртуальная примерка полного образа на фото пользователя.
+Генерация AI-модели в выбранной одежде из гардероба.
 
 #### Flow
 
-1. Пользователь загружает своё фото
-2. Выбирает образ для примерки
-3. Система генерирует единое изображение образа (не коллаж)
-4. Gemini 2.5 Flash накладывает образ на фото
-5. Результат показывается пользователю
-6. Временное хранение: файл удаляется после просмотра
+1. Пользователь выбирает вещь из гардероба
+2. Выбирает параметры модели (пол, поза, фон)
+3. Rails Backend вызывает The New Black Fashion Models API
+4. Результат сохраняется в Supabase Storage
+5. Пользователь видит модель в своей одежде
 
 #### Technical
 
-- **Input**: фото пользователя + список вещей образа
-- **Process**: генерация single outfit image → AI-наложение
-- **Output**: фото с примеркой
-- **Storage**: временный файл, удаляется после сессии
+- **Input**: фото вещи + параметры модели + промпт
+- **Process**: Rails → The New Black → Supabase Storage
+- **Output**: изображение модели в одежде
+- **Storage**: постоянное хранение в ai_generations
 
-#### Rate limits
+#### Token cost
 
-| План | Лимит/мес |
-| ---- | --------- |
-| FREE | 5 (бонус) |
-| PRO  | 30        |
-| MAX  | 50        |
+| План | Токенов/мес |
+| ---- | ----------- |
+| FREE | 5           |
+| PRO  | 50          |
+| MAX  | 150         |
 
-**API:** Gemini 2.5 Flash (~3₽/генерация)
+**API:** The New Black Fashion Models (~$0.08-0.125/генерация)
+
+---
+
+### G.3. Clothing Variations 🚧 PLANNED
+
+#### Purpose
+
+Генерация вариаций дизайна выбранной вещи из гардероба.
+
+#### Flow
+
+1. Пользователь выбирает вещь из гардероба
+2. Вводит промпт для вариации (цвет, стиль, детали)
+3. Rails Backend вызывает The New Black Variations API
+4. Результат сохраняется в Supabase Storage
+5. Пользователь видит вариации своей вещи
+
+#### Technical
+
+- **Input**: фото вещи + промпт
+- **Process**: Rails → The New Black → Supabase Storage
+- **Output**: изображение вариации
+- **Storage**: постоянное хранение в ai_generations
+
+#### Token cost
+
+| План | Токенов/мес |
+| ---- | ----------- |
+| FREE | 5           |
+| PRO  | 50          |
+| MAX  | 150         |
+
+**API:** The New Black Variations (~$0.08-0.125/генерация)
 
 ---
 
@@ -1461,15 +1491,15 @@ interface ShoppingBrowserState {
 
 - Баннерная реклама в нижней части экрана
 - Interstitial между действиями (после сохранения образа)
-- Rewarded video за бонусы (доп. AI-запросы)
+- Rewarded video за бонусы (доп. токены)
 
 **Примерный доход:** ~15₽/мес на FREE пользователя
 
 ---
 
-## 5. API endpoints / backend responsibilities (Supabase + microservice)
+## 5. API endpoints / backend responsibilities (Supabase + Rails Backend)
 
-This is a recommended concise set of endpoints or DB actions. Supabase handles many CRUD actions via direct DB access; add RPC functions / Edge functions for complex logic.
+This is a recommended concise set of endpoints or DB actions. Supabase handles many CRUD actions via direct DB access; Rails Backend handles AI operations and billing.
 
 ### Auth (Supabase)
 
@@ -1483,7 +1513,7 @@ This is a recommended concise set of endpoints or DB actions. Supabase handles m
 - PATCH /items/:id — edit item metadata
 - DELETE /items/:id — delete metadata
 
-> Note: image files -> local; if we later add cloud sync, image upload API will be needed.
+> Note: image files -> Supabase Storage; local caching for offline mode.
 
 ### Outfits
 
@@ -1491,43 +1521,51 @@ This is a recommended concise set of endpoints or DB actions. Supabase handles m
 - POST /outfits — save outfit metadata (items + transforms)
 - PATCH /outfits/:id
 
-### AI microservice (NestJS)
+### AI Endpoints (Rails Backend → The New Black API)
 
-- POST /ai/analyze-item
-  - Body: { image_url or image_base64 }
-  - Response: { category, colors[], styles[], seasons[] }
-  - API: Mistral Small
+- POST /api/v1/ai/virtual_tryon
+  - Body: { model_photo, clothing_photo, prompt?, ratio? }
+  - Response: { image_url, generation_id }
+  - API: The New Black Virtual Try-On
 
-- POST /ai/generate-outfits
-  - Body: { user_id, style, seasons, occasion, constraints }
-  - Response: { candidates: [{ items: [{item_id, score}], explanation }] }
-  - API: Mistral Nemo
+- POST /api/v1/ai/fashion_model
+  - Body: { clothing_photo, prompt?, ratio? }
+  - Response: { image_url, generation_id }
+  - API: The New Black Fashion Models
 
-- POST /ai/try-on
-  - Body: { user_photo_url, outfit_items[] }
-  - Response: { result_image_url, temp_expires_at }
-  - API: Gemini 2.5 Flash
+- POST /api/v1/ai/variation
+  - Body: { clothing_photo, prompt }
+  - Response: { image_url, generation_id }
+  - API: The New Black Variations
 
-Security: AI endpoints require valid JWT and rate-limiting based on subscription tier.
+Security: AI endpoints require valid JWT and check token balance before processing.
+
+### Token System (Rails Backend)
+
+- GET /api/v1/tokens/balance — текущий баланс токенов
+- POST /api/v1/tokens/purchase — покупка пакета токенов
+- GET /api/v1/tokens/transactions — история транзакций
 
 ### Subscription (Website + App)
 
-- POST /billing/create-checkout (YooMoney)
-- POST /billing/webhook (YooMoney callback)
-- GET /subscription/status
-- POST /subscription/restore (IAP)
+- POST /api/v1/billing/create-checkout (YooMoney)
+- POST /api/v1/billing/webhook (YooMoney callback)
+- GET /api/v1/subscription/status
+- POST /api/v1/subscription/restore (IAP)
 
 ## 6. Data flows and storage details
 
-- **Add item**: user picks image -> ImageCropper (3:4) -> background removal (Pixian.ai) -> AI analysis (Mistral, optional) -> image saved locally -> metadata POSTed to Supabase.
+- **Add item**: user picks image -> ImageCropper (3:4) -> background removal (Pixian.ai) -> image saved to Supabase Storage -> metadata POSTed to Supabase DB.
 - **Create outfit**: client serializes canvas (item IDs + transforms + canvasSettings) -> POST to /outfits -> Supabase stores metadata.
-- **AI Stylist**: POST /ai/generate-outfits -> Mistral Nemo -> 3 variants returned -> client renders.
-- **AI Try-On**: POST /ai/try-on -> Gemini generates overlay -> temp image returned -> deleted after session.
+- **AI Virtual Try-On**: Mobile → Rails → The New Black API → Rails saves to Supabase Storage → returns URL.
+- **AI Fashion Models**: Mobile → Rails → The New Black API → Rails saves to Supabase Storage → returns URL.
+- **AI Variations**: Mobile → Rails → The New Black API → Rails saves to Supabase Storage → returns URL.
 
 ## 7. Edge cases, errors & validation
 
 - **Image missing**: outfit references item removed by user -> show placeholder and prompt to replace.
 - **Background remove failure**: offer retry and allow manual crop fallback.
+- **Insufficient tokens**: show purchase modal with token packs.
 - **Quota exceeded**: block AI calls and show subscription CTA with clear benefits.
 - **Network offline**: allow viewing local items but block server operations (sign-in, AI, share). Show clear messaging.
 - **Conflicting saves**: if an outfit is edited on two devices (future feature), warn user and provide merge/revert options.

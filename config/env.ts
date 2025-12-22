@@ -14,8 +14,7 @@ interface EnvConfig {
   pixianApiId: string;
   pixianApiSecret: string;
   pixianTestMode: boolean;
-  openAiApiKey: string;
-  aiServiceUrl: string;
+  railsApiUrl: string;
 
   // RevenueCat
   revenueCatApiKey: string;
@@ -56,9 +55,46 @@ interface EnvConfig {
   paymasterMerchantId: string;
 }
 
+const toCamelCase = (input: string): string =>
+  input
+    .toLowerCase()
+    .split('_')
+    .map((part, index) => (index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+    .join('');
+
 const getEnvValue = (key: string, defaultValue: string = ''): string => {
-  const value = Constants.expoConfig?.extra?.[key] || process.env[key];
-  return value || defaultValue;
+  const extra = Constants.expoConfig?.extra as Record<string, unknown> | undefined;
+
+  // 1) Direct access by key
+  const direct = extra?.[key];
+  if (typeof direct === 'string' && direct.length > 0) return direct;
+
+  // 2) Expo config uses camelCase keys in app.config.js (e.g. supabaseUrl)
+  // Map EXPO_PUBLIC_SUPABASE_URL -> supabaseUrl
+  if (key.startsWith('EXPO_PUBLIC_')) {
+    const withoutPrefix = key.replace(/^EXPO_PUBLIC_/, '');
+    const camelKey = toCamelCase(withoutPrefix);
+    const camelValue = extra?.[camelKey];
+    if (typeof camelValue === 'string' && camelValue.length > 0) return camelValue;
+  }
+
+  // 3) Fallback to process.env (dev)
+  // Avoid dynamic access to satisfy expo/no-dynamic-env-var
+  const envValue =
+    typeof process !== 'undefined' && process.env
+      ? key === 'EXPO_PUBLIC_SUPABASE_URL'
+        ? process.env.EXPO_PUBLIC_SUPABASE_URL
+        : key === 'EXPO_PUBLIC_SUPABASE_ANON_KEY'
+          ? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+          : key === 'EXPO_PUBLIC_PIXIAN_API_ID'
+            ? process.env.EXPO_PUBLIC_PIXIAN_API_ID
+            : key === 'EXPO_PUBLIC_PIXIAN_API_SECRET'
+              ? process.env.EXPO_PUBLIC_PIXIAN_API_SECRET
+              : key === 'EXPO_PUBLIC_RAILS_API_URL'
+                ? process.env.EXPO_PUBLIC_RAILS_API_URL
+                : undefined
+      : undefined;
+  return envValue || defaultValue;
 };
 
 const getBooleanEnv = (key: string, defaultValue: boolean = false): boolean => {
@@ -82,8 +118,7 @@ export const env: EnvConfig = {
   pixianApiId: getEnvValue('EXPO_PUBLIC_PIXIAN_API_ID'),
   pixianApiSecret: getEnvValue('EXPO_PUBLIC_PIXIAN_API_SECRET'),
   pixianTestMode: getBooleanEnv('EXPO_PUBLIC_PIXIAN_TEST_MODE', true),
-  openAiApiKey: getEnvValue('EXPO_PUBLIC_OPENAI_API_KEY'),
-  aiServiceUrl: getEnvValue('EXPO_PUBLIC_AI_SERVICE_URL', 'http://localhost:3001'),
+  railsApiUrl: getEnvValue('EXPO_PUBLIC_RAILS_API_URL', 'http://localhost:3000'),
 
   // RevenueCat
   revenueCatApiKey: getEnvValue('EXPO_PUBLIC_REVENUECAT_API_KEY'),

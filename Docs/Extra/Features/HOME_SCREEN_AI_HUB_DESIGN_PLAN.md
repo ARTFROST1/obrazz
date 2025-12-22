@@ -700,7 +700,7 @@ components/
 │
 services/
 ├── ai/
-│   ├── theNewBlackService.ts   # API client
+│   ├── aiService.ts            # Rails API client (proxy to The New Black)
 │   ├── tryOnService.ts
 │   ├── fashionModelService.ts
 │   ├── editPhotoService.ts
@@ -713,7 +713,7 @@ store/
 types/
 ├── ai/
 │   ├── generation.ts
-│   └── theNewBlack.ts
+│   └── railsAiApi.ts
 ```
 
 ---
@@ -726,7 +726,7 @@ types/
 interface AIGeneration {
   id: string;
   userId: string;
-  type: 'try-on' | 'fashion-model' | 'edit' | 'stylist';
+  type: 'virtual_tryon' | 'fashion_model' | 'variation';
 
   // Inputs
   inputImages: string[];
@@ -738,7 +738,7 @@ interface AIGeneration {
 
   // Metadata
   createdAt: Date;
-  creditsUsed: number;
+  tokensSpent: number;
 
   // Relations
   relatedOutfitId?: string;
@@ -761,21 +761,23 @@ interface StreakData {
 
 ---
 
-## 💰 Интеграция с Лимитами Подписки
+## 💰 Система токенов (подписка + докупка)
 
-### Лимиты AI-генераций:
+### Базовые токены по плану:
 
-| План | Try-On    | Fashion Model | Edit      | Stylist |
-| ---- | --------- | ------------- | --------- | ------- |
-| FREE | 5 (бонус) | 5 (бонус)     | 5 (бонус) | 10/мес  |
-| PRO  | 30/мес    | 30/мес        | 20/мес    | 60/мес  |
-| MAX  | 50/мес    | 50/мес        | 40/мес    | 100/мес |
+| План | Токенов/мес |
+| ---- | ----------- |
+| FREE | 5           |
+| PRO  | 50          |
+| MAX  | 150         |
 
-### UI для лимитов:
+**Стоимость AI:** 1 токен = 1 генерация (Try-On / Fashion Model / Variation)
+
+### UI для токенов:
 
 ```
 ┌─────────────────────────────────────┐
-│  ⚠️ Осталось 2 примерки             │
+│  ⚠️ Осталось 2 токена              │
 │                                     │
 │  [Получить больше]                  │
 └─────────────────────────────────────┘
@@ -786,14 +788,14 @@ interface StreakData {
 ```
 ┌─────────────────────────────────────┐
 │                                     │
-│    😔 Лимит исчерпан                │
+│    😔 Токены закончились            │
 │                                     │
-│  Вы использовали все примерки       │
-│  в этом месяце.                     │
+│  Купите пакет токенов               │
+│  или дождитесь обновления.          │
 │                                     │
 │  Следующее обновление: 1 января     │
 │                                     │
-│  [Улучшить план]   [Закрыть]        │
+│  [Купить токены]   [Закрыть]        │
 │                                     │
 └─────────────────────────────────────┘
 ```
@@ -808,29 +810,28 @@ interface StreakData {
 # app/controllers/api/v1/ai_controller.rb
 class Api::V1::AiController < ApplicationController
   before_action :authenticate_user!
-  before_action :check_limits
+  before_action :check_tokens
 
-  def try_on
-    result = TheNewBlackService.virtual_try_on(
-      model_photo: params[:model_photo],
-      clothing_photo: params[:clothing_photo],
-      ratio: params[:ratio] || 'auto'
+  def virtual_tryon
+    # Mobile → Rails → The New Black → Supabase Storage
+    # Списываем токены и запускаем фоновые job (реальный код см. Backend.md)
+    generation = current_user.ai_generations.create!(
+      generation_type: :virtual_tryon,
+      status: :pending,
+      input_data: params.permit(:model_photo, :clothing_photo, :clothing_photo_2, :prompt, :ratio).to_h,
+      tokens_spent: 1
     )
 
-    # Save to Supabase Storage
-    saved_url = StorageService.save_generation(result[:url], current_user.id)
+    ProcessAiGenerationJob.perform_later(generation.id, :virtual_tryon)
 
-    # Track usage
-    UsageTracker.record(current_user, 'try_on')
-
-    render json: { image_url: saved_url }
+    render json: { generationId: generation.id, status: 'processing' }, status: :accepted
   end
 
   private
 
-  def check_limits
-    unless UsageLimits.can_generate?(current_user, params[:type])
-      render json: { error: 'limit_exceeded' }, status: 429
+  def check_tokens
+    unless current_user.can_generate?(1)
+      render json: { error: 'no_tokens' }, status: :payment_required
     end
   end
 end
@@ -839,22 +840,34 @@ end
 ### React Native Service
 
 ```typescript
-// services/ai/theNewBlackService.ts
+// services/ai/aiService.ts
+// Важно: клиент НЕ ходит в The New Black напрямую.
+// Все AI запросы идут в Rails Backend (proxy), который:
+// - проверяет/списывает токены
+// - вызывает The New Black API
+// - сохраняет результат в Supabase Storage
+// - возвращает постоянный URL или generationId
+
 import { apiClient } from '@/lib/api';
 
-export const theNewBlackService = {
-  async tryOn(params: TryOnParams): Promise<GenerationResult> {
-    const response = await apiClient.post('/ai/try-on', params);
+export const aiService = {
+  async virtualTryon(params: TryOnParams) {
+    const response = await apiClient.post('/api/v1/ai/virtual_tryon', params);
+    return response.data; // { generationId, status }
+  },
+
+  async fashionModel(params: FashionModelParams) {
+    const response = await apiClient.post('/api/v1/ai/fashion_model', params);
     return response.data;
   },
 
-  async fashionModel(params: FashionModelParams): Promise<GenerationResult> {
-    const response = await apiClient.post('/ai/fashion-model', params);
+  async variation(params: VariationParams) {
+    const response = await apiClient.post('/api/v1/ai/variation', params);
     return response.data;
   },
 
-  async editPhoto(params: EditPhotoParams): Promise<GenerationResult> {
-    const response = await apiClient.post('/ai/edit', params);
+  async getGeneration(id: string) {
+    const response = await apiClient.get(`/api/v1/ai/generations/${id}`);
     return response.data;
   },
 };

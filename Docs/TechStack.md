@@ -160,25 +160,22 @@ gem 'sentry-ruby'                 # Error tracking
 }
 ```
 
-### Node.js Microservice (AI сервисы)
+### The New Black AI (Внешний API)
 
-```json
-{
-  "@nestjs/core": "^10.5.0",
-  "@nestjs/common": "^10.5.0",
-  "@nestjs/platform-express": "^10.5.0",
-  "@nestjs/swagger": "^8.0.0",
-  "@nestjs/config": "^3.3.0",
-  "@nestjs/jwt": "^10.3.0",
-  "@nestjs/passport": "^10.1.0",
-  "passport": "^0.8.0",
-  "passport-jwt": "^4.0.1",
-  "class-validator": "^0.14.1",
-  "class-transformer": "^0.5.1",
-  "helmet": "^8.0.0",
-  "compression": "^1.7.6"
-}
-```
+> **Примечание:** Вместо отдельного NestJS микросервиса используем готовый The New Black Fashion AI API.
+> Rails backend выступает proxy и сохраняет результаты в Supabase Storage.
+
+**API Endpoints:**
+
+- Virtual Try-On: `POST /api/1.1/wf/vto_stream` (1 credit)
+- AI Fashion Models: `POST /api/1.1/wf/ai-fashion-models-items` (1 credit)
+- Clothing Variation: `POST /api/1.1/wf/variation` (1 credit)
+- Fashion Design: `POST /api/1.1/wf/clothing` (1 credit)
+
+**Pricing:** $5-80 за пакеты от 40 до 1000 credits
+**Документация:** https://thenewblack.ai/clothing_fashion_api_integrations
+
+````
 
 ---
 
@@ -195,7 +192,7 @@ gem 'sentry-ruby'                 # Error tracking
   "react-native-screens": "~4.16.0",
   "react-native-svg": "^15.10.0"
 }
-```
+````
 
 **📋 Для будущих стадий:**
 

@@ -1,9 +1,9 @@
 # Copilot Instructions for Obrazz
 
 **Project:** Obrazz - Personal Wardrobe & AI Styling Mobile App  
-**Tech Stack:** React Native 0.81.4 + Expo 54 + TypeScript + Zustand + Supabase  
-**Stage:** 4.10 Complete (базовый функционал завершён)  
-**Next:** Stage 5 - AI-анализ вещей при загрузке
+**Tech Stack:** React Native 0.81.4 + Expo 54 + TypeScript + Zustand + Supabase + Rails  
+**Stage:** 4.12 Complete (Offline-First архитектура)  
+**Next:** Stage 5 - AI-функции (The New Black API)
 
 ## Project Vision
 
@@ -11,13 +11,14 @@ Obrazz - персональный гардероб с AI-стилистом. О�
 
 - ✅ Управление гардеробом (добавление вещей, удаление фона)
 - ✅ Ручное создание образов (4-Tab System, drag&drop canvas)
-- 🚧 AI-анализ вещей при загрузке (Mistral Small)
-- 🚧 AI-стилист для подбора образов (Mistral Nemo)
-- 🚧 AI-примерка на фото пользователя (Gemini 2.5 Flash)
+- 🚧 AI Virtual Try-On (примерка на фото) — The New Black API
+- 🚧 AI Fashion Models (модель в вещах) — The New Black API
+- 🚧 Clothing Variations (вариации дизайна) — The New Black API
+- 🚧 Система токенов (подписка + докупка)
+- 🚧 Rails Backend (ЛК, админка, биллинг)
 - 🚧 Геймификация (streak, челленджи)
-- 🚧 Подписки (YooMoney для РФ, IAP глобально)
 
-**❌ НЕТ в проекте:** Community Feed, социальные функции, публичный шеринг
+**❌ НЕТ в проекте:** Community Feed, социальные функции, публичный шеринг, NestJS микросервис
 
 ## Architecture Overview
 
@@ -26,9 +27,9 @@ Obrazz - персональный гардероб с AI-стилистом. О�
 Obrazz follows a **clean, layered architecture** with clear separation of concerns:
 
 ```
-Authentication → Services → Stores (Zustand) → Components → Navigation (Expo Router)
-    ↓
-Supabase Backend (Auth + Database + Storage)
+Mobile App → Rails Backend API → The New Black AI
+                 ↓
+         Supabase (Auth + DB + Storage)
 ```
 
 **Key Architectural Patterns:**
@@ -37,6 +38,7 @@ Supabase Backend (Auth + Database + Storage)
    - Each domain (auth, wardrobe, outfit) has its own service file
    - Services handle Supabase calls and data transformation
    - Example: `outfitService.ts` transforms snake_case DB columns to camelCase for app
+   - **AI services** будут вызывать Rails API, не The New Black напрямую
 
 2. **State Management** (`/store`) - Zustand stores with persistence
    - `authStore.ts` - Handles user session + persistence
@@ -237,6 +239,7 @@ EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 EXPO_PUBLIC_PIXIAN_API_ID=your_pixian_id
 EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
+EXPO_PUBLIC_RAILS_API_URL=https://api.obrazz.app  # будущий Rails backend
 ```
 
 ## Documentation References
@@ -245,13 +248,14 @@ EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
 - **Project structure:** `Docs/project_structure.md` - Folder organization & conventions
 - **Roadmap:** `Docs/Implementation.md` - Stage-based implementation plan
 - **Tech specs:** `Docs/TechStack.md` - All dependencies & versions
+- **Backend architecture:** `Docs/Extra/Features/Backend.md` - Rails + The New Black API
 - **UI/UX:** `Docs/UI_UX_doc.md` - Design system & component specs
 - **Bug tracking:** `Docs/Bug_tracking.md` - Known issues & solutions
 - **Recent changes:** `Docs/Extra/CHANGELOG.md` - What changed in each version
 
 ## Current Limitations & Known Patterns
 
-1. **No real AI generation yet** - Placeholder screens exist, microservice not integrated
+1. **AI via Rails proxy** - Mobile → Rails Backend → The New Black API (не напрямую)
 2. **Image handling** - Uses Pixian.ai for background removal; stored in Supabase Storage
 3. **Carousel system** - SmoothCarousel component has custom scroll behavior (Stage 4.7)
 4. **Community feed** - NOT PLANNED (removed from scope)
@@ -265,3 +269,4 @@ EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
 3. **Trace the data flow:** Follow service → store → component for any feature
 4. **Use TypeScript strictly:** Types provide the best documentation in this codebase
 5. **Look at similar features:** E.g., if implementing shares, check existing isFavorite pattern in items & outfits
+6. **Look at similar features:** E.g., if implementing shares, check existing isFavorite pattern in items & outfits

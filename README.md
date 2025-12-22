@@ -115,13 +115,14 @@ npx expo start
 ### Backend
 
 - **Supabase** (PostgreSQL + Auth + Storage)
-- **NestJS** 10.5.x for AI microservices
-- **OpenAI API** for outfit generation
-- **Remove.bg API** for background removal
+- **Ruby on Rails** 7.x (единый backend: API, админка, биллинг)
+- **The New Black AI API** (Virtual Try-On, Fashion Models, Variations)
+- **Pixian.ai API** for background removal
 
 ### Tools & Services
 
-- **RevenueCat** for subscriptions
+- **YooKassa** for Russian payments
+- **Stripe** for global payments
 - **Sentry** for error tracking
 - **Expo EAS** for builds and OTA updates
 

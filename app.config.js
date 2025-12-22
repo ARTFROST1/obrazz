@@ -64,8 +64,8 @@ export default {
       // Supabase configuration
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-      // AI Service
-      aiServiceUrl: process.env.EXPO_PUBLIC_AI_SERVICE_URL,
+      // Rails Backend API (proxy for AI + billing)
+      railsApiUrl: process.env.EXPO_PUBLIC_RAILS_API_URL,
       // Feature flags
       enableAi: process.env.EXPO_PUBLIC_ENABLE_AI,
       enableSubscription: process.env.EXPO_PUBLIC_ENABLE_SUBSCRIPTION,

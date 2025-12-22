@@ -6,15 +6,16 @@ This document provides guidance for AI assistants working with the Obrazz codeba
 
 Obrazz is a React Native/Expo mobile application for personal wardrobe management and AI-powered outfit creation. Key features:
 
-- ✅ Personal wardrobe with background removal
+- ✅ Personal wardrobe with background removal (Pixian.ai)
 - ✅ Manual outfit creation (4-Tab System, drag&drop canvas)
-- 🚧 AI item analysis on upload (Mistral Small)
-- 🚧 AI Stylist for outfit suggestions (Mistral Nemo)
-- 🚧 AI Try-On on user photos (Gemini 2.5 Flash)
-- 🚧 Gamification (streak, challenges)
-- 🚧 Subscriptions (YooMoney RU, IAP global)
+- 🚧 AI Virtual Try-On (примерка на фото) — The New Black API
+- 🚧 AI Fashion Models (модель в одежде) — The New Black API
+- 🚧 Clothing Variations (вариации дизайна) — The New Black API
+- 🚧 Система токенов (подписка + докупка)
+- 🚧 Rails Backend (ЛК, админка, биллинг)
+- 🚧 Геймификация (streak, челленджи)
 
-**Current Development Stage:** Stage 4.10 Complete → Next: Stage 5 (AI Item Analysis)
+**Current Development Stage:** Stage 4.12 Complete → Next: Stage 5 (AI-функции, The New Black API)
 
 ## Tech Stack
 

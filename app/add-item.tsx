@@ -10,7 +10,6 @@ import { backgroundRemoverService } from '@services/wardrobe/backgroundRemover';
 import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
 import { useAuthStore } from '@store/auth/authStore';
 import { useShoppingBrowserStore } from '@store/shoppingBrowserStore';
-import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -46,7 +45,6 @@ export default function AddItemScreen() {
     manualCrop?: string;
   }>();
   const { user } = useAuthStore();
-  const { addItem, updateItem } = useWardrobeStore();
 
   // Batch processing state
   const {
@@ -245,7 +243,9 @@ export default function AddItemScreen() {
     isBatchMode,
     getNextBatchItem,
     batchQueue.length,
-    currentBatchIndex, // Add this dependency to reload when moving to next batch item
+    currentBatchIndex,
+    brand,
+    webSourceName,
   ]);
 
   const requestPermissions = async () => {

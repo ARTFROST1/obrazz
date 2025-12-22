@@ -220,32 +220,32 @@ Stage 8 (Polish) - можно начинать параллельно с Stage 5
 
 ### 🟢 Разработчик B → Stage 5: AI Generation (7-8 дней)
 
-**День 1-3: NestJS Microservice**
+**День 1-3: Rails Backend Setup**
 
-- [ ] Создать NestJS проект (`apps/ai-service/`)
-- [ ] API endpoints для генерации образов
-- [ ] Алгоритм color harmony
-- [ ] Алгоритм style matching
+- [ ] Создать Rails API проект (`api-backend/`)
+- [ ] JWT авторизация (Devise + Doorkeeper)
+- [ ] API endpoints для AI-генерации
+- [ ] Token balance система
 
-**День 4-5: AI Integration**
+**День 4-5: The New Black Integration**
 
-- [ ] Интеграция с OpenAI API (optional)
-- [ ] Scoring algorithm
-- [ ] Generation logic
+- [ ] Интеграция с The New Black Virtual Try-On API
+- [ ] Интеграция с Fashion Models API
+- [ ] Сохранение результатов в Supabase Storage
 - [ ] Response formatting
 
 **День 6-7: Frontend Integration**
 
-- [ ] AI Generator UI (`app/(modals)/outfit-ai.tsx`)
-- [ ] AI service на клиенте (`services/outfit/aiGenerator.ts`)
-- [ ] Preview сгенерированных outfits
-- [ ] Quota management
+- [ ] AI Try-On UI (`app/(modals)/ai-tryon.tsx`)
+- [ ] AI service на клиенте (`services/ai/aiService.ts`)
+- [ ] Preview AI результатов
+- [ ] Token balance management
 
 **День 8: Polish**
 
 - [ ] Error handling
 - [ ] Loading states
-- [ ] Explanations для выбора
+- [ ] Token purchase flow
 
 ### 🔄 Sync Point для недели 3
 

@@ -539,7 +539,8 @@ Successfully transformed Obrazz into a **fully offline-capable application** wit
 
 **Next Steps:**
 
-- Stage 5: AI-анализ вещей при загрузке (Mistral Small integration)
+- Stage 5: AI-функции (The New Black API - Virtual Try-On, Fashion Models, Variations)
+- Stage 6: Ruby on Rails Backend
 - Optional: Add UI sync indicators if user feedback requests it
 - Optional: Add conflict resolution UI for edge cases
 

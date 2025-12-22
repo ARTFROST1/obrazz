@@ -334,13 +334,14 @@ Supabase покрывает:
 - ✅ База данных (PostgreSQL)
 - ✅ Row Level Security (RLS)
 - ✅ Real-time subscriptions (если понадобятся)
-- ✅ Storage для изображений (если перенесем)
+- ✅ Storage для изображений
 
-Что может потребоваться в будущем:
+Что планируется:
 
-- 🔮 AI микросервис (Mistral, Gemini) - Stage 5+
+- 🔮 Rails Backend (API, админка, биллинг) - Stage 6
+- 🔮 The New Black AI API (Virtual Try-On, Fashion Models, Variations) - Stage 5
 - 🔮 Push notifications сервис
-- 🔮 Payment processing (YooMoney/IAP)
+- 🔮 Payment processing (YooMoney/IAP) - Stage 7
 
 ### 7.2 Будет ли работать APK без dev сервера?
 
@@ -348,12 +349,12 @@ Supabase покрывает:
 
 НО:
 
-- Нужен интернет для Supabase
-- Без offline-first → пустой гардероб без сети
+- Нужен интернет для Supabase и AI функций
+- Offline-First архитектура реализована (Stage 4.12)
 
 ### 7.3 Рекомендуемое решение
 
-Внедрить **Offline-First Architecture** со стратегией:
+Внедрена **Offline-First Architecture** со стратегией:
 
 ```
 LOCAL FIRST → BACKGROUND SYNC → CONFLICT RESOLUTION

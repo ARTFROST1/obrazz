@@ -15,10 +15,10 @@
        │ • Category Carousels            │ • Save/Load logic               │
        │ • Background picker             │ • Export & Share                │
 ───────┼─────────────────────────────────┼─────────────────────────────────┼───────────
-   3   │ Community Feed                  │ AI Generation Service           │ День 4,7
-       │ • Feed UI + PostCard            │ • NestJS microservice           │
-       │ • Like/Share interactions       │ • AI algorithms                 │
-       │ • Filters & infinite scroll     │ • OpenAI integration            │
+   3   │ UI Polish & Theming             │ AI Generation Service           │ День 4,7
+       │ • Dark theme implementation     │ • Rails API setup               │
+       │ • Animations & transitions      │ • The New Black integration     │
+       │ • Loading states                │ • Token balance system          │
 ───────┼─────────────────────────────────┼─────────────────────────────────┼───────────
    4   │ UI Polish (Themes)              │ Subscriptions & Payments        │ Ежедневно
        │ • Dark theme                    │ • RevenueCat setup              │
@@ -229,8 +229,8 @@ lib/supabase/                 ✓ Dev B
 ├── schema.sql
 └── migrations/
 
-apps/ai-service/              ✓ Dev B
-└── (NestJS microservice)
+api-backend/                  ✓ Dev B
+└── (Rails API backend)
 ```
 
 #### Utils & Hooks

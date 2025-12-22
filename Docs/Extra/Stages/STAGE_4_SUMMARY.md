@@ -274,13 +274,14 @@ All features implemented with existing packages from Stage 1-3.
 - ✅ Performance acceptable
 - ✅ User feedback incorporated
 
-### Stage 5 Preview (AI Outfit Generation)
+### Stage 5 Preview (AI Features via The New Black)
 
-- NestJS microservice setup
-- AI algorithm implementation
-- Style & color harmony
-- Multiple outfit variants
-- AI explanation system
+- Rails Backend as AI proxy (Mobile → Rails → The New Black)
+- Virtual Try-On (1 token / generation)
+- Fashion Models (1 token / generation)
+- Variations (1 token / generation)
+- Save results to Supabase Storage (TNB URLs expire in ~48h)
+- Token balance + purchasable token packs
 
 ---
 

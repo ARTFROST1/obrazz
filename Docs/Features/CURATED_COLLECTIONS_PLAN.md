@@ -35,7 +35,7 @@
 | **Карусель подборок**         | Плитки на главной странице вместо карусели стилей             |
 | **Masonry-список**            | Страница подборки с товарами в 2-колоночной сетке             |
 | **Детальная страница товара** | Просмотр товара + добавление в гардероб + переход на источник |
-| **Админ-панель**              | GUI для создания/редактирования подборок (TG-бот или Web)     |
+| **Админ-панель**              | Rails Dashboard/Admin для управления контентом                |
 | **Глобальность**              | Все подборки видны всем пользователям приложения              |
 
 ### 1.3 User Flow
@@ -96,65 +96,59 @@
 
 ## 2. Архитектура системы
 
-### 2.1 Общая архитектура
+### 2.1 Общая архитектура (целевой вариант под единый Ruby on Rails backend)
+
+Ключевая идея: **Supabase остаётся data/storage слоем**, а **Rails становится единым backend-слоем**:
+
+- Mobile App ходит в Rails API (единая аутентификация, кэш, аналитика, future-персонализация)
+- Rails читает/пишет подборки в Supabase (Postgres + Storage) через service-role
+- Админка подборок — часть Rails (Dashboard/Admin)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         ADMIN LAYER                                  │
-│  ┌───────────────────┐     ┌───────────────────────────────────────┐│
-│  │   Telegram Bot    │ OR  │       Web Admin Panel                 ││
-│  │   (Node.js)       │     │       (Next.js / React)               ││
-│  └─────────┬─────────┘     └─────────────────┬─────────────────────┘│
-└────────────┼─────────────────────────────────┼──────────────────────┘
-             │                                 │
-             ▼                                 ▼
+│                         RAILS BACKEND                                │
+│  ┌─────────────────────────────────────────────────────────────────┐│
+│  │ API v1 для Mobile                                                ││
+│  │  - GET /api/v1/collections                                       ││
+│  │  - GET /api/v1/collections/:id/items                             ││
+│  │  - GET /api/v1/collection_items/:id                              ││
+│  │  - POST /api/v1/collections/events (опционально)                 ││
+│  │                                                                 ││
+│  │ Dashboard/Admin (только для админов)                             ││
+│  │  - CRUD подборок + товаров                                       ││
+│  │  - Upload изображений + генерация thumbnail                      ││
+│  └─────────────────────────────────────────────────────────────────┘│
+└───────────────┬─────────────────────────────────────────────────────┘
+                │ service-role (server-side)
+                ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       SUPABASE BACKEND                               │
+│                           SUPABASE                                   │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │
-│  │   collections   │  │collection_items │  │   Supabase Storage  │  │
-│  │     table       │  │     table       │  │   (images bucket)   │  │
-│  │  - id           │  │  - collection_id│  │   /collections/     │  │
-│  │  - title        │  │  - source_url   │  │   /collection-items/│  │
-│  │  - banner_url   │  │  - image_url    │  │                     │  │
-│  │  - gradient     │  │  - price        │  │                     │  │
-│  │  - is_active    │  │  - metadata     │  │                     │  │
+│  │   collections   │  │ collection_items│  │   Storage:          │  │
+│  │   (Postgres)    │  │   (Postgres)    │  │   collections/*     │  │
 │  └─────────────────┘  └─────────────────┘  └─────────────────────┘  │
-│                                                                      │
-│  RLS Policies: All collections/items viewable by all authenticated  │
-└─────────────────────────────────────────────────────────────────────┘
-             │
-             │ Public API (anon key)
-             ▼
+│  RLS: клиенту только SELECT опубликованного (без write-политик)       │
+└───────────────┬─────────────────────────────────────────────────────┘
+                │ HTTPS
+                ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      MOBILE APP (React Native)                       │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │
 │  │CollectionsCarou-│  │ CollectionScreen│  │CollectionItemDetail │  │
 │  │sel (Home)       │  │ (Masonry List)  │  │   (Item View)       │  │
-│  │                 │  │                 │  │                     │  │
-│  │ - Fetch active  │  │ - Fetch items   │  │ - View details      │  │
-│  │   collections   │  │   by collection │  │ - Add to wardrobe   │  │
-│  │ - Display tiles │  │ - Masonry grid  │  │ - Open source URL   │  │
 │  └─────────────────┘  └─────────────────┘  └─────────────────────┘  │
-│                                                                      │
-│  Services: collectionService.ts                                      │
-│  Store: collectionStore.ts (optional caching)                        │
+│  Services: collectionsApi.ts (calls Rails API)                         │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 Выбор админ-панели: TG-бот vs Web
+### 2.2 Админка (обновлено под Ruby on Rails)
 
-| Критерий                 | Telegram Bot               | Web Admin Panel       |
-| ------------------------ | -------------------------- | --------------------- |
-| **Скорость разработки**  | ⚡ Быстрее (3-5 дней)      | 🐢 Дольше (7-10 дней) |
-| **UX для админа**        | 📱 Мобильный, ограниченный | 💻 Полноценный GUI    |
-| **Загрузка изображений** | ✅ Прямо в чат             | ✅ Drag & Drop        |
-| **Bulk операции**        | ❌ Сложно                  | ✅ Удобные таблицы    |
-| **Безопасность**         | ✅ TG Auth + Admin IDs     | ✅ Supabase Auth      |
-| **Масштабируемость**     | 🔸 Средняя                 | ✅ Высокая            |
+Чтобы планы по подборкам и по backend были едиными, **админка подборок должна жить в Rails**:
 
-### **Рекомендация:**
-
-Начать с **Telegram Bot** для MVP (быстрый старт), затем добавить **Web Admin** для расширенного управления.
+- единая авторизация админов (отдельный `AdminUser` в Rails)
+- единые политики доступа (server-side, без выдачи прав на write клиентам)
+- проще подключить аналитику, кэш, фоновую обработку изображений (Sidekiq)
+- веб-админка (Rails Views + Hotwire) — единственный интерфейс для управления контентом
 
 ---
 
@@ -168,13 +162,13 @@
 export interface Collection {
   id: string;
   title: string;
-  titleEn?: string; // English title for i18n
+  titleEn?: string;
   description?: string;
-  bannerUrl?: string; // Banner image URL from Supabase Storage
-  gradient: [string, string]; // Gradient colors for tile
-  sortOrder: number; // Order in carousel
-  isActive: boolean; // Published or draft
-  itemsCount: number; // Cached count of items
+  bannerUrl?: string;
+  gradient: [string, string];
+  sortOrder: number;
+  isActive: boolean;
+  itemsCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -184,17 +178,17 @@ export interface CollectionItem {
   collectionId: string;
   title: string;
   description?: string;
-  imageUrl: string; // Full-size image URL from Supabase Storage
-  thumbnailUrl?: string; // Optional thumbnail URL for faster Masonry
-  imageWidth?: number; // Needed for correct Masonry layout
-  imageHeight?: number; // Needed for correct Masonry layout
-  sourceUrl: string; // Link to original store
-  sourceName: string; // Store name (Amazon, Zara, etc.)
+  imageUrl: string;
+  thumbnailUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  sourceUrl: string;
+  sourceName: string;
   price?: number;
-  currency?: string; // USD, RUB, EUR
-  category?: ItemCategory; // Optional: for filtering
-  colors?: Color[]; // Optional: extracted colors
-  sortOrder: number; // Order in collection
+  currency?: string;
+  category?: string;
+  colors?: unknown[];
+  sortOrder: number;
   isActive: boolean;
   metadata?: CollectionItemMetadata;
   createdAt: Date;
@@ -205,13 +199,12 @@ export interface CollectionItemMetadata {
   brand?: string;
   size?: string[];
   material?: string;
-  originalPrice?: number; // Before discount
-  discount?: number; // Percentage
+  originalPrice?: number;
+  discount?: number;
   inStock?: boolean;
-  aiTags?: string[]; // AI-generated tags
+  aiTags?: string[];
 }
 
-// For carousel display
 export interface CollectionTile {
   id: string;
   title: string;
@@ -224,186 +217,65 @@ export interface CollectionTile {
 ### 3.2 Database Schema (Supabase PostgreSQL)
 
 ```sql
--- =====================================================
--- COLLECTIONS TABLE
--- Stores curated collection metadata
--- =====================================================
-
 CREATE TABLE public.collections (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   title TEXT NOT NULL,
-  title_en TEXT,                              -- English title
+  title_en TEXT,
   description TEXT,
-  banner_url TEXT,                            -- Storage URL
-  gradient JSONB DEFAULT '["#667eea", "#764ba2"]', -- [color1, color2]
+  banner_url TEXT,
+  gradient JSONB DEFAULT '["#667eea", "#764ba2"]',
   sort_order INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT false,           -- Draft by default
-  items_count INTEGER DEFAULT 0,             -- Cached count
-  metadata JSONB DEFAULT '{}',               -- Future extensibility
+  is_active BOOLEAN DEFAULT false,
+  items_count INTEGER DEFAULT 0,
+  metadata JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES auth.users(id)  -- Admin who created
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- =====================================================
--- COLLECTION_ITEMS TABLE
--- Stores items within collections
--- =====================================================
 
 CREATE TABLE public.collection_items (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   collection_id UUID REFERENCES public.collections(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
-  image_url TEXT NOT NULL,                   -- Full image Storage URL
-  thumbnail_url TEXT,                        -- Optional thumb Storage URL
-  image_width INTEGER,                       -- For Masonry layout
-  image_height INTEGER,                      -- For Masonry layout
-  source_url TEXT NOT NULL,                  -- External store link
-  source_name TEXT NOT NULL,                 -- Store name
+  image_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  image_width INTEGER,
+  image_height INTEGER,
+  source_url TEXT NOT NULL,
+  source_name TEXT NOT NULL,
   price DECIMAL(10, 2),
   currency TEXT DEFAULT 'USD',
-  category TEXT,                             -- Item category
-  colors JSONB DEFAULT '[]',                 -- Array of color objects
+  category TEXT,
+  colors JSONB DEFAULT '[]',
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
-  metadata JSONB DEFAULT '{}',               -- Brand, size, etc.
+  metadata JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =====================================================
--- INDEXES
--- =====================================================
-
 CREATE INDEX idx_collections_active ON public.collections(is_active, sort_order);
-CREATE INDEX idx_collections_created ON public.collections(created_at DESC);
-
-CREATE INDEX idx_collection_items_collection ON public.collection_items(collection_id);
 CREATE INDEX idx_collection_items_active ON public.collection_items(collection_id, is_active, sort_order);
-CREATE INDEX idx_collection_items_category ON public.collection_items(category);
-
--- =====================================================
--- ROW LEVEL SECURITY (RLS)
--- =====================================================
 
 ALTER TABLE public.collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.collection_items ENABLE ROW LEVEL SECURITY;
 
--- Collections: Everyone can view active collections
-CREATE POLICY "Active collections are viewable by everyone"
+-- Клиент читает только опубликованное. Пишет только Rails через service-role.
+CREATE POLICY "Published collections are viewable"
   ON public.collections FOR SELECT
   USING (auth.role() = 'authenticated' AND is_active = true);
 
--- NOTE: Для INSERT в RLS используется WITH CHECK, а не USING.
--- Collections: Only admins can insert/update/delete
-
-CREATE POLICY "Admins can insert collections"
-  ON public.collections FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Admins can update collections"
-  ON public.collections FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Admins can delete collections"
-  ON public.collections FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
--- Collection Items: Everyone can view items in active collections
-CREATE POLICY "Collection items are viewable by everyone"
+CREATE POLICY "Published collection items are viewable"
   ON public.collection_items FOR SELECT
   USING (
-    auth.role() = 'authenticated' AND
-    is_active = true AND
-    EXISTS (
+    auth.role() = 'authenticated'
+    AND is_active = true
+    AND EXISTS (
       SELECT 1 FROM public.collections
       WHERE collections.id = collection_items.collection_id
-      AND collections.is_active = true
+        AND collections.is_active = true
     )
   );
-
--- Collection Items: Only admins can insert/update/delete
-
-CREATE POLICY "Admins can insert collection items"
-  ON public.collection_items FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Admins can update collection items"
-  ON public.collection_items FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Admins can delete collection items"
-  ON public.collection_items FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
-    )
-  );
-
--- =====================================================
--- ADMIN USERS TABLE (for RLS)
--- =====================================================
-
-CREATE TABLE public.admin_users (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) UNIQUE NOT NULL,
-  telegram_id BIGINT UNIQUE,                 -- For TG bot auth
-  role TEXT DEFAULT 'admin',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- RLS for admin_users: allow user to read ONLY their own row.
--- Manage this table via service-role (TG bot / server) to avoid privilege escalation.
-ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can read own admin row"
-  ON public.admin_users FOR SELECT
-  USING (user_id = auth.uid());
-
--- =====================================================
--- TRIGGER: Update items_count on collection_items changes
--- =====================================================
-
--- Best practice: items_count должен учитывать только is_active=true
--- и корректно обрабатывает UPDATE (смена collection_id / переключение is_active).
 
 CREATE OR REPLACE FUNCTION recalc_collection_items_count(p_collection_id UUID)
 RETURNS VOID AS $$
@@ -442,10 +314,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_collection_items_changed
 AFTER INSERT OR UPDATE OR DELETE ON collection_items
 FOR EACH ROW EXECUTE FUNCTION on_collection_items_changed();
-
--- =====================================================
--- TRIGGER: Update updated_at timestamp
--- =====================================================
 
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
@@ -492,89 +360,53 @@ CREATE POLICY "Public read access for collection images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'collections' AND auth.role() = 'authenticated');
 
--- Admin write access
-CREATE POLICY "Admin write access for collection images"
+-- Server write access (Rails uses service-role)
+CREATE POLICY "Service role write access for collection images"
 ON storage.objects FOR INSERT
 WITH CHECK (
-  bucket_id = 'collections' AND
-  EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE user_id = auth.uid()
-  )
+  bucket_id = 'collections' AND auth.role() = 'service_role'
 );
 
--- Admin update/delete access (optional, but обычно нужно для удаления/замены картинок)
-CREATE POLICY "Admin update access for collection images"
+CREATE POLICY "Service role update access for collection images"
 ON storage.objects FOR UPDATE
 USING (
-  bucket_id = 'collections' AND
-  EXISTS (SELECT 1 FROM public.admin_users WHERE user_id = auth.uid())
+  bucket_id = 'collections' AND auth.role() = 'service_role'
 )
 WITH CHECK (
-  bucket_id = 'collections' AND
-  EXISTS (SELECT 1 FROM public.admin_users WHERE user_id = auth.uid())
+  bucket_id = 'collections' AND auth.role() = 'service_role'
 );
 
-CREATE POLICY "Admin delete access for collection images"
+CREATE POLICY "Service role delete access for collection images"
 ON storage.objects FOR DELETE
 USING (
-  bucket_id = 'collections' AND
-  EXISTS (SELECT 1 FROM public.admin_users WHERE user_id = auth.uid())
+  bucket_id = 'collections' AND auth.role() = 'service_role'
 );
 ```
 
 ---
 
-## 4. Backend (Supabase)
+## 4. Backend (Rails + Supabase)
 
-### 4.1 Edge Functions (для TG Bot)
+Цель: **единый backend слой в Rails** для API, аналитики, кэша и админки.
 
-```typescript
-// supabase/functions/telegram-webhook/index.ts
+### 4.1 Rails API (для мобильного приложения)
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+Mobile App делает запросы в Rails с Supabase JWT:
 
-const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
-const ADMIN_TELEGRAM_IDS = Deno.env.get('ADMIN_TELEGRAM_IDS')!.split(',').map(Number);
+- `Authorization: Bearer <supabase_access_token>`
+- Rails валидирует JWT (как описано в backend-плане) и может логировать события.
 
-serve(async (req) => {
-  const { message } = await req.json();
+### 4.2 Rails Service Layer (доступ к Supabase)
 
-  // Check if user is admin
-  if (!ADMIN_TELEGRAM_IDS.includes(message.from.id)) {
-    return new Response('Unauthorized', { status: 403 });
-  }
+Rails не отдаёт service-role наружу. Все операции записи (создание/редактирование подборок, загрузка изображений) идут только server-side.
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
+Рекомендуемый слой сервисов:
 
-  // Command handling
-  const text = message.text || '';
+- `Supabase::CollectionsService` — CRUD для `collections`, `collection_items` через Supabase REST (`/rest/v1/*`)
+- `Supabase::StorageService` — upload в Storage bucket `collections`
+- `Collections::Query` — сборка ответов для API (пагинация, сортировка)
 
-  if (text.startsWith('/newcollection')) {
-    // Create new collection flow
-    // ...
-  }
-
-  if (text.startsWith('/additem')) {
-    // Add item to collection flow
-    // ...
-  }
-
-  // Handle photo uploads
-  if (message.photo) {
-    // Upload to Supabase Storage
-    // ...
-  }
-
-  return new Response('OK');
-});
-```
-
-### 4.2 Database Functions
+### 4.3 Database Functions (опционально)
 
 ```sql
 -- Function to get collections with items count
@@ -655,143 +487,29 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
+Примечание: эти RPC полезны как “ускорители” запросов, но **мобильное приложение не должно быть привязано к ним напрямую** — оно обращается к Rails API.
+
 ---
 
-## 5. Админ-панель
+## 5. Админ-панель (Rails)
 
-### 5.1 Telegram Bot (MVP)
+### 5.1 Почему админка в Rails — самый чистый вариант
 
-#### Структура команд:
+- один backend контур (как в backend-плане)
+- не нужно держать отдельные деплои/секреты для внешних сервисов
+- проще обеспечить безопасность (service-role только на сервере)
+- проще добавить фоновые задачи (thumbnail/оптимизация картинок, переобход ссылок, проверки наличия товара)
 
-```
-/start - Главное меню
-/collections - Список всех подборок
-/newcollection - Создать новую подборку
-/additem <collection_id> - Добавить товар в подборку
-/editcollection <id> - Редактировать подборку
-/deletecollection <id> - Удалить подборку
-/publish <id> - Опубликовать подборку
-/unpublish <id> - Снять с публикации
-/stats - Статистика
-```
+### 5.2 Минимальный функционал админки (MVP)
 
-#### Flow создания подборки:
+- CRUD `collections` (title, title_en, description, gradient, sort_order, is_active, banner)
+- CRUD `collection_items` (title, image, source_url, source_name, price, currency, category, is_active, sort_order)
+- Upload изображений в Supabase Storage + генерация `thumbnail_url` + запись `image_width/height`
 
-```
-Админ: /newcollection
+### 5.3 Роли и доступ
 
-Бот: 📦 Создание новой подборки
-     Введите название (RU):
-
-Админ: Y2K Guy
-
-Бот: ✅ Название: Y2K Guy
-     Введите название (EN) или /skip:
-
-Админ: /skip
-
-Бот: 🎨 Выберите градиент или отправьте 2 цвета (#hex #hex):
-     [Фиолетовый] [Синий] [Зеленый] [Оранжевый] [Розовый]
-
-Админ: [Розовый]
-
-Бот: 🖼 Отправьте баннер (изображение) или /skip:
-
-Админ: [Отправляет фото]
-
-Бот: ✅ Подборка "Y2K Guy" создана!
-     ID: 550e8400-e29b-41d4-a716-446655440000
-     Статус: Черновик
-
-     Добавить товары: /additem 550e8400
-```
-
-#### Flow добавления товара:
-
-```
-Админ: /additem 550e8400
-
-Бот: 📦 Добавление товара в "Y2K Guy"
-     Отправьте изображение товара:
-
-Админ: [Отправляет фото]
-
-Бот: ✅ Изображение загружено
-     Введите название товара:
-
-Админ: IYTR Men's Windbreaker Jacket
-
-Бот: 💰 Введите цену (например: 21.49 USD):
-
-Админ: 21.49 USD
-
-Бот: 🔗 Введите ссылку на товар:
-
-Админ: https://amazon.com/dp/B0xxx
-
-Бот: 🏪 Определён магазин: Amazon
-     Категория товара:
-     [Верх] [Низ] [Верхняя одежда] [Обувь] [Аксессуары]
-
-Админ: [Верхняя одежда]
-
-Бот: ✅ Товар добавлен в подборку "Y2K Guy"!
-     Всего товаров: 1
-
-     Добавить ещё: /additem 550e8400
-     Опубликовать: /publish 550e8400
-```
-
-#### Архитектура TG-бота:
-
-```
-telegram-bot/
-├── src/
-│   ├── index.ts              # Entry point
-│   ├── bot.ts                # Telegraf bot setup
-│   ├── commands/
-│   │   ├── start.ts
-│   │   ├── collections.ts
-│   │   ├── newCollection.ts
-│   │   ├── addItem.ts
-│   │   └── ...
-│   ├── scenes/
-│   │   ├── createCollectionScene.ts
-│   │   ├── addItemScene.ts
-│   │   └── ...
-│   ├── services/
-│   │   ├── supabaseService.ts
-│   │   ├── storageService.ts
-│   │   └── ...
-│   ├── utils/
-│   │   ├── validators.ts
-│   │   ├── formatters.ts
-│   │   └── ...
-│   └── types/
-│       └── index.ts
-├── package.json
-├── tsconfig.json
-└── Dockerfile
-```
-
-### 5.2 Web Admin Panel (Phase 2)
-
-#### Tech Stack:
-
-- **Framework:** Next.js 14 (App Router)
-- **UI:** Tailwind CSS + shadcn/ui
-- **Auth:** Supabase Auth
-- **State:** React Query
-- **Deploy:** Vercel
-
-#### Features:
-
-- Dashboard с метриками
-- CRUD для подборок
-- Drag & drop изображений
-- Bulk import (CSV)
-- Preview карточек
-- Аналитика (просмотры, добавления в гардероб)
+- отдельная модель `AdminUser` (Devise) для входа в Dashboard/Admin
+- таблица админов **не должна** быть в Supabase Auth, чтобы не смешивать домены “пользователь приложения” и “админ контента”
 
 ---
 
@@ -815,7 +533,7 @@ app/
 
 services/
 ├── collections/
-│   ├── collectionService.ts         # CRUD операции
+│   ├── collectionsApi.ts            # Calls Rails API (read-only для клиента)
 │   └── index.ts
 
 store/
@@ -847,7 +565,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { collectionService } from '@/services/collections';
+import { collectionsApi } from '@/services/collections';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TILE_WIDTH = SCREEN_WIDTH - 64;
@@ -866,7 +584,7 @@ export default function CollectionsCarousel() {
 
   const loadCollections = async () => {
     try {
-      const data = await collectionService.getActiveCollections();
+      const data = await collectionsApi.getActiveCollections();
       setCollections(data);
     } catch (error) {
       console.error('Failed to load collections:', error);
@@ -1016,7 +734,7 @@ const styles = StyleSheet.create({
 // app/collection/[id].tsx
 
 import { CollectionItem } from '@/types/models/collection';
-import { collectionService } from '@/services/collections';
+import { collectionsApi } from '@/services/collections';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -1050,8 +768,8 @@ export default function CollectionScreen() {
     if (!id) return;
     try {
       const [collectionData, itemsData] = await Promise.all([
-        collectionService.getCollectionById(id),
-        collectionService.getCollectionItems(id),
+        collectionsApi.getCollectionById(id),
+        collectionsApi.getCollectionItems(id),
       ]);
       setCollection(collectionData);
       setItems(itemsData);
@@ -1269,12 +987,12 @@ const styles = StyleSheet.create({
 ### 6.3 Service Layer
 
 ```typescript
-// services/collections/collectionService.ts
+// services/collections/collectionsApi.ts
 
 import { supabase } from '@/lib/supabase/client';
 import { Collection, CollectionItem } from '@/types/models/collection';
 
-class CollectionService {
+class CollectionsApi {
   /**
    * Get all active collections for carousel
    */
@@ -1282,7 +1000,7 @@ class CollectionService {
     const { data, error } = await supabase.rpc('get_active_collections');
 
     if (error) {
-      console.error('[CollectionService] Error fetching collections:', error);
+      console.error('[CollectionsApi] Error fetching collections:', error);
       throw error;
     }
 
@@ -1301,7 +1019,7 @@ class CollectionService {
       .single();
 
     if (error) {
-      console.error('[CollectionService] Error fetching collection:', error);
+      console.error('[CollectionsApi] Error fetching collection:', error);
       return null;
     }
 
@@ -1323,7 +1041,7 @@ class CollectionService {
     });
 
     if (error) {
-      console.error('[CollectionService] Error fetching items:', error);
+      console.error('[CollectionsApi] Error fetching items:', error);
       throw error;
     }
 
@@ -1347,7 +1065,7 @@ class CollectionService {
       .single();
 
     if (error || !data?.collections?.is_active) {
-      console.error('[CollectionService] Error fetching item:', error);
+      console.error('[CollectionsApi] Error fetching item:', error);
       return null;
     }
 
@@ -1428,7 +1146,7 @@ class CollectionService {
   }
 }
 
-export const collectionService = new CollectionService();
+export const collectionsApi = new CollectionsApi();
 ```
 
 ---
@@ -1437,22 +1155,22 @@ export const collectionService = new CollectionService();
 
 ### Phase 1: Backend Foundation (3-4 дня)
 
-| #   | Задача                                                                     | Оценка | Приоритет |
-| --- | -------------------------------------------------------------------------- | ------ | --------- |
-| 1.1 | Создать SQL миграции для таблиц collections, collection_items, admin_users | 2ч     | P0        |
-| 1.2 | Применить миграции в Supabase                                              | 30м    | P0        |
-| 1.3 | Настроить RLS policies                                                     | 1ч     | P0        |
-| 1.4 | Создать Storage bucket 'collections' с policies                            | 30м    | P0        |
-| 1.5 | Создать database functions (get_active_collections, get_collection_items)  | 1ч     | P0        |
-| 1.6 | Добавить triggers для items_count и updated_at                             | 30м    | P0        |
-| 1.7 | Создать тестовые данные (2-3 подборки, 10+ товаров)                        | 1ч     | P1        |
+| #   | Задача                                                                                     | Оценка | Приоритет |
+| --- | ------------------------------------------------------------------------------------------ | ------ | --------- |
+| 1.1 | Создать SQL миграции для таблиц `collections`, `collection_items`                          | 2ч     | P0        |
+| 1.2 | Применить миграции в Supabase                                                              | 30м    | P0        |
+| 1.3 | Настроить RLS (клиенту только SELECT опубликованного; без write-политик для authenticated) | 1ч     | P0        |
+| 1.4 | Создать Storage bucket `collections` + policies (read=authenticated, write=service_role)   | 30м    | P0        |
+| 1.5 | Поднять Rails API эндпоинты чтения подборок (контракты, сортировка, пагинация)             | 4ч     | P0        |
+| 1.6 | Добавить triggers для `items_count` и `updated_at`                                         | 30м    | P0        |
+| 1.7 | Создать тестовые данные (2-3 подборки, 10+ товаров)                                        | 1ч     | P1        |
 
 ### Phase 2: Mobile App - Core Features (4-5 дней)
 
 | #    | Задача                                                                | Оценка | Приоритет |
 | ---- | --------------------------------------------------------------------- | ------ | --------- |
 | 2.1  | Создать types/models/collection.ts                                    | 30м    | P0        |
-| 2.2  | Создать services/collections/collectionService.ts                     | 2ч     | P0        |
+| 2.2  | Создать services/collections/collectionsApi.ts (calls Rails API)      | 2ч     | P0        |
 | 2.3  | Создать components/collections/CollectionsCarousel.tsx                | 3ч     | P0        |
 | 2.4  | Заменить StylesCarousel на CollectionsCarousel в app/(tabs)/index.tsx | 30м    | P0        |
 | 2.5  | Создать app/collection/[id].tsx (страница подборки с masonry)         | 4ч     | P0        |
@@ -1462,79 +1180,60 @@ export const collectionService = new CollectionService();
 | 2.9  | Добавить loading states и error handling                              | 1ч     | P1        |
 | 2.10 | Тестирование на устройствах                                           | 2ч     | P1        |
 
-### Phase 3: Telegram Bot Admin (3-4 дня)
+### Phase 3: Rails Admin (3-5 дней)
 
-| #    | Задача                                                 | Оценка | Приоритет |
-| ---- | ------------------------------------------------------ | ------ | --------- |
-| 3.1  | Создать Node.js проект telegram-bot                    | 1ч     | P0        |
-| 3.2  | Настроить Telegraf + TypeScript                        | 1ч     | P0        |
-| 3.3  | Реализовать auth (проверка admin_users по telegram_id) | 1ч     | P0        |
-| 3.4  | Реализовать команду /collections (список)              | 1ч     | P0        |
-| 3.5  | Реализовать scene для создания подборки                | 3ч     | P0        |
-| 3.6  | Реализовать scene для добавления товара                | 3ч     | P0        |
-| 3.7  | Реализовать загрузку изображений в Supabase Storage    | 2ч     | P0        |
-| 3.8  | Реализовать /publish и /unpublish команды              | 1ч     | P1        |
-| 3.9  | Реализовать /delete команды                            | 1ч     | P1        |
-| 3.10 | Деплой на сервер (Railway/Render)                      | 2ч     | P1        |
+| #   | Задача                                                        | Оценка | Приоритет |
+| --- | ------------------------------------------------------------- | ------ | --------- |
+| 3.1 | Добавить `AdminUser` (Devise) + доступ к `/admin`             | 2ч     | P0        |
+| 3.2 | Подключить Administrate/ActiveAdmin (выбрать один)            | 2ч     | P0        |
+| 3.3 | CRUD для `collections`                                        | 3ч     | P0        |
+| 3.4 | CRUD для `collection_items`                                   | 4ч     | P0        |
+| 3.5 | Upload изображений в Supabase Storage (full + thumb)          | 4ч     | P0        |
+| 3.6 | Авто-`image_width/height` + генерация thumb (job/inline)      | 3ч     | P1        |
+| 3.7 | Деплой Rails (Render/Railway) + секреты Supabase service-role | 2ч     | P0        |
 
 ### Phase 4: Polish & Launch (2-3 дня)
 
-| #   | Задача                                                   | Оценка | Приоритет |
-| --- | -------------------------------------------------------- | ------ | --------- |
-| 4.1 | Оптимизация производительности карусели                  | 2ч     | P1        |
-| 4.2 | Кэширование данных в Zustand store                       | 2ч     | P2        |
-| 4.3 | Добавить pull-to-refresh на странице подборки            | 1ч     | P2        |
-| 4.4 | Локализация (RU/EN) для UI                               | 2ч     | P2        |
-| 4.5 | Документация для администраторов (как использовать бота) | 1ч     | P1        |
-| 4.6 | Наполнение контентом (минимум 5 подборок по 15+ товаров) | 4ч     | P1        |
-| 4.7 | Финальное тестирование                                   | 2ч     | P0        |
+| #   | Задача                                                    | Оценка | Приоритет |
+| --- | --------------------------------------------------------- | ------ | --------- |
+| 4.1 | Оптимизация производительности карусели                   | 2ч     | P1        |
+| 4.2 | Кэширование данных в Zustand store                        | 2ч     | P2        |
+| 4.3 | Добавить pull-to-refresh на странице подборки             | 1ч     | P2        |
+| 4.4 | Локализация (RU/EN) для UI                                | 2ч     | P2        |
+| 4.5 | Документация для администраторов (как работать в админке) | 1ч     | P1        |
+| 4.6 | Наполнение контентом (минимум 5 подборок по 15+ товаров)  | 4ч     | P1        |
+| 4.7 | Финальное тестирование                                    | 2ч     | P0        |
 
-### Phase 5: Web Admin Panel (опционально, +7-10 дней)
+### Phase 5: Опциональные улучшения (+2-5 дней)
 
-| #   | Задача                                        | Оценка |
-| --- | --------------------------------------------- | ------ |
-| 5.1 | Создать Next.js проект с Tailwind + shadcn/ui | 3ч     |
-| 5.2 | Настроить Supabase Auth                       | 2ч     |
-| 5.3 | Dashboard со статистикой                      | 4ч     |
-| 5.4 | CRUD для подборок с drag&drop изображений     | 8ч     |
-| 5.5 | CRUD для товаров с bulk import                | 6ч     |
-| 5.6 | Preview карточек в реальном времени           | 4ч     |
-| 5.7 | Деплой на Vercel                              | 1ч     |
+| #   | Задача                                                 | Оценка |
+| --- | ------------------------------------------------------ | ------ |
+| 5.1 | Кэширование Rails API (Redis)                          | 3ч     |
+| 5.2 | Аналитика событий (view/open/add) + отчёты в админке   | 4ч     |
+| 5.3 | Bulk import (CSV) в админке                            | 4ч     |
+| 5.4 | Проверка ссылок/наличия товара (Sidekiq scheduled job) | 4ч     |
 
 ---
 
-## 8. API Reference
+## 8. API Reference (Rails)
 
-### 8.1 Supabase RPC Functions
+### 8.1 Public API для мобильного приложения
 
-```typescript
-// Get active collections
-supabase.rpc('get_active_collections');
-// Returns: { id, title, title_en, banner_url, gradient, items_count, sort_order }[]
+```
+GET  /api/v1/collections
+GET  /api/v1/collections/:id
+GET  /api/v1/collections/:id/items?limit=20&cursor=...
+GET  /api/v1/collection_items/:id
 
-// Get collection items
-supabase.rpc('get_collection_items', {
-  p_collection_id: 'uuid',
-  p_limit: 20,
-  p_offset: 0,
-});
-// Returns: { id, title, description, image_url, thumbnail_url, image_width, image_height, source_url, source_name, price, currency, category, colors, metadata }[]
+# (опционально, если делаем аналитику уже в MVP)
+POST /api/v1/collections/events
 ```
 
-### 8.2 Direct Table Access
+### 8.2 Принцип контрактов
 
-```typescript
-// Get single collection
-supabase.from('collections').select('*').eq('id', collectionId).eq('is_active', true).single();
-
-// Get single item
-supabase
-  .from('collection_items')
-  .select('*, collections!inner(is_active)')
-  .eq('id', itemId)
-  .eq('is_active', true)
-  .single();
-```
+- API отдаёт **camelCase** поля (как принято в приложении)
+- Rails внутри маппит snake_case Supabase → camelCase
+- В API не отдаём “черновики”: только `isActive=true`
 
 ---
 
@@ -1605,11 +1304,11 @@ supabase
 ### 10.4 Безопасность
 
 - Никогда не кладём `SUPABASE_SERVICE_ROLE_KEY` в мобильное приложение
-- Все write-операции админки (TG/Web) — только server-side с service-role
-- RLS:
-  - SELECT — только опубликованное и только для `authenticated`
-  - INSERT/UPDATE/DELETE — только для пользователей из `admin_users` (с корректным `WITH CHECK`)
-- `admin_users` нельзя редактировать из клиента (только service-role), клиенту можно дать SELECT только своей строки
+- Все write-операции (создание/редактирование подборок, загрузка изображений) — только server-side (Rails)
+- RLS в Supabase делаем максимально простым:
+  - клиенту нужен только `SELECT` опубликованного
+  - write-политики для `authenticated` не нужны (чтобы исключить privilege escalation)
+  - сервер пишет через service-role (обходит RLS)
 
 ---
 
@@ -1623,7 +1322,7 @@ supabase
 
 ### Паттерны:
 
-- Service layer: `collectionService` следует паттерну `itemService`
+- Service layer: `collectionsApi` следует паттерну `itemService`, но обращается к Rails API
 - Type mapping: snake_case (DB) → camelCase (App)
 - Navigation: Expo Router с dynamic routes
 
@@ -1631,4 +1330,4 @@ supabase
 
 **Готово к реализации!** 🚀
 
-Начинать рекомендую с Phase 1 (Backend) + Phase 2 (Mobile Core), затем Phase 3 (TG Bot) для управления контентом.
+Начинать рекомендую с Phase 1 (Rails API + Supabase schema) + Phase 2 (Mobile Core), затем Phase 3 (Rails Admin) для управления контентом.
