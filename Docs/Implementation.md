@@ -864,6 +864,106 @@ private async syncCreateItemInBackground(...): Promise<void> {
 
 ---
 
+### Stage 4.13: Navigation Refactor — Unified Library Screen
+
+**Dependencies:** Stage 4.12 completion
+**Timeline:** 1-2 недели
+**Status:** PLANNED (следующий этап)
+
+**Цель:** Глобальный рефакторинг навигации — объединение Гардероба и Образов, контекстная кнопка "+"
+
+**Документация:** [NAVIGATION_REFACTOR_PLAN.md](./Features/NAVIGATION_REFACTOR_PLAN.md)
+
+#### Основные изменения:
+
+**1. Bottom Navigation (4 → 3 вкладки + кнопка "+"):**
+
+```
+БЫЛО:                         СТАНЕТ:
+┌────────────────────────┐    ┌─────────────────────┬─────┐
+│ Home │ Ward │ Out │ Prof│    │ Home │ Library │ Prof │  +  │
+└────────────────────────┘    └─────────────────────┴─────┘
+```
+
+**2. Library Screen (объединённый):**
+
+- Верхние вкладки: Гардероб (светлая) ↔ Образы (тёмная)
+- Плавная анимация смены темы при переключении
+- Общий header с поиском и меню
+
+**3. Контекстная кнопка "+":**
+
+| Экран              | Действие                                |
+| ------------------ | --------------------------------------- |
+| Home               | Раскрывает меню AI-функций (4 опции)    |
+| Library / Гардероб | Открывает добавление вещи               |
+| Library / Образы   | Открывает создание образа               |
+| Profile            | Скрывается, TabBar растягивается вправо |
+
+#### Файловая структура:
+
+```
+app/(tabs)/
+├── _layout.tsx        # ИЗМЕНИТЬ: 3 таба
+├── library.tsx        # НОВЫЙ: объединённый экран
+├── wardrobe.tsx       # УДАЛИТЬ → перенести в Library
+├── outfits.tsx        # УДАЛИТЬ → перенести в Library
+
+components/
+├── navigation/
+│   ├── BottomNavigation.tsx   # НОВЫЙ: кастомный TabBar
+│   ├── FloatingPlusButton.tsx # НОВЫЙ: контекстная кнопка
+│   └── PlusActionSheet.tsx    # НОВЫЙ: меню AI для Home
+├── library/
+│   ├── LibraryTabs.tsx        # НОВЫЙ: Segment Control
+│   ├── LibraryHeader.tsx      # НОВЫЙ: общий header
+│   ├── WardrobeTab.tsx        # НОВЫЙ: контент гардероба
+│   ├── OutfitsTab.tsx         # НОВЫЙ: контент образов
+│   └── ThemeProvider.tsx      # НОВЫЙ: анимация темы
+```
+
+#### Sub-steps:
+
+**Этап 1: Подготовка (1-2 дня)**
+
+- [ ] Создать `components/navigation/` директорию
+- [ ] Создать `components/library/` директорию
+- [ ] Создать `store/library/libraryStore.ts`
+- [ ] Добавить типы в `types/navigation/`
+
+**Этап 2: Bottom Navigation (2-3 дня)**
+
+- [ ] Создать `FloatingPlusButton.tsx` с анимацией
+- [ ] Модифицировать `app/(tabs)/_layout.tsx` (3 таба)
+- [ ] Реализовать анимацию скрытия кнопки на Profile
+- [ ] Тестирование iOS + Android
+
+**Этап 3: Library Screen (3-4 дня)**
+
+- [ ] Создать `LibraryTabs.tsx` (Segment Control)
+- [ ] Создать `ThemeProvider.tsx` (анимация темы)
+- [ ] Создать `app/(tabs)/library.tsx` с PagerView
+- [ ] Перенести логику wardrobe.tsx → WardrobeTab.tsx
+- [ ] Перенести логику outfits.tsx → OutfitsTab.tsx
+- [ ] Объединить header в LibraryHeader.tsx
+
+**Этап 4: Контекстная кнопка "+" (1-2 дня)**
+
+- [ ] Создать `PlusActionSheet.tsx` для Home
+- [ ] Привязать "+" к add-item (Гардероб)
+- [ ] Привязать "+" к outfit/create (Образы)
+- [ ] Создать placeholder экраны для AI
+
+**Этап 5: Полировка (2-3 дня)**
+
+- [ ] Оптимизация анимаций (60fps)
+- [ ] Тестирование edge cases
+- [ ] Accessibility review
+- [ ] Удаление старых файлов
+- [ ] Обновление документации
+
+---
+
 ### Stage 5: AI-функции (The New Black API)
 
 **Dependencies:** Stage 4.12 completion

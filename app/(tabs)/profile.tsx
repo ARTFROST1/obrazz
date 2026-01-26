@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@hooks/useTranslation';
 import { authService } from '@services/auth/authService';
 import { useAuthStore } from '@store/auth/authStore';
+import { useLibraryStore } from '@store/library/libraryStore';
 import { useSettingsStore } from '@store/settings/settingsStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -24,19 +25,21 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { language, setLanguage } = useSettingsStore();
+  const { setLastVisitedTab } = useLibraryStore();
   const { t, i18n } = useTranslation('profile');
   const [loading, setLoading] = useState(false);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
-  // Update StatusBar when screen is focused
+  // Update StatusBar and track last visited tab when screen is focused
   useFocusEffect(
     useCallback(() => {
+      setLastVisitedTab('profile');
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
       }
-    }, []),
+    }, [setLastVisitedTab]),
   );
 
   const handleSignOut = () => {

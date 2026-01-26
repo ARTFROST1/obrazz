@@ -3,6 +3,7 @@ import StylesCarousel from '@/components/home/StylesCarousel';
 import ShoppingStoriesCarousel from '@/components/shopping/ShoppingStoriesCarousel';
 import { ItemCategory } from '@/types/models/item';
 import { StyleTag } from '@/types/models/user';
+import { useLibraryStore } from '@store/library/libraryStore';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
@@ -16,15 +17,18 @@ import {
 } from 'react-native';
 
 export default function HomeScreen() {
-  // Update StatusBar when screen is focused
+  const { setLastVisitedTab } = useLibraryStore();
+
+  // Update StatusBar and track last visited tab when screen is focused
   useFocusEffect(
     useCallback(() => {
+      setLastVisitedTab('index');
       StatusBar.setBarStyle('dark-content', true);
       if (Platform.OS === 'android') {
         StatusBar.setBackgroundColor('transparent', true);
         StatusBar.setTranslucent(true);
       }
-    }, []),
+    }, [setLastVisitedTab]),
   );
 
   const handleStylePress = useCallback((style: StyleTag) => {
