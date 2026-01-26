@@ -21,9 +21,9 @@
    - Sync: 3 раза за неделю
 
 3. **Stage 5 + 6** - 100% параллельно
-   - Dev A: Community Feed
-   - Dev B: AI Generation
-   - Независимые фичи!
+   - Dev A: UX polish + share/export + shopping/web-capture improvements
+   - Dev B: AI Generation (via Rails proxy) + token system foundations
+   - Независимые фичи (без Community, т.к. removed from scope)
 
 4. **Stage 7 + 8 partial** - 80% параллельно
    - Dev A: UI Polish
@@ -43,7 +43,7 @@
 ```
 Week 1: Stage 3  (Wardrobe)           🔵🟢 Parallel
 Week 2: Stage 4  (Outfit Creator)     🔵🟢 Parallel
-Week 3: Stage 5+6 (AI + Community)    🔵🟢 Parallel
+Week 3: Stage 5  (AI + Tokens)        🔵🟢 Parallel
 Week 4: Stage 7+8 (Subscriptions)     🔵🟢 Mostly Parallel
 Week 5: Stage 8  (Polish)             🔵🟢 Parallel
 Week 6: Stage 9  (Testing)            🤝 Together
@@ -223,10 +223,10 @@ Code → Commit → Push → PR → Review → Merge → CI
 
 ### После Week 3 (Stage 5+6)
 
-- ✅ AI outfit generation
-- ✅ Community feed
-- ✅ Share outfits
-- ✅ MVP функциональность complete!
+- ✅ AI features (via Rails proxy to The New Black)
+- ✅ Token balance foundations (consumption, limits)
+- ✅ Share/export outfits (to other apps; no community feed)
+- ✅ MVP функциональность для AI-флоу
 
 ### После Week 4-5 (Stage 7+8)
 

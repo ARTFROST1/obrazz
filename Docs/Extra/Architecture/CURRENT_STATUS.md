@@ -1,8 +1,12 @@
 # Obrazz - Current Implementation Status
 
-**Last Scanned:** December 6, 2025  
-**Version:** 1.0.0  
-**Current Stage:** Stage 4.10 Complete ✅
+> ⚠️ **Deprecated:** этот документ исторический и частично устарел.
+>
+> **Актуально:** `Docs/CURRENT_STATUS.md`, `Docs/project_structure.md`, `Docs/Implementation.md`.
+
+**Last Scanned:** January 26, 2026  
+**Version:** 1.1.0  
+**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture)
 
 ## Quick Stats
 
@@ -12,7 +16,7 @@
 - **Total Stores:** 5 (with AsyncStorage persistence)
 - **Categories:** 8 (unified system)
 - **Tab System:** 4 customizable tabs (Basic, Dress, All, Custom)
-- **Tech Stack:** React Native 0.81.4 + Expo SDK 54.0.13
+- **Tech Stack:** React Native 0.81.5 + Expo SDK ~54.0.30
 - **State Management:** Zustand 5.0.3 with persistence
 - **Image Processing:** Custom 3:4 cropper with react-native-zoom-toolkit 5.0.1
 
@@ -42,7 +46,7 @@
 - ✅ Grid display of wardrobe items
 - ✅ Camera integration (expo-camera)
 - ✅ Gallery picker (expo-image-picker)
-- ✅ Background removal (Remove.bg API)
+- ✅ Background removal (Pixian.ai API)
 - ✅ Item metadata form (8 categories, colors, styles, seasons)
 - ✅ Local image storage (expo-file-system)
 - ✅ Full CRUD operations
@@ -202,7 +206,7 @@ services/
 │   └── authService.ts         # ✅ Complete auth logic
 ├── wardrobe/
 │   ├── itemService.ts         # ✅ Item CRUD
-│   └── backgroundRemover.ts   # ✅ Remove.bg integration
+│   └── backgroundRemover.ts   # ✅ Pixian.ai integration
 └── outfit/
     └── outfitService.ts       # ✅ Outfit management
 ```
@@ -353,19 +357,16 @@ lib/
 
 ## 🚧 Not Yet Implemented
 
-### Stage 5: AI Outfit Generation
+### Stage 5: AI-функции (The New Black API)
 
-- AI microservice
-- Style-based generation
-- Color harmony algorithms
-- Multiple outfit variants
+- Virtual Try-On
+- Fashion Models
+- Clothing Variations
+- Token-based billing (via Rails proxy)
 
-### Stage 6: Community Features
+### Stage 6: Community Features (REMOVED)
 
-- Community feed
-- Post sharing
-- Like/reaction system
-- Copy outfit functionality
+- ❌ Removed from scope
 
 ### Stage 7-10: Future Stages
 
@@ -378,20 +379,7 @@ lib/
 
 ## 📊 Database Schema
 
-**Location:** `lib/supabase/schema.sql`
-
-### Tables
-
-- ✅ **users** - User accounts and profiles
-- ✅ **items** - Wardrobe items with metadata
-- ✅ **outfits** - Saved outfits with item positions
-- ✅ **community_posts** - Shared outfits (prepared)
-- ✅ **subscriptions** - User subscriptions (prepared)
-
-### Migrations
-
-- ✅ `fix_items_category_constraint.sql`
-- ✅ `unify_categories_2025.sql`
+**Location:** `lib/supabase/schema.sql` (source of truth)
 
 ---
 
@@ -427,7 +415,7 @@ lib/
 
 ### Image Processing
 
-- Automatic background removal (Remove.bg)
+- Automatic background removal (Pixian.ai)
 - 3:4 aspect ratio enforcement
 - Local storage for privacy
 - Thumbnail generation
@@ -448,12 +436,12 @@ lib/
 
 ### Extra Documentation
 
-- `/Docs/Extra/QUICKSTART.md` - Quick start guide
-- `/Docs/Extra/DEVELOPER_CHECKLIST.md` - Developer workflow
-- `/Docs/Extra/TEAM_QUICK_REFERENCE.md` - Team reference
+- `/Docs/Extra/Archive/QUICKSTART.md` - Quick start guide (historical)
+- `/Docs/Extra/Team/DEVELOPER_CHECKLIST.md` - Developer workflow
+- `/Docs/Extra/Team/TEAM_QUICK_REFERENCE.md` - Team reference
 - `/Docs/Extra/CHANGELOG.md` - Version history
-- `/Docs/Extra/CLEANUP_SUMMARY.md` - Recent cleanup details
-- `/Docs/Extra/Archive/` - Historical documentation (33 files)
+- `/Docs/Extra/Archive/CLEANUP_SUMMARY.md` - Recent cleanup details
+- `/Docs/Extra/Archive/` - Historical documentation
 
 ---
 

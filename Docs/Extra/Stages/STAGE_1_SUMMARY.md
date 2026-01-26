@@ -1,5 +1,7 @@
 # 📋 Stage 1 Implementation Summary
 
+> ⚠️ NOTE (2026-01-26): это исторический summary (Jan 2025). Community/социальные фичи удалены из проекта. Актуальные документы: `Docs/CURRENT_STATUS.md` и `Docs/Implementation.md`.
+
 **Project:** Obrazz - AI-Powered Fashion Assistant  
 **Stage:** 1 - Foundation & Setup  
 **Status:** ✅ COMPLETED  
@@ -36,10 +38,10 @@ All Stage 1 objectives from `Implementation.md` have been successfully completed
   - items (wardrobe items)
   - outfits (outfit collections)
   - outfit_items (junction table)
-  - posts (community feed)
-  - likes (post likes)
-  - comments (post comments)
-  - follows (user relationships)
+  - posts (legacy: community feed; removed from scope)
+  - likes (legacy)
+  - comments (legacy)
+  - follows (legacy)
 - **RLS Policies** - Row Level Security configured for all tables
 - **Indexes** - Performance indexes on key columns
 - **Triggers** - Auto-updating timestamps and counters
@@ -76,7 +78,7 @@ Complete screen architecture with Expo Router:
 
 **Main App:**
 
-- Community Feed (`/app/(tabs)/index.tsx`)
+- Home (`/app/(tabs)/index.tsx`) (not a community feed)
 - Wardrobe (`/app/(tabs)/wardrobe.tsx`)
 - Create Outfit (`/app/(tabs)/create.tsx`)
 - Profile (`/app/(tabs)/profile.tsx`)

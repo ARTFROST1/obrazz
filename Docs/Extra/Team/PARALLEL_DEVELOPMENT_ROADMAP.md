@@ -1,7 +1,9 @@
 # 🚀 Параллельная разработка Obrazz - Roadmap для 2 разработчиков
 
+> ⚠️ NOTE (2026-01-26): этот документ — исторический план (Jan 2025). Текущий scope и нумерация стадий изменились; Community/социальные фичи удалены из проекта. Актуальный статус и roadmap: `Docs/CURRENT_STATUS.md` и `Docs/Implementation.md`.
+
 **Дата создания:** 13 января 2025  
-**Текущий статус:** Stage 2 ✅ завершён, готовы к Stage 3  
+**Текущий статус (на момент создания):** Stage 2 ✅ завершён, готовы к Stage 3  
 **Цель:** Максимально эффективное распределение задач между двумя разработчиками
 
 ---
@@ -24,11 +26,11 @@ Stage 3 (Wardrobe)
 
 Stage 4 (Manual Creator) ──┐
                            ├─ Оба разработчика могут работать параллельно
-Stage 6 (Community) ───────┘   после завершения Stage 4
+Stage 6 (Removed: Community) ─┘   (исторически планировалось после Stage 4)
 
 Stage 5 (AI) ──┐
                ├─ Можно делать параллельно
-Stage 6 (Community) ─┘
+Stage 6 (Tokens/Monetization foundations) ─┘
 
 Stage 8 (Polish) - можно начинать параллельно с Stage 5-7
 ```
@@ -101,7 +103,7 @@ Stage 8 (Polish) - можно начинать параллельно с Stage 5
 
 **День 3-4: Background Removal Integration**
 
-- [ ] Интеграция Remove.bg API (`services/wardrobe/backgroundRemover.ts`)
+- [ ] Интеграция Pixian.ai API (`services/wardrobe/backgroundRemover.ts`)
 - [ ] Image processor service (`services/wardrobe/imageProcessor.ts`)
 - [ ] Обработка ошибок и fallback
 - [ ] Кэширование обработанных изображений
@@ -193,30 +195,29 @@ Stage 8 (Polish) - можно начинать параллельно с Stage 5
 
 ---
 
-## НЕДЕЛЯ 3: Разделение путей (AI vs Community)
+## НЕДЕЛЯ 3: Разделение путей (AI vs Tokens/UX)
 
-### Вариант A: Stage 5 (AI) + Stage 6 (Community) параллельно
+### Вариант A: Stage 5 (AI) + Tokens/UX параллельно
 
-### 🔵 Разработчик A → Stage 6: Community Feed (5-6 дней)
+### 🔵 Разработчик A → UX/Share/Shopping improvements (5-6 дней)
 
-**День 1-2: Feed UI**
+**День 1-2: Share/Export & UX**
 
-- [ ] Community feed screen (`app/(tabs)/index.tsx`)
-- [ ] PostCard component (`components/community/PostCard.tsx`)
-- [ ] FeedList с infinite scroll (`components/community/FeedList.tsx`)
+- [ ] Export/share flow for outfits (share sheet, formats)
+- [ ] Improve outfit thumbnails / previews
+- [ ] Empty/loading states polishing
 
-**День 3-4: Interactions**
+**День 3-4: Shopping / Web Capture**
 
-- [ ] Like/reaction buttons (`components/community/ReactionButton.tsx`)
-- [ ] Share to community flow
-- [ ] Copy outfit to collection
+- [ ] Shopping browser UX improvements
+- [ ] Web Capture flow improvements (save/organize)
+- [ ] Cart / captured items UX
 
-**День 5-6: Filters & Polish**
+**День 5-6: Tokens UI (optional) + Polish**
 
-- [ ] Feed filters (All/Trending)
-- [ ] Empty states
+- [ ] Token balance UI stubs (read-only)
 - [ ] Loading skeletons
-- [ ] Pull to refresh
+- [ ] Pull to refresh where needed
 
 ### 🟢 Разработчик B → Stage 5: AI Generation (7-8 дней)
 

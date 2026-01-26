@@ -1,5 +1,7 @@
 # Stage 3: Wardrobe Management Core - Executive Summary
 
+> Note (Jan 2026): This is a historical summary. Background removal is currently implemented via **Pixian.ai**.
+
 **Project:** Obrazz - AI-Powered Virtual Wardrobe  
 **Stage:** 3 of 10  
 **Date Completed:** January 14, 2025  
@@ -23,7 +25,7 @@ Successfully implemented a complete wardrobe management system that allows users
 4. **Search System** - Real-time search across items
 5. **Filter System** - Multi-criteria filtering (category, color, style, season)
 6. **Favorites** - Quick favorite/unfavorite functionality
-7. **Background Removal** - Optional Remove.bg API integration
+7. **Background Removal** - Pixian.ai API integration
 
 ### Technical Components
 
@@ -243,7 +245,7 @@ All 10 success criteria from the planning phase achieved:
 
 - **Expo:** SDK 54 platform
 - **Supabase:** Backend and auth
-- **Remove.bg:** Background removal API
+- **Pixian.ai:** Background removal API
 - **TypeScript:** Type safety
 - **Zustand:** State management
 
@@ -261,7 +263,7 @@ All 10 success criteria from the planning phase achieved:
 
 4. ⏳ **Stage 4:** Manual Outfit Creator
 5. ⏳ **Stage 5:** AI Outfit Generation
-6. ⏳ **Stage 6:** Community & Social Features
+6. ❌ **Stage 6:** Community & Social Features (REMOVED FROM SCOPE)
 7. ⏳ **Stage 7:** Subscription & Monetization
 8. ⏳ **Stage 8:** Polish & Optimization
 9. ⏳ **Stage 9:** Testing & QA

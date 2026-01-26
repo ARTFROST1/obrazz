@@ -1,6 +1,6 @@
 # Obrazz Documentation
 
-**Last Updated:** December 21, 2025  
+**Last Updated:** January 26, 2026  
 **Current Version:** 1.0.0  
 **Stage:** 4.12 Complete (Offline-First Architecture + iOS 26+ Liquid Glass updates)
 
@@ -83,7 +83,7 @@ All bugs, errors, and solutions:
 
 ### Setup & Getting Started
 
-#### 6. **[Extra/QUICKSTART.md](Extra/QUICKSTART.md)** 🚀 QUICK START
+#### 6. **[Extra/Archive/QUICKSTART.md](Extra/Archive/QUICKSTART.md)** 🚀 QUICK START
 
 Fast setup guide for new developers:
 
@@ -94,9 +94,11 @@ Fast setup guide for new developers:
 
 **Use this for:** Getting started quickly
 
+> Примечание: quickstart находится в архиве и может содержать исторические детали.
+
 ---
 
-#### 7. **[Extra/DEVELOPER_CHECKLIST.md](Extra/DEVELOPER_CHECKLIST.md)** ✅ WORKFLOW
+#### 7. **[Extra/Team/DEVELOPER_CHECKLIST.md](Extra/Team/DEVELOPER_CHECKLIST.md)** ✅ WORKFLOW
 
 Developer workflow and checklist:
 
@@ -162,7 +164,7 @@ Quick reference for common tasks:
 
 ### Recent Updates
 
-#### 11. **[CLEANUP_SUMMARY.md](CLEANUP_SUMMARY.md)** 🧹 CLEANUP
+#### 11. **[Extra/Archive/CLEANUP_SUMMARY.md](Extra/Archive/CLEANUP_SUMMARY.md)** 🧹 CLEANUP
 
 Recent code cleanup details:
 
@@ -175,7 +177,7 @@ Recent code cleanup details:
 
 ---
 
-#### 12. **[DOCUMENTATION_AUDIT_2025-11-08.md](DOCUMENTATION_AUDIT_2025-11-08.md)** 📊 AUDIT
+#### 12. **[Extra/Archive/DOCUMENTATION_AUDIT_2025-11-08.md](Extra/Archive/DOCUMENTATION_AUDIT_2025-11-08.md)** 📊 AUDIT
 
 Complete documentation audit report:
 
@@ -192,17 +194,17 @@ Complete documentation audit report:
 
 #### Setup Guides
 
-- **[Extra/RUN_MIGRATION_INSTRUCTIONS.md](Extra/RUN_MIGRATION_INSTRUCTIONS.md)** - Database setup
-- **[Extra/REMOVE_BG_SETUP.md](Extra/REMOVE_BG_SETUP.md)** - Background removal setup
-- **[Extra/DEFAULT_ITEMS_GUIDE.md](Extra/DEFAULT_ITEMS_GUIDE.md)** - Managing default/builtin items
+- **[Extra/Build/RUN_MIGRATION_INSTRUCTIONS.md](Extra/Build/RUN_MIGRATION_INSTRUCTIONS.md)** - Database setup
+- **[Features/iOS_OnDevice_Background_Removal.md](Features/iOS_OnDevice_Background_Removal.md)** - iOS on-device background removal (Apple Vision) + Simulator note
+- **[Extra/Features/REMOVE_BG_SETUP.md](Extra/Features/REMOVE_BG_SETUP.md)** - Pixian credentials setup (fallback / Android)
+- **[Extra/Features/DEFAULT_ITEMS_GUIDE.md](Extra/Features/DEFAULT_ITEMS_GUIDE.md)** - Managing default/builtin items
 
 #### Feature Documentation
 
-- **[WEB_CAPTURE_SHOPPING_BROWSER.md](WEB_CAPTURE_SHOPPING_BROWSER.md)** - Shopping Browser feature specs
-- **[WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md](WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md)** - State management fixes
-- **[WEBVIEW_PERFORMANCE_OPTIMIZATION.md](WEBVIEW_PERFORMANCE_OPTIMIZATION.md)** - WebView optimizations
-- **[WEB_CAPTURE_MANUAL_SCAN_UPDATE.md](WEB_CAPTURE_MANUAL_SCAN_UPDATE.md)** - Manual scan implementation
-- **[WEB_CAPTURE_BUGFIXES.md](WEB_CAPTURE_BUGFIXES.md)** - Bug fixes documentation
+- **[Extra/Archive/WEB_CAPTURE_SHOPPING_BROWSER.md](Extra/Archive/WEB_CAPTURE_SHOPPING_BROWSER.md)** - Shopping Browser feature specs
+- **[Extra/Archive/WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md](Extra/Archive/WEB_CAPTURE_STATE_MANAGEMENT_FIXES.md)** - State management fixes
+- **[Extra/Archive/WEB_CAPTURE_MANUAL_SCAN_UPDATE.md](Extra/Archive/WEB_CAPTURE_MANUAL_SCAN_UPDATE.md)** - Manual scan implementation
+- **[Extra/Archive/WEB_CAPTURE_BUGFIXES.md](Extra/Archive/WEB_CAPTURE_BUGFIXES.md)** - Bug fixes documentation
 
 #### Planning
 
@@ -236,7 +238,7 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 ## 📊 Project Overview
 
-### Current Status (December 2025)
+### Current Status (January 2026)
 
 **Completed Stages:**
 
@@ -251,14 +253,12 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 - ✅ Stage 4.9: ImageCropper Refactor
 - ✅ Stage 4.10: Data Persistence Architecture
 - ✅ Stage 4.11: Shopping Browser & Web Capture
+- ✅ Stage 4.12: Offline-First Architecture
 
 **Planned Stages:**
 
-- 🚧 Stage 5: AI-анализ вещей при загрузке
-- 🚧 Stage 6: AI-стилист (подбор образов)
-- 🚧 Stage 7: AI-примерка на фото
-- 🚧 Stage 8: Subscription & Billing
-- 🚧 Stage 9-10: Push-уведомления, Геймификация, Onboarding
+- 🚧 Stage 5: AI-функции (The New Black API)
+- 🚧 Далее: токены/подписки/биллинг, push-уведомления, геймификация, onboarding/paywall
 
 ### Key Statistics
 
@@ -270,7 +270,7 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 - **Tab System:** 4 customizable tabs
 - **Default Stores:** 9 (ZARA, H&M, ASOS, Nike, Adidas, Reserved, Mango, Pull&Bear, Bershka)
 - **Default Items:** 24 built-in wardrobe items
-- **Tech Stack:** React Native 0.81.4 + Expo SDK 54.0.13
+- **Tech Stack:** React Native 0.81.5 + Expo SDK ~54.0.30
 
 ### Key Features
 
@@ -313,7 +313,8 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 - [Environment Setup](Extra/QUICKSTART.md)
 - [Database Migrations](Extra/RUN_MIGRATION_INSTRUCTIONS.md)
-- [Background Removal Setup](Extra/REMOVE_BG_SETUP.md)
+- [iOS On-Device Background Removal](Features/iOS_OnDevice_Background_Removal.md)
+- [Pixian (Fallback) Setup](Extra/REMOVE_BG_SETUP.md)
 
 ### Reference
 

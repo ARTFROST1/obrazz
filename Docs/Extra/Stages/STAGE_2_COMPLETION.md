@@ -320,7 +320,7 @@ npm install expo-camera expo-image-picker expo-file-system
 
 ### Services to Set Up
 
-- Remove.bg API key configuration
+- Pixian.ai credentials configuration (`EXPO_PUBLIC_PIXIAN_API_ID`, `EXPO_PUBLIC_PIXIAN_API_SECRET`)
 - Image storage in Supabase Storage
 - Database tables for wardrobe items
 

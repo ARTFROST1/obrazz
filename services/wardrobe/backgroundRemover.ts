@@ -1,6 +1,8 @@
 import { PIXIAN_API_ID, PIXIAN_API_SECRET, PIXIAN_TEST_MODE } from '@config/env';
 import { Buffer } from 'buffer';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
+import { SubjectLifter } from 'subject-lifter';
 
 interface PixianOptions {
   // Test mode - free but with watermark
@@ -28,10 +30,55 @@ class BackgroundRemoverService {
   private apiSecret: string;
   private apiUrl = 'https://api.pixian.ai/api/v2/remove-background';
   private accountUrl = 'https://api.pixian.ai/api/v2/account';
+  private isAppleVisionAvailable: boolean | null = null;
 
   constructor() {
     this.apiId = PIXIAN_API_ID || '';
     this.apiSecret = PIXIAN_API_SECRET || '';
+    this.checkAppleVisionAvailability();
+  }
+
+  /**
+   * Check if Apple Vision is available on this device
+   */
+  private async checkAppleVisionAvailability(): Promise<void> {
+    console.log('[BackgroundRemover] Checking Apple Vision availability...');
+    console.log('[BackgroundRemover] Platform:', Platform.OS);
+
+    if (Platform.OS !== 'ios') {
+      console.log('[BackgroundRemover] Not iOS, Apple Vision unavailable');
+      this.isAppleVisionAvailable = false;
+      return;
+    }
+
+    try {
+      console.log('[BackgroundRemover] Calling SubjectLifter.isAvailable()...');
+      this.isAppleVisionAvailable = await SubjectLifter.isAvailable();
+      console.log('[BackgroundRemover] Apple Vision availability:', this.isAppleVisionAvailable);
+
+      // Log system info for debugging
+      const systemInfo = SubjectLifter.getSystemInfo();
+      if (systemInfo) {
+        console.log('[BackgroundRemover] System info:', systemInfo);
+      } else {
+        console.warn('[BackgroundRemover] No system info available');
+      }
+    } catch (error) {
+      console.error('[BackgroundRemover] Failed to check Apple Vision availability:', error);
+      console.error('[BackgroundRemover] Error details:', JSON.stringify(error));
+      this.isAppleVisionAvailable = false;
+    }
+  }
+
+  /**
+   * Get the current background removal method
+   */
+  async getRemovalMethod(): Promise<'apple-vision' | 'pixian'> {
+    if (this.isAppleVisionAvailable === null) {
+      await this.checkAppleVisionAvailability();
+    }
+
+    return this.isAppleVisionAvailable ? 'apple-vision' : 'pixian';
   }
 
   private getBasicAuthHeaderValue(): string {
@@ -143,20 +190,70 @@ class BackgroundRemoverService {
   }
 
   /**
-   * Remove background from image using Pixian.ai API
+   * Remove background from image using Apple Vision (iOS 16+) or Pixian.ai API
    *
    * @param imageUri - Local file URI of the image
-   * @param options - Optional parameters for background removal
+   * @param options - Optional parameters for background removal (Pixian only)
    *
-   * Note: By default, uses test mode (free with watermark) based on EXPO_PUBLIC_PIXIAN_TEST_MODE.
-   * Set options.test = false to use production mode (requires credits).
+   * Automatically uses:
+   * - Apple Vision on iOS 16+ (free, offline, fast)
+   * - Pixian.ai API as fallback for Android or older iOS
    */
   async removeBackground(imageUri: string, options: PixianOptions = {}): Promise<string> {
+    console.log('[BackgroundRemover] Starting background removal for:', imageUri);
+
+    // IMPORTANT: Always check Apple Vision availability before use
+    // This ensures the async check in constructor has completed
+    if (this.isAppleVisionAvailable === null) {
+      console.log(
+        '[BackgroundRemover] Apple Vision availability not yet determined, checking now...',
+      );
+      await this.checkAppleVisionAvailability();
+    }
+
+    console.log('[BackgroundRemover] Current Apple Vision status:', this.isAppleVisionAvailable);
+
+    // Try Apple Vision first on iOS 16+
+    if (this.isAppleVisionAvailable) {
+      try {
+        console.log('[BackgroundRemover] Using Apple Vision (free, on-device)');
+        const startTime = Date.now();
+
+        const resultUri = await SubjectLifter.liftSubject(imageUri);
+
+        const elapsed = Date.now() - startTime;
+        console.log('[BackgroundRemover] Apple Vision completed in', elapsed, 'ms');
+        console.log('[BackgroundRemover] Result saved to:', resultUri);
+
+        return resultUri;
+      } catch (error) {
+        console.error('[BackgroundRemover] Apple Vision failed, falling back to Pixian:', error);
+        console.error('[BackgroundRemover] Apple Vision error details:', JSON.stringify(error));
+        // Continue to Pixian fallback
+      }
+    } else {
+      console.log('[BackgroundRemover] Apple Vision not available, reason:');
+      console.log('[BackgroundRemover] - Platform:', Platform.OS);
+      console.log('[BackgroundRemover] - isAppleVisionAvailable:', this.isAppleVisionAvailable);
+    }
+
+    // Fallback to Pixian.ai
+    console.log('[BackgroundRemover] Using Pixian.ai API (cloud, paid)');
+    return await this.removeBackgroundViaPixian(imageUri, options);
+  }
+
+  /**
+   * Remove background using Pixian.ai API (fallback method)
+   *
+   * @private
+   */
+  private async removeBackgroundViaPixian(
+    imageUri: string,
+    options: PixianOptions = {},
+  ): Promise<string> {
     if (!this.apiId || !this.apiSecret) {
       throw new Error('Pixian.ai API credentials not configured');
     }
-
-    console.log('[BackgroundRemover] Starting background removal for:', imageUri);
 
     try {
       // Fast connectivity check to distinguish network issues from request formatting problems.

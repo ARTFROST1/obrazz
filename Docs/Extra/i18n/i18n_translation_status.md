@@ -419,7 +419,7 @@ Alert.alert(t('common:states.error'), t('namespace:errorMessage'));
 
 4. **Future** - Advanced features:
    - AI generation prompts
-   - Community feed (when implemented)
+   - Community feed (removed from scope)
    - Onboarding flow
    - Tutorial tooltips
 

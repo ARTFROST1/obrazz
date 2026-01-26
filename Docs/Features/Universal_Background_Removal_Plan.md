@@ -1,5 +1,12 @@
 # Universal Background Removal - Expo Go Compatible
 
+> ⚠️ **Status note (Jan 2026):** background removal in the app is multi-provider:
+>
+> - iOS (primary): Apple Vision on-device
+> - Fallback: Pixian.ai (`services/wardrobe/backgroundRemover.ts`)
+>
+> This document contains older Expo Go–compatible experiments/plans and may be outdated.
+
 > **Цель:** Удаление фона (subject lifting) на iOS + Android, совместимое с Expo Go  
 > **Приоритет:** Универсальность > Скорость > Offline  
 > **Ограничение:** Без нативных модулей (только JS/TS)

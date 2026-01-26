@@ -1,0 +1,19 @@
+{
+  "name": "subject-lifter",
+  "version": "1.0.0",
+  "description": "Apple Vision/VisionKit background removal for iOS 16+",
+  "main": "src/index.ts",
+  "scripts": {},
+  "keywords": [
+    "expo-module",
+    "visionkit",
+    "background-removal"
+  ],
+  "author": "Obrazz Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

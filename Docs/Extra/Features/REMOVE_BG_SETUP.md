@@ -1,35 +1,41 @@
 # Background Removal Feature Setup
 
+> **Source of truth:** `services/wardrobe/backgroundRemover.ts`.
+
 ## Overview
 
-The background removal feature is **optional** and uses the Remove.bg API to automatically remove backgrounds from clothing item photos. This creates clean, professional-looking images for your wardrobe.
+Background removal in Obrazz is **multi-provider**:
 
----
+- **iOS (primary):** Apple Vision (on-device) via `SubjectLifter` — **no API keys required**
+- **Fallback (Android / unsupported iOS / Simulator / failures):** **Pixian.ai API** — requires credentials
 
 ## Current Status
 
-✅ **Feature is implemented but disabled** - The "Remove BG" button will only appear when an API key is configured.
+✅ **Feature is implemented**
+
+- iOS on-device Apple Vision works without any env vars (dev build required)
+- Pixian fallback requires env vars below
 
 ---
 
-## How to Enable (Optional)
+## How to Enable
 
-### Step 1: Get a Remove.bg API Key
+### Step 1: Get Pixian.ai credentials
 
-1. Visit https://www.remove.bg/api
-2. Click "Get API Key" or "Sign Up"
-3. Create a free account
-4. Navigate to your dashboard
-5. Copy your API key
+1. Create a Pixian.ai account
+2. Get API ID + API Secret
 
-### Step 2: Add API Key to Environment
+### Step 2: Add credentials to Environment
 
 1. Open your `.env` file in the project root
-2. Find or add this line:
+2. Find or add these lines:
    ```env
-   EXPO_PUBLIC_REMOVE_BG_API_KEY=your_actual_api_key_here
+   EXPO_PUBLIC_PIXIAN_API_ID=your_pixian_id
+   EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
+   # Optional: free test mode (watermark)
+   EXPO_PUBLIC_PIXIAN_TEST_MODE=true
    ```
-3. Replace `your_actual_api_key_here` with your actual API key
+3. Replace the values with your Pixian.ai credentials
 4. Save the file
 
 ### Step 3: Restart the App
@@ -46,50 +52,29 @@ npx expo start --clear
 2. Navigate to Wardrobe tab
 3. Tap the "+" button to add an item
 4. Take or select a photo
-5. You should now see the "Remove BG" button
-6. Tap it to remove the background
-
----
-
-## Free Tier Limits
-
-Remove.bg offers a free tier with:
-
-- **50 API calls per month**
-- Preview quality images (0.25 megapixels)
-- Good enough for testing and personal use
-
-For production use, consider upgrading to a paid plan.
-
----
-
-## How It Works Without API Key
-
-If you don't configure the API key:
-
-- ✅ The app works perfectly fine
-- ✅ You can still add items with photos
-- ✅ The "Remove BG" button is hidden
-- ✅ No errors or warnings shown to users
-
-The feature is completely optional!
+5. Trigger background removal:
+   - On a real iOS device (iOS 16+): should use Apple Vision
+   - On Android / iOS Simulator / unsupported iOS: should use Pixian fallback
 
 ---
 
 ## Troubleshooting
 
-### "API Key invalid" Error
+### "Pixian.ai API credentials not configured"
 
-**Cause:** The API key in your `.env` file is incorrect or expired.
+**Cause:** Pixian fallback is needed (Android / Simulator / unsupported iOS), but env vars are missing.
 
-**Solution:**
+**Solution:** Add `EXPO_PUBLIC_PIXIAN_API_ID` and `EXPO_PUBLIC_PIXIAN_API_SECRET` to `.env` and restart with `npx expo start --clear`.
 
-1. Check that you copied the entire API key
-2. Ensure there are no extra spaces
-3. Verify the key is still active in your Remove.bg dashboard
-4. Restart the app after updating
+### Background removal always uses Pixian on iOS
 
-### "Remove BG" Button Not Showing
+**Common causes:**
+
+- Running on **iOS Simulator** (Apple Vision is unavailable there)
+- iOS version is < 16
+- Dev build not used (Expo Go)
+
+**Fix:** Test on a real iPhone/iPad with a dev build.
 
 **Cause:** API key not configured or app not restarted.
 
@@ -101,12 +86,11 @@ The feature is completely optional!
 
 ### Background Removal Fails
 
-**Possible Causes:**
+**Possible causes (Pixian fallback):**
 
-- Monthly API limit reached (50 calls on free tier)
-- Image format not supported
-- Network connection issues
-- Image too large
+- Network connection issues / VPN / DNS
+- Pixian API outage or rate limits
+- Image too large (app may downscale before upload)
 
 **Solution:**
 

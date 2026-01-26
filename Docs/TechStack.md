@@ -1,8 +1,8 @@
 # 🚀 Obrazz - Полный технический стек
 
 > **Дата создания:** 12 января 2025  
-> **Последнее обновление:** 21 декабря 2025  
-> **Версия документа:** 1.1.1  
+> **Последнее обновление:** 26 января 2026  
+> **Версия документа:** 1.2.0  
 > **Статус:** Актуальный
 
 ## 📋 Оглавление
@@ -45,8 +45,8 @@
 {
   "react": "19.1.0",
   "react-dom": "19.1.0",
-  "react-native": "0.81.4",
-  "expo": "~54.0.13",
+  "react-native": "0.81.5",
+  "expo": "~54.0.30",
   "typescript": "~5.9.2"
 }
 ```
@@ -59,11 +59,11 @@
 {
   "expo-constants": "~18.0.9",
   "expo-font": "~14.0.9",
-  "expo-linking": "~8.0.8",
-  "expo-router": "~6.0.11",
-  "expo-splash-screen": "~31.0.10",
-  "expo-status-bar": "~3.0.8",
-  "expo-web-browser": "~15.0.8"
+  "expo-linking": "~8.0.11",
+  "expo-router": "~6.0.21",
+  "expo-splash-screen": "~31.0.13",
+  "expo-status-bar": "~3.0.9",
+  "expo-web-browser": "~15.0.10"
 }
 ```
 
@@ -71,14 +71,14 @@
 
 ```json
 {
-  "expo-camera": "~17.0.8",
-  "expo-image-picker": "~17.0.8",
-  "expo-file-system": "~19.0.17",
-  "expo-image-manipulator": "~14.0.7",
-  "expo-blur": "~15.0.7",
-  "expo-linear-gradient": "~15.0.7",
-  "expo-symbols": "~1.0.7",
-  "expo-dev-client": "~6.0.17",
+  "expo-camera": "~17.0.10",
+  "expo-image-picker": "~17.0.10",
+  "expo-file-system": "~19.0.21",
+  "expo-image-manipulator": "~14.0.8",
+  "expo-blur": "~15.0.8",
+  "expo-linear-gradient": "~15.0.8",
+  "expo-symbols": "~1.0.8",
+  "expo-dev-client": "~6.0.20",
   "expo-glass-effect": "~0.1.8"
 }
 
@@ -136,7 +136,7 @@ gem 'administrate'                # Admin панель
 gem 'sentry-ruby'                 # Error tracking
 ```
 
-**Документация:** [Backend.md](./Backend.md)
+**Документация:** [Extra/Features/Backend.md](./Extra/Features/Backend.md)
 
 ### Supabase клиент и библиотеки
 
@@ -148,19 +148,13 @@ gem 'sentry-ruby'                 # Error tracking
 }
 ```
 
-**📋 Включено в supabase-js (не требуется отдельная установка):**
+**Примечание:** `@supabase/supabase-js` включает клиентов для Auth / PostgREST / Realtime / Storage.
 
-```json
-{
-  "@supabase/auth-helpers-react": "встроено",
-  "@supabase/storage-js": "встроено",
-  "@supabase/realtime-js": "встроено",
-  "@supabase/postgrest-js": "встроено",
-  "@supabase/functions-js": "встроено"
-}
-```
+`@supabase/auth-helpers-react` — отдельный пакет и в текущем проекте не используется.
 
 ### The New Black AI (Внешний API)
+
+> **Статус:** 📋 Планируется (Stage 5+). Интеграция в текущей кодовой базе ещё не реализована.
 
 > **Примечание:** Вместо отдельного NestJS микросервиса используем готовый The New Black Fashion AI API.
 > Rails backend выступает proxy и сохраняет результаты в Supabase Storage.
@@ -188,11 +182,14 @@ gem 'sentry-ruby'                 # Error tracking
 ```json
 {
   "@expo/vector-icons": "^15.0.2",
+  "@callstack/liquid-glass": "^0.7.0",
+  "@gorhom/bottom-sheet": "^5.2.8",
+  "@react-native-menu/menu": "^2.0.0",
   "react-native-safe-area-context": "~5.6.0",
   "react-native-screens": "~4.16.0",
-  "react-native-svg": "^15.10.0"
+  "react-native-svg": "15.12.1"
 }
-````
+```
 
 **📋 Для будущих стадий:**
 
@@ -207,29 +204,21 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### Стилизация
 
+> **Примечание:** NativeWind и Tamagui не установлены в текущем проекте.
+> Стилизация выполняется через стандартные React Native StyleSheet.
+
 ```json
+// 📋 Опционально для будущего:
 {
   "nativewind": "^4.2.0",
   "tailwindcss": "^3.5.0",
-  "@tamagui/core": "^1.117.0",
-  "@tamagui/config": "^1.117.0",
-  "@tamagui/animations-react-native": "^1.117.0",
-  "react-native-unistyles": "^3.0.0-rc.9"
+  "@tamagui/core": "^1.117.0"
 }
 ```
 
 ### UI утилиты
 
-```json
-{
-  "react-native-modal": "^13.0.2",
-  "react-native-toast-message": "^2.3.0",
-  "react-native-flash-message": "^0.5.0",
-  "react-native-skeleton-placeholder": "^5.3.0",
-  "react-native-shimmer-placeholder": "^2.0.10",
-  "react-native-loading-spinner-overlay": "^3.0.2"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущей кодовой базе эти пакеты **не установлены**.
 
 ---
 
@@ -243,7 +232,7 @@ gem 'sentry-ruby'                 # Error tracking
   "@react-navigation/native-stack": "^7.2.0",
   "@react-navigation/bottom-tabs": "^7.2.0",
   "@react-navigation/stack": "^7.1.0",
-  "expo-router": "~6.0.11"
+  "expo-router": "~6.0.21"
 }
 ```
 
@@ -295,7 +284,10 @@ gem 'sentry-ruby'                 # Error tracking
 {
   "react-native-reanimated": "~4.1.1",
   "react-native-worklets": "0.5.1",
-  "react-native-gesture-handler": "~2.28.0"
+  "react-native-gesture-handler": "~2.28.0",
+  "react-native-draggable-flatlist": "^4.0.3",
+  "react-native-reanimated-carousel": "^4.0.3",
+  "react-native-haptic-feedback": "^2.3.3"
 }
 ```
 
@@ -319,15 +311,9 @@ gem 'sentry-ruby'                 # Error tracking
 
 ```json
 {
-  "@react-native-async-storage/async-storage": "^2.1.0"
-}
-```
-
-**✅ Установлено для Stage 3+ (Wardrobe Management):**
-
-```json
-{
-  "react-native-zoom-toolkit": "^5.0.1"
+  "@react-native-async-storage/async-storage": "^2.1.0",
+  "react-native-zoom-toolkit": "^5.0.1",
+  "react-native-view-shot": "^4.0.3"
 }
 ```
 
@@ -340,42 +326,27 @@ gem 'sentry-ruby'                 # Error tracking
   "react-native-image-zoom-viewer": "^3.1.2",
   "react-native-super-grid": "^6.1.0",
   "react-native-masonry-list": "^2.16.2",
-  "react-native-fs": "^2.21.0",
-  "react-native-draggable-flatlist": "^4.0.3",
-  "react-native-reanimated-carousel": "^4.0.3",
-  "react-native-haptic-feedback": "^2.3.3"
+  "react-native-fs": "^2.21.0"
 }
 ```
 
 ### Обработка изображений и удаление фона
 
-```json
-{
-  "remove.bg": "^2.0.2",
-  "@segment-anything/segmentation": "^1.0.0",
-  "sharp": "^0.34.0",
-  "jimp": "^1.8.0",
-  "react-native-image-filter-kit": "^0.9.0",
-  "react-native-photo-editor": "^1.1.0"
-}
-```
+> **Реализовано:** Pixian.ai API через `fetch` (без отдельного npm SDK).
+>
+> **Код:** `services/wardrobe/backgroundRemover.ts`.
+
+**📋 Опционально для будущих стадий (не установлено):** локальная сегментация/фильтры/редакторы.
 
 ---
 
 ## 🤖 AI и Machine Learning
 
-### OpenAI и другие AI сервисы
+### AI интеграции (Stage 5+)
 
-```json
-{
-  "openai": "^4.82.0",
-  "@anthropic-ai/sdk": "^0.37.0",
-  "@google/generative-ai": "^0.25.0",
-  "replicate": "^1.2.0",
-  "@huggingface/inference": "^2.9.0",
-  "llamaindex": "^1.5.0"
-}
-```
+> **Статус:** 📋 Планируется. В текущей мобильной кодовой базе SDK для OpenAI/Anthropic/Google и др. **не установлены**.
+>
+> **Архитектура:** Mobile → Rails API → The New Black API (клиент **не ходит** в The New Black напрямую).
 
 ### Обработка стилей и цветов
 
@@ -394,16 +365,7 @@ gem 'sentry-ruby'                 # Error tracking
 
 ## 💳 Платежи и подписки
 
-```json
-{
-  "react-native-purchases": "^8.4.0",
-  "react-native-iap": "^13.2.0",
-  "stripe": "^17.7.0",
-  "@stripe/stripe-react-native": "^0.41.0",
-  "react-native-yookassa": "^1.1.0",
-  "react-native-paymaster": "^1.0.5"
-}
-```
+> **Статус:** 📋 Планируется (Stage 8+). В текущем проекте платежные SDK **не установлены**.
 
 ---
 
@@ -418,7 +380,7 @@ gem 'sentry-ruby'                 # Error tracking
   "@typescript-eslint/eslint-plugin": "^7.18.0",
   "@typescript-eslint/parser": "^7.18.0",
   "eslint": "^8.57.0",
-  "eslint-config-expo": "^8.0.0",
+  "eslint-config-expo": "~10.0.0",
   "eslint-plugin-import": "^2.31.0",
   "eslint-plugin-prettier": "^5.2.1",
   "eslint-plugin-react": "^7.37.2",
@@ -462,16 +424,7 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### Отладка
 
-```json
-{
-  "react-native-debugger": "^1.2.0",
-  "flipper-plugin-react-native-performance": "^0.5.0",
-  "react-devtools": "^6.0.0",
-  "reactotron-react-native": "^5.2.0",
-  "react-native-logs": "^5.2.0",
-  "@sentry/react-native": "^6.7.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти инструменты **не установлены**.
 
 ---
 
@@ -489,16 +442,14 @@ gem 'sentry-ruby'                 # Error tracking
 
 ```json
 {
-  "jest": "^30.0.0-alpha.9",
-  "jest-expo": "~54.0.0",
-  "@testing-library/react-native": "^13.0.0",
-  "@testing-library/jest-native": "^6.0.0",
-  "detox": "^20.32.0",
-  "maestro": "^1.42.0",
-  "@testing-library/react-hooks": "^9.0.0",
-  "msw": "^2.8.0"
+  "jest": "^29.7.0",
+  "jest-expo": "~54.0.16",
+  "@testing-library/react-native": "^13.3.3",
+  "@testing-library/jest-native": "^5.4.3"
 }
 ```
+
+**📋 Для будущих стадий (не установлено):** Detox / Maestro / MSW.
 
 ---
 
@@ -506,28 +457,13 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### EAS (Expo Application Services)
 
-```json
-{
-  "eas-cli": "^14.1.0",
-  "expo-dev-client": "~5.0.9",
-  "expo-build-properties": "~0.14.9"
-}
-```
+> **Примечание:** `eas-cli` обычно ставится глобально (или через `npx`). В `package.json` как зависимость он не закреплён.
+>
+> **Установлено в проекте:** `expo-dev-client` `~6.0.20`.
 
 ### Мониторинг и аналитика
 
-```json
-{
-  "expo-analytics": "^1.2.0",
-  "@amplitude/analytics-react-native": "^3.1.0",
-  "@segment/analytics-react-native": "^3.5.0",
-  "@mixpanel/react-native": "^3.2.0",
-  "react-native-firebase": "^21.10.0",
-  "@react-native-firebase/analytics": "^21.10.0",
-  "@react-native-firebase/crashlytics": "^21.10.0",
-  "@react-native-firebase/performance": "^21.10.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти SDK **не установлены**.
 
 ---
 
@@ -556,6 +492,17 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### Сеть и API
 
+**✅ Установлено:**
+
+```json
+{
+  "@react-native-community/netinfo": "11.4.1",
+  "react-native-webview": "13.15.0"
+}
+```
+
+**📋 Для будущих стадий:**
+
 ```json
 {
   "axios": "^1.8.0",
@@ -569,10 +516,19 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### Локализация
 
+**✅ Установлено:**
+
 ```json
 {
-  "i18next": "^24.5.0",
-  "react-i18next": "^16.2.0",
+  "i18next": "^25.6.3",
+  "react-i18next": "^16.3.5"
+}
+```
+
+**📋 Для будущих стадий:**
+
+```json
+{
   "i18next-react-native-language-detector": "^1.1.0",
   "react-native-localize": "^3.3.0"
 }
@@ -580,30 +536,13 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### Утилиты даты и времени
 
-```json
-{
-  "date-fns": "^4.2.0",
-  "dayjs": "^1.12.0",
-  "moment": "^2.31.0",
-  "react-native-calendars": "^1.1308.0",
-  "react-native-date-picker": "^5.1.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти пакеты **не установлены**.
 
 ---
 
 ## 🔒 Безопасность и хранение
 
-```json
-{
-  "react-native-keychain": "^9.1.0",
-  "react-native-encrypted-storage": "^5.0.0",
-  "react-native-biometrics": "^3.1.0",
-  "react-native-mmkv": "^3.2.0",
-  "react-native-sqlite-storage": "^7.0.0",
-  "watermelondb": "^0.28.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти пакеты **не установлены**.
 
 ---
 
@@ -611,26 +550,11 @@ gem 'sentry-ruby'                 # Error tracking
 
 ### ORM и работа с базой данных
 
-```json
-{
-  "prisma": "^6.2.0",
-  "@prisma/client": "^6.2.0",
-  "drizzle-orm": "^0.38.0",
-  "drizzle-kit": "^0.30.0",
-  "@supabase/ssr": "^0.6.0",
-  "kysely": "^0.28.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти пакеты **не установлены**.
 
 ### Валидация схем
 
-```json
-{
-  "zod-to-json-schema": "^3.24.0",
-  "json-schema-to-typescript": "^15.1.0",
-  "@sinclair/typebox": "^0.35.0"
-}
-```
+> **Статус:** 📋 Опционально для будущих стадий. В текущем проекте эти пакеты **не установлены**.
 
 ---
 
@@ -640,13 +564,13 @@ gem 'sentry-ruby'                 # Error tracking
 
 | Библиотека       | Версия   | Совместимость         |
 | ---------------- | -------- | --------------------- |
-| React Native     | 0.81.4   | ✅ Expo SDK 54        |
-| Expo             | ~54.0.13 | ✅ RN 0.81.4          |
-| React            | 19.1.0   | ✅ RN 0.81.4          |
+| React Native     | 0.81.5   | ✅ Expo SDK 54        |
+| Expo             | ~54.0.30 | ✅ RN 0.81.5          |
+| React            | 19.1.0   | ✅ RN 0.81.5          |
 | TypeScript       | ~5.9.2   | ✅ Все библиотеки     |
-| React Navigation | ^7.1.8   | ✅ RN 0.81.4          |
-| Reanimated       | ~4.1.1   | ✅ RN 0.81.4, Expo 54 |
-| Gesture Handler  | ~2.24.0  | ✅ Reanimated 4       |
+| React Navigation | ^7.1.8   | ✅ RN 0.81.5          |
+| Reanimated       | ~4.1.1   | ✅ RN 0.81.5, Expo 54 |
+| Gesture Handler  | ~2.28.0  | ✅ Reanimated 4       |
 | Zustand          | ^5.0.3   | ✅ React 19           |
 | TanStack Query   | ^5.71.0  | ✅ React 19           |
 | Supabase JS      | ^2.51.0  | ✅ Все версии         |
@@ -748,7 +672,7 @@ module.exports = function (api) {
 
 ## 🚨 Важные замечания (обновлено Stage 1)
 
-1. **React Native 0.81.4** - последняя стабильная версия, полностью совместимая с Expo SDK 54 ✅
+1. **React Native 0.81.5** - последняя стабильная версия, полностью совместимая с Expo SDK 54 ✅
 2. **React 19.1.0** - последняя версия с улучшенной производительностью ✅
 3. **Reanimated 4** - worklets уже включены, отдельный пакет НЕ нужен ✅
 4. **Zustand 5** - breaking changes учтены, работает с React 19 ✅
@@ -765,15 +689,15 @@ module.exports = function (api) {
 
 **Актуальные версии:**
 
-- Все версии проверены и установлены в Stage 1
+- Все версии проверены и установлены в Stage 1-4
 - См. `package.json` для точных версий
-- См. `STAGE_1_COMPLETION.md` для деталей установки
+- См. документы в `Docs/Extra/Stages/` для деталей по стадиям
 
 ---
 
-_Последнее обновление: 11 ноября 2025 (Документация синхронизирована с кодом)_
+_Последнее обновление: 26 января 2026 (Документация синхронизирована с кодом)_
 
-## 📊 Новые Зависимости (Stages 4.8-4.10)
+## 📊 Новые Зависимости (Stages 4.8-4.12)
 
 **Stage 4.8 - 4-Tab System:**
 
@@ -791,3 +715,18 @@ _Последнее обновление: 11 ноября 2025 (Документ
 - Enhanced `outfitService.ts` with full item data loading
 - Enhanced `outfitStore.ts` with priority-based restoration
 - AsyncStorage conditional loading logic
+
+**Stage 4.11 - Shopping Browser:**
+
+- ✅ `react-native-webview@13.15.0` - WebView для браузера магазинов
+- ✅ `@gorhom/bottom-sheet@^5.2.8` - Bottom sheet для gallery
+- Services: `storeService.ts`, `webCaptureService.ts`
+- Store: `shoppingBrowserStore.ts`
+- 10 новых компонентов в `components/shopping/`
+
+**Stage 4.12 - Offline-First:**
+
+- ✅ `@react-native-community/netinfo@11.4.1` - Network monitoring
+- Offline services: `itemServiceOffline.ts`, `outfitServiceOffline.ts`
+- Sync infrastructure: `syncQueue.ts`, `networkMonitor.ts`, `syncService.ts`
+````

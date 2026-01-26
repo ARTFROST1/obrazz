@@ -134,7 +134,7 @@ obrazz/
 │   ├── ui/               # Dev A owns
 │   ├── wardrobe/         # Dev A
 │   ├── outfit/           # Dev A
-│   └── community/        # Dev A
+│   └── shopping/         # Dev A
 │
 ├── services/              # Dev B (создает)
 │   ├── wardrobe/         # Dev B

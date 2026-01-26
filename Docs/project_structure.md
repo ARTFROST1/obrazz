@@ -1,6 +1,6 @@
 # Project Structure - Obrazz
 
-**Last Updated:** December 20, 2025
+**Last Updated:** January 26, 2026
 **Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)
 **Documentation Status:** ✅ Synchronized with codebase
 
@@ -39,7 +39,10 @@ obrazz/
 │   ├── common/ ✅           # Generic components (ImageCropper system)
 │   ├── wardrobe/ ✅         # Wardrobe-specific components (Stage 3)
 │   ├── outfit/ ✅           # Outfit creator components (Stage 4.7-4.8 - SmoothCarousel + Tabs)
-│   ├── ui/ ✅              # Base UI components (Button, Input, FAB, Loader)
+│   ├── shopping/ ✅         # Shopping browser components (Stage 4.11)
+│   ├── sync/ ✅             # Sync status components (Stage 4.12)
+│   ├── home/ ✅             # Home screen components (CategoriesCarousel, StylesCarousel)
+│   ├── ui/ ✅              # Base UI components (Button, Input, FAB, Loader, glass/)
 │   └── Other components  # EditScreenInfo, ExternalLink, StyledText, Themed
 ├── config/ ✅                 # Configuration files
 │   └── env.ts ✅            # Environment config
@@ -67,6 +70,7 @@ obrazz/
 │       └── Archive/ ✅       # Archived stage completion docs
 ├── hooks/ ✅                  # Custom React hooks
 │   ├── useKeyboardAwareScroll.ts ✅
+│   ├── useSyncStatus.ts ✅   # Sync status hook (Stage 4.12)
 │   └── useTranslation.ts ✅
 ├── lib/ ✅                   # External library configurations
 │   └── supabase/ ✅         # Supabase specific logic
@@ -76,13 +80,15 @@ obrazz/
 │   ├── auth/ ✅            # Authentication service (authService.ts)
 │   ├── wardrobe/ ✅        # Wardrobe management (Stage 3 + 4.12)
 │   │   ├── itemService.ts ✅          # Legacy online-only service
-│   │   ├── itemServiceOffline.ts ✅   # NEW: Offline-first service (Stage 4.12)
-│   │   └── backgroundRemover.ts ✅     # Remove.bg integration
+│   │   ├── itemServiceOffline.ts ✅   # Offline-first service (Stage 4.12)
+│   │   └── backgroundRemover.ts ✅     # Pixian.ai integration
 │   ├── outfit/ ✅          # Outfit creation (Stage 4 + 4.12)
 │   │   ├── outfitService.ts ✅        # Legacy online-only service
-│   │   └── outfitServiceOffline.ts ✅ # NEW: Offline-first service (Stage 4.12)
-│   ├── sync/ ✅            # Sync infrastructure (Stage 4.12 - NEW)
+│   │   └── outfitServiceOffline.ts ✅ # Offline-first service (Stage 4.12)
+│   ├── sync/ ✅            # Sync infrastructure (Stage 4.12)
+│   │   ├── index.ts ✅                # Barrel export
 │   │   ├── syncQueue.ts ✅            # Operation queue for offline
+│   │   ├── syncService.ts ✅          # Sync orchestration
 │   │   ├── networkMonitor.ts ✅       # Network state tracking
 │   │   └── types.ts ✅                # Sync-related types
 │   ├── shopping/ ✅        # Shopping browser (Stage 4.11)
@@ -104,8 +110,9 @@ obrazz/
 ├── utils/ ✅                  # Utility functions
 │   ├── storage/ ✅           # Storage utilities (Stage 4.8)
 │   │   └── customTabStorage.ts ✅ # AsyncStorage for custom tab
-│   ├── shopping/ ✅          # Shopping utilities (Stage 4.11 - NEW)
+│   ├── shopping/ ✅          # Shopping utilities (Stage 4.11)
 │   │   ├── imageDetection.ts ✅   # Image detection script injection
+│   │   ├── logoFetcher.ts ✅      # Store favicon fetching
 │   │   └── webviewOptimization.ts ✅ # Performance optimizations
 │   ├── validation/ ✅       # Validation utilities
 │   │   └── authValidation.ts ✅  # Auth validation
@@ -117,6 +124,9 @@ obrazz/
 │   │   └── ServiceError.ts ✅
 │   ├── logger/ ✅            # Logging utilities
 │   │   └── index.ts ✅
+│   ├── item/ ✅              # Item utilities
+│   ├── debounce.ts ✅        # Debounce utility
+│   ├── platform.ts ✅        # Platform detection
 │   └── helpers/ 🚧
 ├── locales/ ✅                # i18n translations
 │   ├── en/ ✅                # English translations (7 files)
@@ -161,7 +171,7 @@ app/
 │   └── forgot-password.tsx ✅ # Password recovery flow
 ├── (tabs)/ ✅               # Tab-based navigation (4 tabs)
 │   ├── _layout.tsx ✅       # Tab navigator layout
-│   ├── index.tsx 🚧         # Home/Community feed (Stage 6 - placeholder)
+│   ├── index.tsx ✅         # Home (Shopping Stories / entry point; AI Hub planned)
 │   ├── wardrobe.tsx ✅      # Wardrobe screen (Stage 3)
 │   ├── outfits.tsx ✅       # Saved outfits collection (Stage 4.5)
 │   └── profile.tsx ✅       # User profile with logout (Stage 2)
@@ -185,16 +195,23 @@ app/
 └── _layout.tsx ✅           # Root layout with providers
 ```
 
-### `/components` - Reusable Components (45 total)
+### `/components` - Reusable Components (60+ total)
 
 ```
 components/
-├── ui/ ✅                     # Base UI components (Stage 2) - 4 components
+├── ui/ ✅                     # Base UI components (Stage 2) - 7+ components
 │   ├── Button.tsx ✅          # Primary/secondary button with loading
 │   ├── Input.tsx ✅           # Form input with validation
 │   ├── Loader.tsx ✅          # Loading spinner
 │   ├── FAB.tsx ✅             # Floating Action Button
-│   ├── glass/ ✅               # iOS 26+ Liquid Glass UI components (expo-glass-effect)
+│   ├── SearchBar.tsx ✅       # Search input component
+│   ├── DropdownMenu.tsx ✅    # Dropdown menu component
+│   ├── glass/ ✅              # iOS 26+ Liquid Glass UI components
+│   │   ├── GlassBackButton.tsx ✅
+│   │   ├── GlassDropdownMenu.tsx ✅
+│   │   ├── GlassIconButton.tsx ✅
+│   │   ├── GlassSearchBar.tsx ✅
+│   │   └── index.ts ✅
 │   └── index.ts ✅            # Barrel export
 ├── common/ ✅                 # Common components (Stage 4.9) - 5 components
 │   ├── ImageCropper.tsx ✅    # Custom 3:4 crop with pinch-to-zoom
@@ -202,15 +219,16 @@ components/
 │   ├── ResizableCropOverlay.tsx ✅ # Resizable crop overlay
 │   ├── DismissKeyboardView.tsx ✅ # Dismiss keyboard on tap
 │   └── KeyboardAwareScrollView.tsx ✅ # Keyboard-aware scroll
-├── wardrobe/ ✅               # Wardrobe components (Stage 3) - 7 components
+├── wardrobe/ ✅               # Wardrobe components (Stage 3) - 8 components
 │   ├── ItemCard.tsx ✅        # Item preview card
 │   ├── ItemGrid.tsx ✅        # Grid display for items
 │   ├── ItemFilter.tsx ✅      # Filtering component
 │   ├── CategoryPicker.tsx ✅  # Category selection
 │   ├── CategoryGridPicker.tsx ✅ # Grid-based category picker
 │   ├── ColorPicker.tsx ✅     # Color selection
-│   └── SelectionGrid.tsx ✅   # Selection grid for multi-select
-├── outfit/ ✅                 # Outfit components (Stages 4.7-4.10) - 14 components
+│   ├── SelectionGrid.tsx ✅   # Selection grid for multi-select
+│   └── WardrobeHeader.tsx ✅  # Wardrobe screen header
+├── outfit/ ✅                 # Outfit components (Stages 4.7-4.10) - 15 components
 │   ├── SmoothCarousel.tsx ✅  # Physics-based carousel (Stage 4.7)
 │   ├── CategorySelectorWithSmooth.tsx ✅ # Carousel container
 │   ├── ItemSelectionStepNew.tsx ✅ # Step 1 with tab system (Stage 4.8)
@@ -224,8 +242,10 @@ components/
 │   ├── OutfitGrid.tsx ✅      # Grid of outfit cards
 │   ├── OutfitEmptyState.tsx ✅ # Empty outfit state
 │   ├── OutfitFilter.tsx ✅    # Filter component
-│   └── OutfitPreview.tsx ✅   # Outfit detail preview
-├── shopping/ ✅               # Shopping components (Stage 4.11) - 10 components (NEW)
+│   ├── OutfitPreview.tsx ✅   # Outfit detail preview
+│   ├── OutfitHeader.tsx ✅    # Outfits screen header
+│   └── index.ts ✅            # Barrel export
+├── shopping/ ✅               # Shopping components (Stage 4.11) - 10 components
 │   ├── GalleryBottomSheet.tsx ✅ # Gallery with detected items
 │   ├── MasonryGallery.tsx ✅  # Masonry grid layout
 │   ├── DetectedItemSheet.tsx ✅ # Bottom sheet for item details
@@ -236,21 +256,25 @@ components/
 │   ├── ShoppingStoriesCarousel.tsx ✅ # Store carousel (9 default stores)
 │   ├── DetectionFAB.tsx ✅    # Floating action button for scan
 │   └── GalleryImageItem.tsx ✅ # Gallery item component
+├── sync/ ✅                   # Sync components (Stage 4.12) - 3 components
+│   ├── OfflineBanner.tsx ✅   # Offline status banner
+│   ├── SyncStatusIndicator.tsx ✅ # Sync status indicator
+│   └── index.ts ✅            # Barrel export
+├── home/ ✅                   # Home screen components - 2 components
+│   ├── CategoriesCarousel.tsx ✅ # Categories carousel
+│   └── StylesCarousel.tsx ✅  # Styles carousel
 ├── Root components ✅         # Expo template & utility components - 4 components
 │   ├── EditScreenInfo.tsx ✅  # Development info component
 │   ├── ExternalLink.tsx ✅    # External link handler
 │   ├── StyledText.tsx ✅      # Themed text component
 │   └── Themed.tsx ✅          # Theme-aware components
-├── Hooks ✅                   # Custom hooks
+├── Hooks ✅                   # Custom hooks (in components folder)
 │   ├── useClientOnlyValue.ts ✅ # Client-side value hook
 │   ├── useClientOnlyValue.web.ts ✅ # Web version
 │   ├── useColorScheme.ts ✅   # Color scheme hook
 │   └── useColorScheme.web.ts ✅ # Web color scheme
-└── community/ 🚧              # Future community components (Stage 6)
-    ├── PostCard.tsx 🚧
-    ├── FeedList.tsx 🚧
-    ├── ReactionButton.tsx 🚧
-    └── ShareButton.tsx 🚧
+
+> Note: Community/social features are removed from scope.
 ```
 
 ### `/services` - Business Logic
@@ -261,7 +285,7 @@ services/
 │   └── authService.ts ✅      # Complete auth logic (signUp, signIn, signOut, reset)
 ├── wardrobe/ ✅             # Wardrobe services (Stage 3)
 │   ├── itemService.ts ✅      # Item CRUD operations + Default Items management
-│   └── backgroundRemover.ts ✅ # Remove.bg API integration
+│   └── backgroundRemover.ts ✅ # Pixian.ai background removal
 ├── outfit/ ✅               # Outfit services (Stage 4)
 │   └── outfitService.ts ✅    # Outfit CRUD with canvasSettings
 ├── shopping/ ✅             # Shopping services (Stage 4.11 - NEW)
@@ -307,7 +331,7 @@ types/
 │   ├── item.ts ✅            # Item model with ItemCategory
 │   ├── outfit.ts ✅          # Outfit model with CanvasSettings
 │   ├── post.ts ✅            # Post model
-│   ├── store.ts ✅           # Store model (Stage 4.11 - NEW)
+│   ├── store.ts ✅           # Store model (Stage 4.11)
 │   │                         # Store, BrowserTab, DetectedImage, CartItem
 │   └── subscription.ts ✅    # Subscription model
 ├── components/ ✅            # Component-specific types (Stage 4.8)
@@ -318,38 +342,20 @@ types/
     └── types.ts ✅           # Navigation param lists
 ```
 
-├── models/ ✅
-│ ├── index.ts ✅ # Barrel export
-│ ├── user.ts ✅ # User model
-│ ├── item.ts ✅ # Item model with ItemCategory
-│ ├── outfit.ts ✅ # Outfit model with CanvasSettings
-│ ├── post.ts ✅ # Post model
-│ └── subscription.ts ✅ # Subscription model
-├── components/ ✅ # Component-specific types (Stage 4.8)
-│ ├── FAB.ts ✅ # FAB types
-│ ├── OutfitCard.ts ✅ # OutfitCard types
-│ └── OutfitCreator.ts ✅ # OutfitTabType, CustomTabState (NEW)
-└── navigation/ ✅
-└── types.ts ✅ # Navigation param lists
-
-```
-
 ### `/lib` - External Libraries Config
 
 ```
-
 lib/
-├── i18n/ ✅ # Internationalization
-│ └── config.ts ✅ # i18next configuration
+├── i18n/ ✅                  # Internationalization
+│   └── config.ts ✅          # i18next configuration
 ├── supabase/ ✅
-│ ├── client.ts ✅ # Supabase client configured
-│ ├── schema.sql ✅ # Complete DB schema
-│ └── migrations/ ✅ # Database migrations
-└── api/ 🚧 # API client (future)
-├── client.ts 🚧 # API client setup
-└── endpoints.ts 🚧 # API endpoints
-
-````
+│   ├── client.ts ✅          # Supabase client configured
+│   ├── schema.sql ✅         # Complete DB schema
+│   └── migrations/ ✅        # Database migrations
+└── api/ 🚧                   # API client (future)
+    ├── client.ts 🚧          # API client setup
+    └── endpoints.ts 🚧       # API endpoints
+```
 
 ## Naming Conventions
 
@@ -391,7 +397,7 @@ Configure these path aliases in `tsconfig.json`, `babel.config.js`, and `metro.c
   "@lib/*": ["lib/*"],
   "@config/*": ["config/*"]
 }
-````
+```
 
 ## Best Practices
 

@@ -1,5 +1,7 @@
 # Stage 1: Foundation & Setup - Completion Report ✅
 
+> ⚠️ NOTE (2026-01-26): это исторический отчёт (Jan 2025). С тех пор scope изменился: Community/социальные функции удалены из проекта. Актуальный статус: `Docs/CURRENT_STATUS.md`, актуальный roadmap: `Docs/Implementation.md`.
+
 **Completion Date:** January 13, 2025  
 **Status:** COMPLETED  
 **Next Stage:** Stage 2 - Authentication & User Management
@@ -59,10 +61,10 @@ Core dependencies installed and configured:
   - `items` table (wardrobe items)
   - `outfits` table (outfit collections)
   - `outfit_items` junction table
-  - `posts` table (community feed)
-  - `likes` table
-  - `comments` table
-  - `follows` table
+  - `posts` table (legacy: community feed; removed from scope)
+  - `likes` table (legacy)
+  - `comments` table (legacy)
+  - `follows` table (legacy)
 - [x] Row Level Security (RLS) policies configured
 - [x] Database indexes for performance
 - [x] Triggers for automated updates

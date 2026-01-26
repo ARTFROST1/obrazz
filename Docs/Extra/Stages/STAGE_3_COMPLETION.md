@@ -1,5 +1,7 @@
 # Stage 3: Wardrobe Management Core - Completion Report
 
+> Note (Jan 2026): This is a historical completion report. Background removal is currently implemented via **Pixian.ai** (`services/wardrobe/backgroundRemover.ts`).
+
 **Date:** January 14, 2025  
 **Status:** ✅ COMPLETED  
 **Duration:** ~4 hours  
@@ -80,7 +82,7 @@ npx expo install expo-camera expo-image-picker expo-file-system expo-image-manip
 
 #### `services/wardrobe/backgroundRemover.ts`
 
-- Remove.bg API integration
+- Pixian.ai API integration
 - Base64 image encoding/decoding
 - FileReader Promise wrapper for React Native
 - Account info checking (credits remaining)
@@ -328,7 +330,7 @@ obrazz/
 ### API Integration
 
 - **Supabase:** PostgreSQL database with RLS
-- **Remove.bg:** Background removal API (optional, requires API key)
+- **Pixian.ai:** Background removal API (requires credentials)
 - **Local Storage:** expo-file-system for image caching
 
 ### State Persistence
@@ -349,7 +351,7 @@ obrazz/
 ### Optional Features
 
 - **Built-in default items:** Marked as optional, can be implemented in future
-- **Background removal:** Requires Remove.bg API key configuration
+- **Background removal:** Requires Pixian.ai credentials configuration
 
 ### Performance Considerations
 

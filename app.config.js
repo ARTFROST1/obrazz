@@ -26,8 +26,10 @@ export default {
         NSPhotoLibraryAddUsageDescription:
           'Obrazz needs permission to save processed images to your photo library.',
         ITSAppUsesNonExemptEncryption: false,
+        // Apple Vision (Vision.framework) is available on iOS 16+ without additional permissions
       },
       bundleIdentifier: 'com.artfrost.obrazz',
+      deploymentTarget: '16.0', // Required for Apple Vision on-device background removal
     },
     android: {
       package: 'com.artfrost.obrazz',
@@ -52,7 +54,13 @@ export default {
       output: 'static',
       favicon: './assets/images/favicon.png',
     },
-    plugins: ['expo-router', 'expo-camera', 'expo-image-picker', 'expo-web-browser'],
+    plugins: [
+      'expo-router',
+      'expo-camera',
+      'expo-image-picker',
+      'expo-web-browser',
+      './modules/subject-lifter-plugin',
+    ],
     experiments: {
       typedRoutes: true,
     },

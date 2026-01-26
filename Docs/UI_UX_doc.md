@@ -271,21 +271,7 @@ Responsive:
 - Tablet (landscape): 3-4 columns, 16px gap
 ```
 
-#### Post Card (Community)
-
-```
-Width: 100%
-Border Radius: 16px
-Background: Card Color
-Padding: 16px
-Margin Bottom: 16px
-Shadow: 0px 2px 8px rgba(0,0,0,0.04)
-
-Structure:
-- Header: Avatar (32px) + Username + Time
-- Content: Outfit preview image
-- Footer: Like button + Count + Share button
-```
+> **Note:** Community Feed и Post Card были убраны из планов. Социальные функции не будут реализованы.
 
 ### Navigation
 

@@ -350,7 +350,7 @@ Outfits Screen
 ### Future Stages
 
 - **Stage 5:** AI Outfit Generation
-- **Stage 6:** Community & Social Features
+- **Stage 6:** Community & Social Features (REMOVED FROM SCOPE)
 - **Stage 7:** Subscription & Monetization
 - **Stage 8:** Polish & Optimization
 

@@ -5,6 +5,8 @@ All notable changes to the Obrazz project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> Note: Some older entries mention Remove.bg. The current background removal implementation in the app uses Pixian.ai (`services/wardrobe/backgroundRemover.ts`).
+
 ## [Unreleased]
 
 ### Liquid Glass UI Enhancement (December 21, 2025)
@@ -113,7 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Camera integration with expo-camera
   - Gallery integration with expo-image-picker
   - Image preview with remove option
-  - Optional background removal (Remove.bg API)
+  - Optional background removal (Pixian.ai API)
   - Form validation for required fields
   - Category, color, style, season selection
   - Brand and size optional fields
@@ -142,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `itemService` - Supabase CRUD operations
   - Local image storage and thumbnails
   - Image optimization
-  - `backgroundRemoverService` - Remove.bg API integration
+  - `backgroundRemoverService` - Pixian.ai API integration
 
 - **Dependencies**
   - expo-camera ~16.0.0

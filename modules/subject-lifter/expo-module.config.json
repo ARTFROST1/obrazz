@@ -1,0 +1,7 @@
+{
+  "platforms": ["ios"],
+  "ios": {
+    "modules": ["SubjectLifterModule"],
+    "podspecPath": "./ios/SubjectLifter.podspec"
+  }
+}

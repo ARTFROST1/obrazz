@@ -1,8 +1,12 @@
 # 📊 Obrazz Project Status
 
-**Last Updated:** January 13, 2025  
-**Current Version:** 1.0.0-dev  
-**Active Stage:** Stage 2 ✅ COMPLETED → Stage 3 🚧 READY TO START
+> ⚠️ **Deprecated:** этот документ отражает ранний план (2025) и не является источником правды.
+>
+> **Актуально:** `Docs/CURRENT_STATUS.md` и `Docs/Implementation.md`.
+
+**Last Updated:** January 26, 2026  
+**Current Version:** 1.1.0  
+**Active Stage:** Stage 4.12 ✅ COMPLETED → Stage 5 🚧 NEXT (AI, The New Black)
 **Team Mode:** 👥 Parallel Development Roadmap Created
 
 ---
@@ -17,7 +21,7 @@ Stage 2: Authentication              ✅ COMPLETED
 Stage 3: Wardrobe Management         ⏳ READY TO START
 Stage 4: Manual Outfit Creator       📋 PENDING
 Stage 5: AI Outfit Generation        📋 PENDING
-Stage 6: Community & Social          📋 PENDING
+Stage 6: Community & Social          ❌ REMOVED FROM SCOPE
 Stage 7: Subscription & Monetization 📋 PENDING
 Stage 8: Polish & Optimization       📋 PENDING
 Stage 9: Testing & QA                📋 PENDING
@@ -108,7 +112,7 @@ Stage 10: Deployment & Launch        📋 PENDING
 - [ ] Wardrobe grid screen
 - [ ] Camera integration (expo-camera)
 - [ ] Gallery picker (expo-image-picker)
-- [ ] Background removal (Remove.bg API)
+- [ ] Background removal (Pixian.ai API)
 - [ ] Item metadata form
 - [ ] Item CRUD operations
 - [ ] Image storage (Supabase Storage)
@@ -256,17 +260,17 @@ None - All Stage 1 issues resolved
 
 ### Week 2 (Current)
 
-- ⏳ Stage 3: Wardrobe Management Core
-- 📋 Stage 4: Manual Outfit Creator (if time allows)
+- ✅ Stage 3: Wardrobe Management Core
+- ✅ Stage 4: Manual Outfit Creator
 
 ### Week 3
 
-- 📋 Stage 4: Manual Outfit Creator
-- 📋 Stage 5: AI Outfit Generation
+- ✅ Stage 4.11: Shopping Browser (Web Capture)
+- ✅ Stage 4.12: Offline-First Architecture
 
 ### Week 4
 
-- 📋 Stage 6: Community & Social Features
+- 🚧 Stage 5: AI-функции (The New Black API)
 - 📋 Stage 7: Subscription & Monetization
 
 ### Week 5-6

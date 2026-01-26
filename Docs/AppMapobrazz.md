@@ -87,7 +87,7 @@
 - Wardrobe grid screen with ItemCard components
 - Camera integration (expo-camera)
 - Gallery picker (expo-image-picker)
-- Background removal service (Remove.bg integration)
+- Background removal service (Pixian.ai integration)
 - Item metadata form (category, colors, styles, seasons, brand, size)
 - Full CRUD operations for wardrobe items
 - Local image storage using expo-file-system
@@ -441,9 +441,10 @@
 
 > Note: Shopping data stored locally via AsyncStorage. No Supabase tables needed. Cart and tabs persist across app restarts.
 
-**Prepared Tables (Stage 6+):**
+**Planned Tables (future):**
 
-- **community_posts**: id, author_user_id, outfit_id, caption, reactions_count, created_at
+> Note: Community/social tables were removed from scope.
+
 - **subscriptions**: id, user_id, plan_type, started_at, expires_at, provider_reference
 - **ai_requests**: id, user_id, params, result, created_at
 
@@ -468,7 +469,7 @@
 - **App bar**: Left: menu/back, center: screen title or search, right: actions (add, profile). Large on main screens, compact on editors.
 - **Bottom navigation**: 4 tabs: Home (Feed), Wardrobe, Outfits, Profile. Secondary flows (Create Outfit, AI, Settings) are modals or stack screens.
 - **Floating Action Button (FAB)**: Circular button positioned bottom-right for primary actions (e.g., Create Outfit on Outfits screen).
-- **Card components**: OutfitCard (image grid preview), ItemCard (single item with details), PostCard (community feed), BigTile (for featured content)
+- **Card components**: OutfitCard (image grid preview), ItemCard (single item with details)
 - **Modals**: Confirmation modal, Save modal, Subscription modal, Image editor modal.
 - **Pickers**: Horizontal scroll carousels for clothes categories (in Creator), dropdowns for style/season.
 - **Canvas**: Editable layered canvas used by Outfit Creator/Editor with gestures to move/scale/rotate items.
@@ -501,7 +502,7 @@ Below are the pages with full, explicit behavior and each function described bas
   - ✨ AI-powered outfit suggestions
   - 👗 Manage your digital wardrobe
   - 🎨 Create custom outfits
-  - 🌐 Share with the community
+  - 🛒 Web Capture from online stores
 - Primary button: "Sign In"
 - Secondary button: "Create Account"
 
@@ -1070,7 +1071,7 @@ User center: view account details, manage subscriptions, review created content.
 
 - Theme: Light / Dark / System
 - Language: English / Russian (others later)
-- Notifications: on/off for community activity
+- Notifications: on/off for app updates (future)
 - Data: export account metadata (no images), delete account (with confirmation)
 - Help & Support: FAQ, contact
 
@@ -1586,7 +1587,7 @@ Security: AI endpoints require valid JWT and check token balance before processi
 
 ## 10. Analytics and instrumentation
 
-- Track events: sign_up, sign_in, add_item, save_outfit, ai_generate, share_outfit, subscribe, like_post
+- Track events: sign_up, sign_in, add_item, save_outfit, export_outfit, subscribe
 - Use lightweight analytics (e.g., Amplitude, Firebase Analytics). Respect privacy and allow users to opt out.
 
 ## 11. Appendix: assets / visuals / export formats
@@ -1599,7 +1600,7 @@ Security: AI endpoints require valid JWT and check token balance before processi
 
 ## Implementation notes, priorities and recommendations
 
-1. **MVP priorities**: authentication (email), add item with background removal, manual outfit creator (canvas + carousels), AI generate simple combinatorics (server), wardrobe browsing, saved outfits, community sharing.
+1. **MVP priorities**: authentication (email), add item with background removal, manual outfit creator (canvas + carousels), wardrobe browsing, saved outfits.
 2. **Local images first**: keep implementation that stores images locally and references them via stable IDs. This simplifies privacy and reduces storage costs early on.
 3. **AI as a service**: begin with a deterministic scoring algorithm that matches color harmony rules and style tags; complement with a lightweight ML model later.
 4. **Testing**: build a test harness for the creator/editor (unit-tests for transforms serialization). Manual QA for gestures.
@@ -1866,7 +1867,7 @@ Outfits → Tap OutfitCard → /outfit/[id] → View/Actions
 - **I Wore This** → Increment wear count
 - **Delete** → Remove outfit (with confirmation)
 - **Favorite** → Toggle favorite status (heart icon)
-- **(Planned) Share** → Export or share to community
+- **(Planned) Share** → Export image / share to other apps
 
 **Flow: Filter/Sort Outfits**
 

@@ -28,12 +28,13 @@
 
 Obrazz is a cutting-edge mobile application that transforms how you organize and style your wardrobe. With AI-powered outfit suggestions, manual outfit creation tools, and a vibrant community feed, Obrazz makes fashion accessible and fun for everyone.
 
+> Note: Obrazz does **not** include a community feed/social features (out of scope).
+
 ### ✨ Key Features
 
 - 👚 **Smart Wardrobe Management** - Add clothes with automatic background removal
 - 🎨 **Manual Outfit Creator** - Drag-and-drop interface with customizable backgrounds
 - 🤖 **AI Outfit Generation** - Get personalized style recommendations
-- 🏠 **Community Feed** - Share and discover outfit inspiration
 - 💎 **Premium Subscription** - Unlock unlimited outfits and AI generations
 - 🌍 **Multi-language Support** - English and Russian interfaces
 - 🌓 **Dark Mode** - Beautiful dark theme support
@@ -117,7 +118,8 @@ npx expo start
 - **Supabase** (PostgreSQL + Auth + Storage)
 - **Ruby on Rails** 7.x (единый backend: API, админка, биллинг)
 - **The New Black AI API** (Virtual Try-On, Fashion Models, Variations)
-- **Pixian.ai API** for background removal
+- **Apple Vision (on-device)** for background removal on iOS (primary)
+- **Pixian.ai API** for background removal (fallback)
 
 ### Tools & Services
 
@@ -181,7 +183,9 @@ Create a `.env` file in the root directory:
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-EXPO_PUBLIC_REMOVE_BG_API_KEY=your_remove_bg_api_key
+EXPO_PUBLIC_PIXIAN_API_ID=your_pixian_id
+EXPO_PUBLIC_PIXIAN_API_SECRET=your_pixian_secret
+EXPO_PUBLIC_PIXIAN_TEST_MODE=true
 EXPO_PUBLIC_OPENAI_API_KEY=your_openai_api_key
 EXPO_PUBLIC_REVENUECAT_API_KEY=your_revenuecat_api_key
 EXPO_PUBLIC_SENTRY_DSN=your_sentry_dsn
@@ -259,7 +263,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Design inspired by Whering, Pinterest, and Figma
 - Icons from [Ionicons](https://ionic.io/ionicons)
-- Background removal by [Remove.bg](https://remove.bg)
 
 ## 📞 Support
 
@@ -280,7 +283,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - [x] Stage 4.9: ImageCropper Refactor
   - [x] Stage 4.10: Data Persistence Architecture
 - [ ] Stage 5: AI Outfit Generation
-- [ ] Stage 6: Community & Social Features
 - [ ] Stage 7: Subscription & Monetization
 - [ ] Stage 8: Polish & Optimization
 - [ ] Stage 9: Testing & QA

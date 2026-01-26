@@ -83,6 +83,7 @@ export default function AddItemScreen() {
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
   const [removingBg, setRemovingBg] = useState(false);
+  const [bgRemovalMethod, setBgRemovalMethod] = useState<'apple-vision' | 'pixian' | null>(null);
   const [currentBatchItemId, setCurrentBatchItemId] = useState<string | null>(null);
   const [downloadingImage, setDownloadingImage] = useState(false); // For web image download indicator
 
@@ -328,7 +329,12 @@ export default function AddItemScreen() {
   const handleRemoveBackground = async () => {
     if (!imageUri) return;
 
-    if (!backgroundRemoverService.isConfigured()) {
+    // Check which method will be used
+    const method = await backgroundRemoverService.getRemovalMethod();
+    setBgRemovalMethod(method);
+
+    // For Pixian, check if configured
+    if (method === 'pixian' && !backgroundRemoverService.isConfigured()) {
       Alert.alert(
         'Feature Not Available',
         'Background removal requires an API key. This feature will be available soon.',
@@ -598,7 +604,10 @@ export default function AddItemScreen() {
               ) : (
                 <>
                   <Ionicons name="sparkles" size={18} color="#FFF" />
-                  <Text style={styles.addPhotoButtonText}>{t('addItem.removeBg')}</Text>
+                  <Text style={styles.addPhotoButtonText}>
+                    {t('addItem.removeBg')}
+                    {bgRemovalMethod === 'apple-vision' && ' ✨'}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
