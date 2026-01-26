@@ -504,19 +504,36 @@ store/
 
 ### 2. UIMenu (Контекстные меню)
 
+**Статус:** ✅ **ЗАВЕРШЕН** (26 января 2026)
+
+**Что было сделано:**
+
+- ✅ Включен нативный UIMenu для iOS в `GlassDropdownMenu.tsx`
+- ✅ Создан компонент `ContextMenuView` для long press контекстных меню
+- ✅ Добавлен long press на вещи в гардеробе → Edit, Delete, Hide
+- ✅ Добавлен long press на образы → Edit, Duplicate, Share, Delete
+- ✅ Кнопка "..." в header использует нативный UIMenu на iOS
+
 **Требования:**
 
 - iOS 13+
-- Нативный модуль (`@react-native-menu/menu`)
+- Нативный модуль (`@react-native-menu/menu` v2.0.0)
 - Development build
 
-**Где использовать:**
+**Где используется:**
 
 - Long press на вещи в гардеробе → Edit, Delete, Hide
 - Long press на образе → Edit, Duplicate, Share, Delete
-- Кнопка "..." в header → Settings, Help
+- Кнопка "..." в header → нативное контекстное меню
 
-**Установка:**
+**Компоненты:**
+
+- `components/ui/ContextMenuView.tsx` — обёртка для long press меню
+- `components/ui/glass/GlassDropdownMenu.tsx` — меню в header (USE_NATIVE_MENU = true для iOS)
+- `components/wardrobe/ItemCard.tsx` — карточка вещи с context menu
+- `components/outfit/OutfitCard.tsx` — карточка образа с context menu
+
+**Установка (уже выполнено):**
 
 ```bash
 npx expo install @react-native-menu/menu
@@ -728,16 +745,16 @@ cleanup_ai_generations:
 
 #### 7.2 Apple Vision Background Removal (3-5 дней)
 
-- [ ] Create subject-lifter Expo module
-- [ ] Implement Apple Vision (Vision.framework) logic
-- [ ] Integrate into backgroundRemover.ts
-- [ ] Test on real device
+- [x] Create subject-lifter Expo module
+- [x] Implement Apple Vision (Vision.framework) logic
+- [x] Integrate into backgroundRemover.ts
+- [x] Test on real device
 
 #### 7.3 UIMenu (1-2 дня)
 
-- [ ] Install @react-native-menu/menu
-- [ ] Add context menus to wardrobe items
-- [ ] Add context menus to outfits
+- [x] Install @react-native-menu/menu
+- [x] Add context menus to wardrobe items
+- [x] Add context menus to outfits
 
 ### Stage 8: Onboarding & Polish (1-2 недели)
 

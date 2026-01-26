@@ -1,0 +1,19 @@
+{
+  "name": "obrazz-context-menu",
+  "version": "1.0.0",
+  "description": "Native iOS UIContextMenuInteraction wrapper for Obrazz (Expo Modules)",
+  "main": "src/index.ts",
+  "keywords": [
+    "expo-module",
+    "ios",
+    "context-menu",
+    "uicontextmenuinteraction"
+  ],
+  "author": "Obrazz Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

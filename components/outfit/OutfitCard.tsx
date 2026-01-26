@@ -1,5 +1,6 @@
+import { ContextMenuAction, ContextMenuView } from '@components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -25,6 +26,8 @@ export interface OutfitCardProps {
   isSelectable?: boolean;
   isSelected?: boolean;
   showActions?: boolean;
+  /** Enable native iOS context menu on long press */
+  enableContextMenu?: boolean;
 }
 
 const { width } = Dimensions.get('window');
@@ -57,10 +60,68 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
   isSelectable = false,
   isSelected = false,
   showActions = false,
+  enableContextMenu = true,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Context menu actions for long press (native iOS UIMenu)
+  const contextMenuActions: ContextMenuAction[] = useMemo(() => {
+    const actions: ContextMenuAction[] = [];
+
+    if (onEdit) {
+      actions.push({
+        id: 'edit',
+        title: 'Edit',
+        icon: 'pencil',
+      });
+    }
+
+    if (onDuplicate) {
+      actions.push({
+        id: 'duplicate',
+        title: 'Duplicate',
+        icon: 'doc.on.doc',
+      });
+    }
+
+    if (onShare) {
+      actions.push({
+        id: 'share',
+        title: 'Share',
+        icon: 'square.and.arrow.up',
+      });
+    }
+
+    if (onDelete) {
+      actions.push({
+        id: 'delete',
+        title: 'Delete',
+        icon: 'trash',
+        destructive: true,
+      });
+    }
+
+    return actions;
+  }, [onEdit, onDuplicate, onDelete, onShare]);
+
+  const handleContextMenuAction = (actionId: string) => {
+    switch (actionId) {
+      case 'edit':
+        onEdit?.(outfit);
+        break;
+      case 'duplicate':
+        onDuplicate?.(outfit);
+        break;
+      case 'share':
+        onShare?.(outfit);
+        break;
+      case 'delete':
+        onDelete?.(outfit);
+        break;
+    }
+  };
 
   const handlePress = () => {
     if (isSelectable) {
@@ -100,14 +161,12 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
   const hasValidItems =
     hasItems && outfit.items.some((item) => item.item?.imageLocalPath || item.item?.imageUrl);
 
-  return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      onLongPress={handleLongPress}
-      activeOpacity={0.7}
-      delayLongPress={500}
-    >
+  // Don't show context menu if in selection mode or no actions defined
+  const showContextMenu = enableContextMenu && !isSelectable && contextMenuActions.length > 0;
+
+  // Card inner content (without touch wrapper)
+  const cardInnerContent = (
+    <>
       {/* Preview Image */}
       <View style={[styles.imageContainer]}>
         {hasValidItems ? (
@@ -161,7 +220,35 @@ export const OutfitCard: React.FC<OutfitCardProps> = ({
           {outfit.title || 'Untitled Outfit'}
         </Text>
       </View>
-    </TouchableOpacity>
+    </>
+  );
+
+  // Use ContextMenuView for all cards - it handles both tap and context menu
+  // ContextMenuView uses Gesture API which works properly with ScrollView
+  if (showContextMenu) {
+    return (
+      <ContextMenuView
+        actions={contextMenuActions}
+        onPressAction={handleContextMenuAction}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+      >
+        <View style={styles.container}>{cardInnerContent}</View>
+      </ContextMenuView>
+    );
+  }
+
+  // Selection mode or no context menu - still use ContextMenuView for consistent gesture handling
+  return (
+    <ContextMenuView
+      actions={[]}
+      onPressAction={() => {}}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      disabled={true}
+    >
+      <View style={styles.container}>{cardInnerContent}</View>
+    </ContextMenuView>
   );
 };
 

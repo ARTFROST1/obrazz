@@ -8,11 +8,16 @@
 
 const path = require('path');
 const { patchExpoModulesProvider } = require('../modules/subject-lifter-plugin');
+const {
+  patchExpoModulesProvider: patchExpoModulesProviderContextMenu,
+} = require('../modules/obrazz-context-menu-plugin');
 
 const projectRoot = path.join(__dirname, '..');
 
 console.log('[Patch Script] Patching ExpoModulesProvider...');
-const success = patchExpoModulesProvider(projectRoot);
+const successSubjectLifter = patchExpoModulesProvider(projectRoot);
+const successContextMenu = patchExpoModulesProviderContextMenu(projectRoot);
+const success = successSubjectLifter && successContextMenu;
 
 if (success) {
   console.log('[Patch Script] ✅ Done!');

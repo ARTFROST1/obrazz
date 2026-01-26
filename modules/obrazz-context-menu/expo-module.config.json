@@ -1,0 +1,7 @@
+{
+  "platforms": ["ios"],
+  "ios": {
+    "modules": ["ObrazzContextMenuModule"],
+    "podspecPath": "./ios/ObrazzContextMenu.podspec"
+  }
+}

@@ -19,7 +19,9 @@
       "@contexts/*": ["contexts/*"],
       "@styles/*": ["styles/*"],
       "@locales/*": ["locales/*"],
-      "@constants/*": ["constants/*"]
+      "@constants/*": ["constants/*"],
+      "obrazz-context-menu": ["modules/obrazz-context-menu/src"],
+      "obrazz-context-menu/*": ["modules/obrazz-context-menu/src/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,

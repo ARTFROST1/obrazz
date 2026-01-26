@@ -1,6 +1,7 @@
 import { getDisplayItemTitle } from '@/utils/item/displayItemTitle';
+import { ContextMenuAction, ContextMenuView } from '@components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -17,10 +18,15 @@ interface ItemCardProps {
   item: WardrobeItem;
   onPress: (item: WardrobeItem) => void;
   onFavoritePress?: (item: WardrobeItem) => void;
+  onEdit?: (item: WardrobeItem) => void;
+  onDelete?: (item: WardrobeItem) => void;
+  onHide?: (item: WardrobeItem) => void;
   isSelectable?: boolean;
   isSelected?: boolean;
   numColumns?: number;
   hasSourceUrl?: boolean; // Indicator for items imported from web with buy link
+  /** Enable native iOS context menu on long press */
+  enableContextMenu?: boolean;
 }
 
 const { width } = Dimensions.get('window');
@@ -37,13 +43,63 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   item,
   onPress,
   onFavoritePress,
+  onEdit,
+  onDelete,
+  onHide,
   isSelectable = false,
   isSelected = false,
   numColumns = 2,
   hasSourceUrl = false,
+  enableContextMenu = true,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const cardWidth = getCardWidth(numColumns);
+
+  // Context menu actions for long press
+  const contextMenuActions: ContextMenuAction[] = useMemo(() => {
+    const actions: ContextMenuAction[] = [];
+
+    if (onEdit) {
+      actions.push({
+        id: 'edit',
+        title: 'Edit',
+        icon: 'pencil',
+      });
+    }
+
+    if (onHide) {
+      actions.push({
+        id: 'hide',
+        title: 'Hide',
+        icon: 'eye.slash',
+      });
+    }
+
+    if (onDelete) {
+      actions.push({
+        id: 'delete',
+        title: 'Delete',
+        icon: 'trash',
+        destructive: true,
+      });
+    }
+
+    return actions;
+  }, [onEdit, onDelete, onHide]);
+
+  const handleContextMenuAction = (actionId: string) => {
+    switch (actionId) {
+      case 'edit':
+        onEdit?.(item);
+        break;
+      case 'delete':
+        onDelete?.(item);
+        break;
+      case 'hide':
+        onHide?.(item);
+        break;
+    }
+  };
 
   const handleFavoritePress = () => {
     Animated.sequence([
@@ -65,12 +121,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     }
   };
 
-  return (
-    <TouchableOpacity
-      style={[styles.container, { width: cardWidth }, isSelected && styles.containerSelected]}
-      onPress={() => onPress(item)}
-      activeOpacity={0.7}
-    >
+  // Don't show context menu if in selection mode or no actions defined
+  const showContextMenu = enableContextMenu && !isSelectable && contextMenuActions.length > 0;
+
+  // Handle card press
+  const handleCardPress = () => onPress(item);
+
+  // Card inner content (without touch wrapper)
+  const cardInnerContent = (
+    <>
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: item.imageLocalPath || item.imageUrl }}
@@ -109,7 +168,41 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           {getDisplayItemTitle(item, 'Untitled')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </>
+  );
+
+  // Use ContextMenuView for all cards - it handles both tap and context menu
+  // ContextMenuView uses Gesture API which works properly with ScrollView
+  if (showContextMenu) {
+    return (
+      <ContextMenuView
+        actions={contextMenuActions}
+        onPressAction={handleContextMenuAction}
+        onPress={handleCardPress}
+      >
+        <View
+          style={[styles.container, { width: cardWidth }, isSelected && styles.containerSelected]}
+        >
+          {cardInnerContent}
+        </View>
+      </ContextMenuView>
+    );
+  }
+
+  // Selection mode or no context menu - still use ContextMenuView for consistent gesture handling
+  return (
+    <ContextMenuView
+      actions={[]}
+      onPressAction={() => {}}
+      onPress={handleCardPress}
+      disabled={true}
+    >
+      <View
+        style={[styles.container, { width: cardWidth }, isSelected && styles.containerSelected]}
+      >
+        {cardInnerContent}
+      </View>
+    </ContextMenuView>
   );
 };
 

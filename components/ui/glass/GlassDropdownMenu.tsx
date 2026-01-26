@@ -17,8 +17,10 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 // 🔧 НАСТРОЙКА: Переключение между временным и нативным решением
 // Установите USE_NATIVE_MENU = true после установки нативного модуля @react-native-menu/menu
-const USE_NATIVE_MENU = false; // false = временный custom dropdown (работает сейчас)
-// true = нативный UIMenu (требует нативную сборку)
+// ✅ Включено после development build с нативными модулями (Stage 7.3)
+const USE_NATIVE_MENU = Platform.OS === 'ios'; // Нативный UIMenu только для iOS
+// false = временный custom dropdown (для Android и тестов)
+// true = нативный UIMenu (требует development build)
 
 // Условный импорт MenuView (только если USE_NATIVE_MENU = true)
 let MenuView: any = null;
@@ -82,6 +84,7 @@ export const GlassDropdownMenu: React.FC<GlassDropdownMenuProps> = ({
 }) => {
   const supportsLiquidGlass = CAN_USE_LIQUID_GLASS;
   const [showCustomMenu, setShowCustomMenu] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // CRITICAL: Delay mounting GlassView until component is stable
   const [mounted, setMounted] = useState(false);
@@ -115,6 +118,15 @@ export const GlassDropdownMenu: React.FC<GlassDropdownMenuProps> = ({
       if (item && !item.disabled) {
         item.onPress();
       }
+      setIsMenuOpen(false);
+    };
+
+    const handleMenuWillShow = () => {
+      setIsMenuOpen(true);
+    };
+
+    const handleMenuWillHide = () => {
+      setIsMenuOpen(false);
     };
 
     // iOS 26+: Glass button with native UIMenu
@@ -126,9 +138,16 @@ export const GlassDropdownMenu: React.FC<GlassDropdownMenuProps> = ({
             onPressAction={handlePressAction}
             shouldOpenOnLongPress={false}
           >
-            <GlassView style={styles.triggerButton} glassEffectStyle="regular" isInteractive>
-              <Ionicons name={triggerIcon} size={22} color={iconColor} />
-            </GlassView>
+            <Animated.View
+              style={[
+                { opacity: isMenuOpen ? 0 : 1 },
+                { transform: [{ scale: isMenuOpen ? 0.8 : 1 }] },
+              ]}
+            >
+              <GlassView style={styles.triggerButton} glassEffectStyle="regular" isInteractive>
+                <Ionicons name={triggerIcon} size={22} color={iconColor} />
+              </GlassView>
+            </Animated.View>
           </MenuView>
         </View>
       );
@@ -142,9 +161,16 @@ export const GlassDropdownMenu: React.FC<GlassDropdownMenuProps> = ({
           onPressAction={handlePressAction}
           shouldOpenOnLongPress={false}
         >
-          <TouchableOpacity style={styles.triggerButtonFallback} activeOpacity={0.7}>
-            <Ionicons name={triggerIcon} size={22} color="#000" />
-          </TouchableOpacity>
+          <Animated.View
+            style={[
+              { opacity: isMenuOpen ? 0 : 1 },
+              { transform: [{ scale: isMenuOpen ? 0.8 : 1 }] },
+            ]}
+          >
+            <TouchableOpacity style={styles.triggerButtonFallback} activeOpacity={0.7}>
+              <Ionicons name={triggerIcon} size={22} color="#000" />
+            </TouchableOpacity>
+          </Animated.View>
         </MenuView>
       </View>
     );

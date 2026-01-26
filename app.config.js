@@ -60,6 +60,7 @@ export default {
       'expo-image-picker',
       'expo-web-browser',
       './modules/subject-lifter-plugin',
+      './modules/obrazz-context-menu-plugin',
     ],
     experiments: {
       typedRoutes: true,

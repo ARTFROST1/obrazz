@@ -228,6 +228,44 @@ export default function WardrobeScreen() {
     }
   };
 
+  // Context menu handlers for long press on item
+  const handleItemEdit = useCallback((item: WardrobeItem) => {
+    router.push(`/item/${item.id}`);
+  }, []);
+
+  const handleItemDelete = useCallback(
+    async (item: WardrobeItem) => {
+      if (!user?.id) return;
+
+      Alert.alert(t('common:actions.delete'), t('common:messages.deleteConfirm'), [
+        { text: t('common:actions.cancel'), style: 'cancel' },
+        {
+          text: t('common:actions.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              removeItemLocally(item.id);
+              await itemServiceOffline.deleteItem(item.id, user.id);
+            } catch (error) {
+              console.error('Error deleting item:', error);
+              if (isOnline) {
+                Alert.alert('Error', 'Failed to delete item');
+              }
+              // Reload to restore state
+              loadItems();
+            }
+          },
+        },
+      ]);
+    },
+    [user?.id, t, removeItemLocally, isOnline, loadItems],
+  );
+
+  const handleItemHide = useCallback((item: WardrobeItem) => {
+    // TODO: Implement hide functionality
+    Alert.alert('Hide', 'Hide functionality coming soon!');
+  }, []);
+
   const handleAddItem = () => {
     router.push('/add-item');
   };
@@ -431,6 +469,9 @@ export default function WardrobeScreen() {
         items={filteredItems}
         onItemPress={handleItemPress}
         onFavoritePress={handleFavoritePress}
+        onItemEdit={handleItemEdit}
+        onItemDelete={handleItemDelete}
+        onItemHide={handleItemHide}
         onRefresh={handleRefresh}
         refreshing={refreshing}
         loading={isLoading}

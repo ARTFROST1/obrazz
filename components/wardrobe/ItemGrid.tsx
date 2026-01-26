@@ -17,6 +17,9 @@ interface ItemGridProps {
   items: WardrobeItem[];
   onItemPress: (item: WardrobeItem) => void;
   onFavoritePress?: (item: WardrobeItem) => void;
+  onItemEdit?: (item: WardrobeItem) => void;
+  onItemDelete?: (item: WardrobeItem) => void;
+  onItemHide?: (item: WardrobeItem) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
   loading?: boolean;
@@ -33,6 +36,9 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   items,
   onItemPress,
   onFavoritePress,
+  onItemEdit,
+  onItemDelete,
+  onItemHide,
   onRefresh,
   refreshing = false,
   loading = false,
@@ -49,6 +55,9 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
       item={item}
       onPress={onItemPress}
       onFavoritePress={onFavoritePress}
+      onEdit={onItemEdit}
+      onDelete={onItemDelete}
+      onHide={onItemHide}
       isSelectable={isSelectable}
       isSelected={selectedItems.has(item.id)}
       numColumns={numColumns}

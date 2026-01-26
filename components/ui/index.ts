@@ -14,3 +14,6 @@ export { SearchBar } from './SearchBar';
 
 export { DropdownMenu } from './DropdownMenu';
 export type { DropdownMenuItem } from './DropdownMenu';
+
+export { ContextMenuView } from './ContextMenuView';
+export type { ContextMenuAction } from './ContextMenuView';
