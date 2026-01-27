@@ -15,15 +15,15 @@ Obrazz is a React Native/Expo mobile application for personal wardrobe managemen
 - 🚧 Rails Backend (ЛК, админка, биллинг)
 - 🚧 Геймификация (streak, челленджи)
 
-**Current Development Stage:** Stage 4.12 Complete → Next: Stage 5 (AI-функции, The New Black API)
+**Current Development Stage:** Stage 4.13 Complete → Next: Stage 5 (AI-функции, The New Black API)
 
 ## Tech Stack
 
 ### Frontend
 
-- **React Native** 0.81.4 with **Expo SDK** 54
+- **React Native** 0.83.1 with **Expo SDK** 55 (preview)
 - **TypeScript** 5.9.2 (strict mode enabled)
-- **Expo Router** 6.x for file-based routing
+- **Expo Router** (SDK 55 beta) for file-based routing
 - **Zustand** 5.x for state management with persistence
 - **TanStack Query** 5.71.x for server state management
 - **React Native Reanimated** 4.x for animations
@@ -54,10 +54,12 @@ obrazz/
 │   │   └── forgot-password.tsx
 │   ├── (tabs)/             # Main tab navigation
 │   │   ├── _layout.tsx     # Tab bar configuration
-│   │   ├── index.tsx       # Feed tab
-│   │   ├── wardrobe.tsx    # Wardrobe tab
-│   │   ├── outfits.tsx     # Outfits tab
-│   │   └── profile.tsx     # Profile tab
+│   │   ├── index.tsx       # Home tab
+│   │   ├── library.tsx     # Unified Library (Wardrobe + Outfits)
+│   │   ├── profile.tsx     # Profile tab
+│   │   ├── add.tsx         # Context-sensitive Add screen (tab bar hidden)
+│   │   ├── wardrobe.tsx    # Legacy route (hidden from tab bar)
+│   │   └── outfits.tsx     # Legacy route (hidden from tab bar)
 │   ├── item/[id].tsx       # Item detail screen (dynamic route)
 │   ├── outfit/             # Outfit screens
 │   │   ├── [id].tsx        # Outfit detail

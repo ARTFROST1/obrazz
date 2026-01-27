@@ -1,8 +1,8 @@
 # Copilot Instructions for Obrazz
 
 **Project:** Obrazz - Personal Wardrobe & AI Styling Mobile App  
-**Tech Stack:** React Native 0.81.4 + Expo 54 + TypeScript + Zustand + Supabase + Rails  
-**Stage:** 4.12 Complete (Offline-First архитектура)  
+**Tech Stack:** React Native 0.83.1 + Expo SDK 55 (preview) + TypeScript + Zustand + Supabase + Rails  
+**Stage:** 4.13 Complete (Navigation Refactor + Offline-First)  
 **Next:** Stage 5 - AI-функции (The New Black API)
 
 ## Project Vision

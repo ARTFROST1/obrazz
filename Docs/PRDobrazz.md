@@ -320,8 +320,8 @@
 
 ### Frontend (React Native + Expo)
 
-- **React Native 0.81.4** + **Expo SDK 54**
-- **TypeScript 5.9** — типизация
+- **React Native 0.83.1** + **Expo SDK 55 (preview)**
+- **TypeScript 5.9.2** — типизация
 - **Expo Router** — файловая навигация
 - **Zustand** — управление состоянием
 - **React Native Reanimated** + **Gesture Handler** — анимации и жесты

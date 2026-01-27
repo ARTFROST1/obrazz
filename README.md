@@ -5,8 +5,8 @@
   
   **Your AI-powered personal stylist and wardrobe manager**
   
-  [![React Native](https://img.shields.io/badge/React%20Native-0.81.4-blue)](https://reactnative.dev/)
-  [![Expo](https://img.shields.io/badge/Expo-SDK%2054-black)](https://expo.dev/)
+  [![React Native](https://img.shields.io/badge/React%20Native-0.83.1-blue)](https://reactnative.dev/)
+  [![Expo](https://img.shields.io/badge/Expo-SDK%2055-black)](https://expo.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
   [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
   
@@ -17,16 +17,16 @@
   **Stage 1: Foundation & Setup** ✅ COMPLETED  
   **Stage 2: Authentication** ✅ COMPLETED  
   **Stage 3: Wardrobe Management** ✅ COMPLETED  
-  **Stage 4: Manual Outfit Creator (4.0-4.10)** ✅ COMPLETED  
+  **Stage 4: Manual Outfit Creator + Offline-First + Navigation Refactor (4.0-4.13)** ✅ COMPLETED  
   **Stage 5: AI Outfit Generation** 🚧 PLANNED  
-  **Progress:** 45% (4.5 of 10 stages complete)
+  **Progress:** Stages 1–4 complete
   
-  [View Full Roadmap](./Docs/Implementation.md) | [Quick Start Guide](./Docs/Extra/QUICKSTART.md)
+  [View Full Roadmap](./Docs/Implementation.md) | [Docs Index](./Docs/README.md)
 </div>
 
 ## 📱 About
 
-Obrazz is a cutting-edge mobile application that transforms how you organize and style your wardrobe. With AI-powered outfit suggestions, manual outfit creation tools, and a vibrant community feed, Obrazz makes fashion accessible and fun for everyone.
+Obrazz is a mobile application that helps you organize your wardrobe and build outfits. It already supports manual outfit creation, offline-first workflows, and shopping web capture. AI styling features are planned.
 
 > Note: Obrazz does **not** include a community feed/social features (out of scope).
 
@@ -45,7 +45,6 @@ Obrazz is a cutting-edge mobile application that transforms how you organize and
 
 - Node.js 18.x or higher
 - npm or yarn
-- Expo CLI (`npm install -g expo-cli`)
 - iOS Simulator (Mac only) or Android Emulator
 - Expo Go app on your physical device (optional)
 
@@ -97,21 +96,21 @@ npx expo start
 
 ### 📦 Building & Distribution
 
-- [Build Instructions](./BUILD_INSTRUCTIONS.md) - Complete guide for building APK/AAB
-- [Quick Build Commands](./QUICK_BUILD.md) - Fast reference for EAS Build
-- [Build Checklist](./BUILD_CHECKLIST.md) - Pre-build verification steps
+- [Build Instructions](./Docs/Extra/Build/BUILD_INSTRUCTIONS.md) - Complete guide for building APK/AAB
+- [Quick Build Commands](./Docs/Extra/Build/QUICK_BUILD.md) - Fast reference for EAS Build
+- [Build Checklist](./Docs/Extra/Build/BUILD_CHECKLIST.md) - Pre-build verification steps
 
 ## 🛠️ Tech Stack
 
 ### Frontend
 
-- **React Native** 0.81.4 with **Expo SDK** 54
+- **React Native** 0.83.1 with **Expo SDK** 55 (preview)
 - **TypeScript** 5.9.2
 - **React Navigation** 7.x + Expo Router
 - **Zustand** 5.x for state management
 - **TanStack Query** 5.71.x for data fetching
 - **React Native Reanimated** 4.x for animations
-- **NativeWind** 4.x for styling
+- Styling via standard React Native `StyleSheet` (NativeWind is not installed)
 
 ### Backend
 

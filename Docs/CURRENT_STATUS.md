@@ -1,7 +1,7 @@
 # Obrazz — Current Status
 
-**Last Updated:** January 26, 2026  
-**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor)  
+**Last Updated:** January 27, 2026  
+**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor) + Expo SDK 55 migration ✅  
 **Next Stage:** Stage 5 — Rails Backend + AI Features
 
 ## What's Implemented (Stage 1–4.13)
@@ -36,7 +36,13 @@
 | Home               | AI меню (Virtual Try-On, Fashion Models, Variations) |
 | Library (Wardrobe) | Добавить вещь                                        |
 | Library (Outfits)  | Создать образ                                        |
-| Profile            | Скрывается                                           |
+| Profile            | Открывает настройки (иконка меняется на ⚙️)          |
+
+### Add Screen (Navigation)
+
+- Add screen (`app/(tabs)/add.tsx`) открывается поверх табовой навигации, но **tab bar скрыт** на время просмотра.
+- iOS: используется нативный `hidden` prop у `NativeTabs` (Expo SDK 55)
+- Android: `tabBarStyle` переключается на `{ display: 'none' }`
 
 ## What's Next (Stage 5+)
 
@@ -49,9 +55,11 @@
 
 ## Tech Snapshot (from package.json)
 
-- Expo: `~54.0.30`
-- React Native: `0.81.5`
-- Router: `expo-router ~6.0.21`
+- Expo: `^55.0.0-preview.6`
+- React Native: `0.83.1`
+- React: `19.2.0`
+- Router: `expo-router ~55.0.0-beta.3`
+- TypeScript: `~5.9.2`
 - State: Zustand + TanStack Query
 - Backend: Supabase (`@supabase/supabase-js ^2.51.0`)
 

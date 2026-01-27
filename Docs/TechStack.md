@@ -1,8 +1,8 @@
 # 🚀 Obrazz - Полный технический стек
 
 > **Дата создания:** 12 января 2025  
-> **Последнее обновление:** 26 января 2026  
-> **Версия документа:** 1.2.0  
+> **Последнее обновление:** 27 января 2026  
+> **Версия документа:** 1.3.0  
 > **Статус:** Актуальный
 
 ## 📋 Оглавление
@@ -43,10 +43,10 @@
 
 ```json
 {
-  "react": "19.1.0",
-  "react-dom": "19.1.0",
-  "react-native": "0.81.5",
-  "expo": "~54.0.30",
+  "react": "19.2.0",
+  "react-dom": "19.2.0",
+  "react-native": "0.83.1",
+  "expo": "^55.0.0-preview.6",
   "typescript": "~5.9.2"
 }
 ```
@@ -57,13 +57,13 @@
 
 ```json
 {
-  "expo-constants": "~18.0.9",
-  "expo-font": "~14.0.9",
-  "expo-linking": "~8.0.11",
-  "expo-router": "~6.0.21",
-  "expo-splash-screen": "~31.0.13",
-  "expo-status-bar": "~3.0.9",
-  "expo-web-browser": "~15.0.10"
+  "expo-constants": "~55.0.2",
+  "expo-font": "~55.0.2",
+  "expo-linking": "~55.0.3",
+  "expo-router": "~55.0.0-beta.3",
+  "expo-splash-screen": "~55.0.2",
+  "expo-status-bar": "~55.0.2",
+  "expo-web-browser": "~55.0.2"
 }
 ```
 
@@ -71,15 +71,15 @@
 
 ```json
 {
-  "expo-camera": "~17.0.10",
-  "expo-image-picker": "~17.0.10",
-  "expo-file-system": "~19.0.21",
-  "expo-image-manipulator": "~14.0.8",
-  "expo-blur": "~15.0.8",
-  "expo-linear-gradient": "~15.0.8",
-  "expo-symbols": "~1.0.8",
-  "expo-dev-client": "~6.0.20",
-  "expo-glass-effect": "~0.1.8"
+  "expo-blur": "~55.0.2",
+  "expo-camera": "~55.0.2",
+  "expo-dev-client": "~55.0.2",
+  "expo-file-system": "~55.0.2",
+  "expo-glass-effect": "~55.0.2",
+  "expo-image-manipulator": "~55.0.2",
+  "expo-image-picker": "~55.0.2",
+  "expo-linear-gradient": "~55.0.2",
+  "expo-symbols": "~55.0.2"
 }
 
 Примечание:
@@ -185,9 +185,9 @@ gem 'sentry-ruby'                 # Error tracking
   "@callstack/liquid-glass": "^0.7.0",
   "@gorhom/bottom-sheet": "^5.2.8",
   "@react-native-menu/menu": "^2.0.0",
-  "react-native-safe-area-context": "~5.6.0",
-  "react-native-screens": "~4.16.0",
-  "react-native-svg": "15.12.1"
+  "react-native-safe-area-context": "~5.6.2",
+  "react-native-screens": "~4.20.0",
+  "react-native-svg": "15.15.1"
 }
 ```
 
@@ -232,7 +232,7 @@ gem 'sentry-ruby'                 # Error tracking
   "@react-navigation/native-stack": "^7.2.0",
   "@react-navigation/bottom-tabs": "^7.2.0",
   "@react-navigation/stack": "^7.1.0",
-  "expo-router": "~6.0.21"
+  "expo-router": "~55.0.0-beta.3"
 }
 ```
 
@@ -564,13 +564,13 @@ gem 'sentry-ruby'                 # Error tracking
 
 | Библиотека       | Версия   | Совместимость         |
 | ---------------- | -------- | --------------------- |
-| React Native     | 0.81.5   | ✅ Expo SDK 54        |
-| Expo             | ~54.0.30 | ✅ RN 0.81.5          |
-| React            | 19.1.0   | ✅ RN 0.81.5          |
+| React Native     | 0.83.1   | ✅ Expo SDK 55        |
+| Expo             | ^55.0.0  | ✅ RN 0.83.1          |
+| React            | 19.2.0   | ✅ RN 0.83.1          |
 | TypeScript       | ~5.9.2   | ✅ Все библиотеки     |
-| React Navigation | ^7.1.8   | ✅ RN 0.81.5          |
-| Reanimated       | ~4.1.1   | ✅ RN 0.81.5, Expo 54 |
-| Gesture Handler  | ~2.28.0  | ✅ Reanimated 4       |
+| React Navigation | ^7.1.8   | ✅ RN 0.83.1          |
+| Reanimated       | ~4.2.1   | ✅ RN 0.83.1, Expo 55 |
+| Gesture Handler  | ~2.30.0  | ✅ Reanimated 4       |
 | Zustand          | ^5.0.3   | ✅ React 19           |
 | TanStack Query   | ^5.71.0  | ✅ React 19           |
 | Supabase JS      | ^2.51.0  | ✅ Все версии         |
@@ -664,7 +664,7 @@ module.exports = function (api) {
 
 **Важно:**
 
-- ✅ `expo-router/babel` НЕ нужен (включен в babel-preset-expo SDK 54)
+- ✅ `expo-router/babel` НЕ нужен (включен в babel-preset-expo SDK 55)
 - ✅ `react-native-worklets/plugin` НЕ нужен (включен в Reanimated 4)
 - ✅ `react-native-reanimated/plugin` должен быть последним
 
@@ -672,8 +672,8 @@ module.exports = function (api) {
 
 ## 🚨 Важные замечания (обновлено Stage 1)
 
-1. **React Native 0.81.5** - последняя стабильная версия, полностью совместимая с Expo SDK 54 ✅
-2. **React 19.1.0** - последняя версия с улучшенной производительностью ✅
+1. **React Native 0.83.1** - версия, используемая в Expo SDK 55 ✅
+2. **React 19.2.0** - текущая версия в проекте ✅
 3. **Reanimated 4** - worklets уже включены, отдельный пакет НЕ нужен ✅
 4. **Zustand 5** - breaking changes учтены, работает с React 19 ✅
 5. **TanStack Query v5** - установлена с async-storage persister ✅
@@ -695,7 +695,7 @@ module.exports = function (api) {
 
 ---
 
-_Последнее обновление: 26 января 2026 (Документация синхронизирована с кодом)_
+_Последнее обновление: 27 января 2026 (Документация синхронизирована с кодом)_
 
 ## 📊 Новые Зависимости (Stages 4.8-4.12)
 

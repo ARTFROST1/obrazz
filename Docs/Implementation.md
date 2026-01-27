@@ -1,7 +1,7 @@
 # Implementation Plan for Obrazz
 
-**Last Updated:** January 26, 2026  
-**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)  
+**Last Updated:** January 27, 2026  
+**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First)  
 **Next Stage:** Stage 5 - AI-функции (The New Black API)
 
 ---
@@ -63,7 +63,7 @@
 
 ### Frontend:
 
-- **Framework:** React Native 0.81.5 with Expo SDK 54 (~54.0.30) - Кроссплатформенная разработка с быстрым прототипированием
+- **Framework:** React Native 0.83.1 with Expo SDK 55 (preview) - Кроссплатформенная разработка с быстрым прототипированием
 - **Documentation:** [https://docs.expo.dev/](https://docs.expo.dev/)
 
 ### Backend:
@@ -113,7 +113,7 @@
 - [x] Настройка структуры папок и алиасов путей
 - [x] Установка и конфигурация всех основных зависимостей из TechStack.md
 - [x] Настройка Supabase проекта и подключение клиента
-- [x] Создание базовой схемы БД (users, items, outfits, posts)
+- [x] Создание базовой схемы БД (users, items, outfits; `posts` — legacy/community feed, в продуктовый scope не входит)
 - [x] Настройка ESLint, Prettier и Husky для code quality
 - [x] Создание базовых типов TypeScript для всех сущностей
 - [x] Настройка переменных окружения (.env)
@@ -1369,6 +1369,8 @@ components/
 
 ## **Current Project Statistics (December 14, 2025)**
 
+> ⚠️ Note: this section is a historical snapshot (Dec 2025). For current versions, see `package.json` and `Docs/CURRENT_STATUS.md`.
+
 **Code Metrics:**
 
 - Total Screens: 20 (added shopping/browser.tsx, shopping/cart.tsx)
@@ -1385,7 +1387,7 @@ components/
 - Categories: 8 (unified system)
 - Default Stores: 9 (ZARA, H&M, ASOS, Nike, Adidas, Reserved, Mango, Pull&Bear, Bershka)
 
-**Tech Stack Versions:**
+**Tech Stack Versions (Historical):**
 
 - React Native: 0.81.4
 - Expo SDK: 54.0.13
@@ -1397,10 +1399,22 @@ components/
 - React Native Reanimated: 4.1.1
 - React Native Gesture Handler: 2.28.0
 
+**Tech Stack Versions (Current, January 2026):**
+
+- React Native: 0.83.1
+- Expo SDK: 55 (preview)
+- React: 19.2.0
+- TypeScript: 5.9.2
+- Zustand: 5.0.3
+- Supabase: 2.51.0
+- TanStack Query: 5.71.0
+- React Native Reanimated: 4.2.1
+- React Native Gesture Handler: 2.30.0
+
 **Implementation Status:**
 
 - Stages 1-4.11: ✅ Completed (All core functionality + Shopping Browser)
-- Stages 5-10: 🚧 Planned (AI, Community, Monetization)
+- Stages 5-10: 🚧 Planned (AI, Monetization)
 
 **Key Completed Features:**
 

@@ -254,6 +254,7 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 - ✅ Stage 4.10: Data Persistence Architecture
 - ✅ Stage 4.11: Shopping Browser & Web Capture
 - ✅ Stage 4.12: Offline-First Architecture
+- ✅ Stage 4.13: Navigation Refactor
 
 **Planned Stages:**
 
@@ -270,7 +271,7 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 - **Tab System:** 4 customizable tabs
 - **Default Stores:** 9 (ZARA, H&M, ASOS, Nike, Adidas, Reserved, Mango, Pull&Bear, Bershka)
 - **Default Items:** 24 built-in wardrobe items
-- **Tech Stack:** React Native 0.81.5 + Expo SDK ~54.0.30
+- **Tech Stack:** React Native 0.83.1 + Expo SDK 55 (preview)
 
 ### Key Features
 
@@ -287,9 +288,9 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 ### Start Here (5-minute overview)
 
 1. Read **[CURRENT_STATUS.md](CURRENT_STATUS.md)** - Get project overview
-2. Follow **[Extra/QUICKSTART.md](Extra/QUICKSTART.md)** - Set up environment
+2. Follow **[Extra/Build/BUILD_INSTRUCTIONS.md](Extra/Build/BUILD_INSTRUCTIONS.md)** - Build/setup baseline
 3. Review **[project_structure.md](project_structure.md)** - Understand structure
-4. Check **[Extra/DEVELOPER_CHECKLIST.md](Extra/DEVELOPER_CHECKLIST.md)** - Learn workflow
+4. Check **[Extra/Team/DEVELOPER_CHECKLIST.md](Extra/Team/DEVELOPER_CHECKLIST.md)** - Learn workflow
 
 ### Understanding the Codebase
 
@@ -311,10 +312,10 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 ### Setup
 
-- [Environment Setup](Extra/QUICKSTART.md)
-- [Database Migrations](Extra/RUN_MIGRATION_INSTRUCTIONS.md)
+- [Environment/Build Setup](Extra/Build/BUILD_INSTRUCTIONS.md)
+- [Database Migrations](Extra/Build/RUN_MIGRATION_INSTRUCTIONS.md)
 - [iOS On-Device Background Removal](Features/iOS_OnDevice_Background_Removal.md)
-- [Pixian (Fallback) Setup](Extra/REMOVE_BG_SETUP.md)
+- [Pixian (Fallback) Setup](Extra/Features/REMOVE_BG_SETUP.md)
 
 ### Reference
 
