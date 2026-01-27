@@ -1,0 +1,72 @@
+# Render.com Blueprint - Obrazz Rails Backend
+# https://render.com/docs/blueprint-spec
+#
+# ARCHITECTURE:
+# - Single Web Service (Render free tier)
+# - Database: Supabase PostgreSQL (external, cloud)
+# - Background Jobs: Solid Queue runs in-process (no separate worker)
+# - Includes: API + Admin Dashboard + User Dashboard
+
+services:
+  # Main Rails Application (API + Admin + User Dashboard + Background Jobs)
+  - type: web
+    name: obrazz-rails
+    runtime: ruby
+    region: frankfurt
+    plan: free
+    buildCommand: |
+      bundle install &&
+      bundle exec rails assets:precompile &&
+      bundle exec rails db:migrate
+    startCommand: bundle exec rails server -p $PORT -e production
+    healthCheckPath: /api/v1/health
+    envVars:
+      # Database - Supabase PostgreSQL (Transaction Mode)
+      # Get from: Supabase Dashboard > Settings > Database > Connection string
+      - key: DATABASE_URL
+        sync: false
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: RAILS_MASTER_KEY
+        sync: false
+      # Run Solid Queue in-process (no separate worker on free tier)
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      # Supabase Auth
+      - key: SUPABASE_URL
+        value: https://oyyzncjezesrdxxowdrx.supabase.co
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # The New Black AI
+      - key: THE_NEW_BLACK_API_URL
+        value: https://api.thenewblack.ai
+      - key: THE_NEW_BLACK_API_KEY
+        sync: false
+      # YooKassa Payments
+      - key: YOOKASSA_SHOP_ID
+        sync: false
+      - key: YOOKASSA_SECRET_KEY
+        sync: false
+      - key: YOOKASSA_WEBHOOK_SECRET
+        sync: false
+      # CORS - allowed origins for mobile app
+      - key: ALLOWED_ORIGINS
+        value: https://obrazz.app,exp://localhost:8081,http://localhost:3000
+      # Admin Dashboard credentials
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Sentry error tracking
+      - key: SENTRY_DSN
+        sync: false

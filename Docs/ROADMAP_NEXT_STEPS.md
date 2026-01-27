@@ -6,6 +6,21 @@
 
 ---
 
+## 🆕 Новый документ: Rails Backend Implementation Plan
+
+> **Создан:** 27 января 2026  
+> **Путь:** [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md)
+
+Полный план реализации Ruby on Rails backend с:
+
+- **Solid Queue** вместо Redis/Sidekiq (работает на Render Free Tier)
+- AI-интеграция (The New Black API)
+- Система токенов и биллинг (YooKassa + IAP)
+- Личный кабинет пользователя (Hotwire + Tailwind)
+- Админ-панель (Administrate)
+
+---
+
 ## 📊 Executive Summary
 
 Obrazz находится на ключевом этапе развития. **Базовый функционал полностью реализован** (Stage 1-4.12):

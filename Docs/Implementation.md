@@ -1002,7 +1002,17 @@ components/
 
 **Цель:** Единый backend для подписок, токенов, AI proxy, admin
 
-**Документация:** [Backend.md](./Extra/Features/Backend.md)
+**Документация:**
+
+- [Backend.md](./Extra/Features/Backend.md) — Архитектура
+- [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md) — **Полный план реализации с Solid Queue**
+
+**Ключевые решения:**
+
+- **Solid Queue** вместо Sidekiq/Redis (работает на Render Free Tier)
+- **PostgreSQL only** — никакого Redis для MVP
+- **Hotwire + Tailwind** для Dashboard
+- **Administrate** для админки
 
 #### Sub-steps:
 
