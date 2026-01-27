@@ -9,7 +9,6 @@ export default {
     icon: './assets/images/icon.png',
     scheme: 'obrazz',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: true,
     splash: {
       image: './assets/images/splash-icon.png',
       resizeMode: 'contain',
@@ -56,6 +55,7 @@ export default {
     },
     plugins: [
       'expo-router',
+      'expo-font',
       'expo-camera',
       'expo-image-picker',
       'expo-web-browser',

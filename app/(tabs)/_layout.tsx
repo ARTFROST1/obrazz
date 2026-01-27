@@ -3,7 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from '@hooks/useTranslation';
 import { IS_IOS_26_OR_NEWER } from '@utils/platform';
 import { Tabs, usePathname } from 'expo-router';
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import React from 'react';
 import { Platform, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,11 +41,12 @@ export default function TabLayout() {
 
   // Android: Floating bottom nav with Apple-inspired design (3 tabs + floating plus)
   if (Platform.OS === 'android') {
+    const currentColorScheme = colorScheme === 'dark' ? 'dark' : 'light';
     return (
       <View style={styles.container}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+            tabBarActiveTintColor: Colors[currentColorScheme].tint,
             headerShown: false,
             tabBarStyle: {
               // Floating nav styling - 4 tabs total
@@ -153,7 +154,7 @@ export default function TabLayout() {
         iconColor={PlatformColor('systemGray')}
         tintColor={PlatformColor('label')}
         // Badge styling
-        badgeBackgroundColor={Colors[colorScheme ?? 'light'].tint}
+        badgeBackgroundColor={Colors[colorScheme === 'dark' ? 'dark' : 'light'].tint}
         // Label styling
         labelStyle={{
           fontSize: 10,
@@ -162,23 +163,23 @@ export default function TabLayout() {
         disableTransparentOnScrollEdge={!supportsLiquidGlass}
       >
         <NativeTabs.Trigger name="index">
-          <Label>{t('tabs.home')}</Label>
-          <Icon sf="house.fill" />
+          <NativeTabs.Trigger.Label>{t('tabs.home')}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf="house.fill" />
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="library">
-          <Label>{t('tabs.library')}</Label>
-          <Icon sf="rectangle.stack.fill" />
+          <NativeTabs.Trigger.Label>{t('tabs.library')}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf="rectangle.stack.fill" />
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="profile">
-          <Label>{t('tabs.profile')}</Label>
-          <Icon sf="person.fill" />
+          <NativeTabs.Trigger.Label>{t('tabs.profile')}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf="person.fill" />
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="add" role="search">
-          <Label hidden />
-          <Icon sf={isProfileTab ? 'gearshape.fill' : 'plus'} />
+          <NativeTabs.Trigger.Label hidden />
+          <NativeTabs.Trigger.Icon sf={isProfileTab ? 'gearshape.fill' : 'plus'} />
         </NativeTabs.Trigger>
       </NativeTabs>
     </View>
