@@ -39,6 +39,9 @@ export default function TabLayout() {
   // Determine if we're on profile tab to change add button icon
   const isProfileTab = pathname.includes('/profile');
 
+  // Hide tab bar on add screen
+  const shouldHideTabBar = pathname.includes('/add');
+
   // Android: Floating bottom nav with Apple-inspired design (3 tabs + floating plus)
   if (Platform.OS === 'android') {
     const currentColorScheme = colorScheme === 'dark' ? 'dark' : 'light';
@@ -48,34 +51,36 @@ export default function TabLayout() {
           screenOptions={{
             tabBarActiveTintColor: Colors[currentColorScheme].tint,
             headerShown: false,
-            tabBarStyle: {
-              // Floating nav styling - 4 tabs total
-              position: 'absolute',
-              bottom: 16,
-              left: 16,
-              right: 16,
-              height: 65,
-              paddingBottom: 8,
-              paddingTop: 8,
+            tabBarStyle: shouldHideTabBar
+              ? { display: 'none' } // Hide on add screen
+              : {
+                  // Floating nav styling - 4 tabs total
+                  position: 'absolute',
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  height: 65,
+                  paddingBottom: 8,
+                  paddingTop: 8,
 
-              // Rounded corners and background
-              backgroundColor: isDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-              borderRadius: 24,
+                  // Rounded corners and background
+                  backgroundColor: isDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: 24,
 
-              // Remove default border
-              borderTopWidth: 0,
+                  // Remove default border
+                  borderTopWidth: 0,
 
-              // Shadow for floating effect
-              elevation: 12,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isDark ? 0.4 : 0.15,
-              shadowRadius: 12,
+                  // Shadow for floating effect
+                  elevation: 12,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: isDark ? 0.4 : 0.15,
+                  shadowRadius: 12,
 
-              // Subtle border
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-            },
+                  // Subtle border
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                },
             tabBarLabelStyle: {
               fontSize: 11,
               fontWeight: '600',
@@ -144,6 +149,8 @@ export default function TabLayout() {
   return (
     <View style={styles.container}>
       <NativeTabs
+        // Hide tab bar on add screen (SDK 55 feature)
+        hidden={shouldHideTabBar}
         // Liquid glass blur effect - works on all iOS versions (13+)
         blurEffect={isDark ? 'systemChromeMaterialDark' : 'systemChromeMaterial'}
         // Shadow for depth
