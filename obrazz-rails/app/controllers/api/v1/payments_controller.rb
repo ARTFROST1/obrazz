@@ -36,7 +36,7 @@ module Api
             id: id,
             tokens: pack[:tokens],
             price: pack[:price_rub],
-            currency: 'RUB',
+            currency: "RUB",
             price_per_token: (pack[:price_rub].to_f / pack[:tokens]).round(2)
           }
         end.sort_by { |p| p[:tokens] }
@@ -46,8 +46,8 @@ module Api
             id: id,
             tokens_per_month: plan[:tokens],
             price: plan[:price_rub],
-            currency: 'RUB',
-            billing_period: id.include?('yearly') ? 'yearly' : 'monthly',
+            currency: "RUB",
+            billing_period: id.include?("yearly") ? "yearly" : "monthly",
             is_subscription: true
           }
         end
@@ -62,15 +62,15 @@ module Api
       # Инициация платежа (возвращает payment URL или данные для SDK)
       def create
         payment_type = params.require(:payment_type)
-        provider = params[:provider] || 'yookassa'
+        provider = params[:provider] || "yookassa"
 
         case payment_type
-        when 'token_pack'
+        when "token_pack"
           initiate_token_pack_payment(provider)
-        when 'subscription'
+        when "subscription"
           initiate_subscription_payment(provider)
         else
-          render_error('Invalid payment type', status: :bad_request)
+          render_error("Invalid payment type", status: :bad_request)
         end
       end
 
@@ -81,16 +81,16 @@ module Api
         pack = Payment::TOKEN_PACKS[pack_id]
 
         unless pack
-          return render_error('Invalid token pack', status: :bad_request)
+          return render_error("Invalid token pack", status: :bad_request)
         end
 
         payment = current_user.payments.create!(
           provider: provider,
           external_id: generate_external_id,
-          status: 'pending',
-          payment_type: 'token_pack',
+          status: "pending",
+          payment_type: "token_pack",
           amount: pack[:price_rub],
-          currency: 'RUB',
+          currency: "RUB",
           tokens_amount: pack[:tokens],
           token_pack_id: pack_id
         )
@@ -103,9 +103,9 @@ module Api
           currency: payment.currency,
           tokens: payment.tokens_amount,
           provider: provider,
-          status: 'pending',
+          status: "pending",
           # confirmation_url: yookassa_url,  # Будет добавлено после интеграции
-          message: 'Payment initiated. Complete payment flow on client.'
+          message: "Payment initiated. Complete payment flow on client."
         }, status: :created)
       end
 
@@ -114,20 +114,20 @@ module Api
         plan_data = Payment::SUBSCRIPTION_PRICES[plan]
 
         unless plan_data
-          return render_error('Invalid subscription plan', status: :bad_request)
+          return render_error("Invalid subscription plan", status: :bad_request)
         end
 
         if current_user.subscription&.plan == plan
-          return render_error('Already subscribed to this plan', status: :unprocessable_entity)
+          return render_error("Already subscribed to this plan", status: :unprocessable_entity)
         end
 
         payment = current_user.payments.create!(
           provider: provider,
           external_id: generate_external_id,
-          status: 'pending',
-          payment_type: 'subscription',
+          status: "pending",
+          payment_type: "subscription",
           amount: plan_data[:price_rub],
-          currency: 'RUB',
+          currency: "RUB",
           subscription_plan: plan,
           subscription: current_user.subscription
         )
@@ -138,8 +138,8 @@ module Api
           currency: payment.currency,
           plan: plan,
           provider: provider,
-          status: 'pending',
-          message: 'Payment initiated. Complete payment flow on client.'
+          status: "pending",
+          message: "Payment initiated. Complete payment flow on client."
         }, status: :created)
       end
 

@@ -1,0 +1,209 @@
+<% content_for(:title) { 'AI-генерации - Obrazz' } %>
+
+<!-- Page Header -->
+<div class="md:flex md:items-center md:justify-between mb-8">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+      AI-генерации
+    </h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Все ваши AI-созданные изображения
+    </p>
+  </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-lg shadow px-4 py-3">
+    <div class="text-2xl font-bold text-gray-900"><%= @stats[:total] %></div>
+    <div class="text-xs text-gray-500">Всего</div>
+  </div>
+  <div class="bg-white rounded-lg shadow px-4 py-3">
+    <div class="text-2xl font-bold text-green-600"><%= @stats[:completed] %></div>
+    <div class="text-xs text-gray-500">Успешных</div>
+  </div>
+  <div class="bg-white rounded-lg shadow px-4 py-3">
+    <div class="text-2xl font-bold text-yellow-600"><%= @stats[:pending] %></div>
+    <div class="text-xs text-gray-500">В обработке</div>
+  </div>
+  <div class="bg-white rounded-lg shadow px-4 py-3">
+    <div class="text-2xl font-bold text-red-600"><%= @stats[:failed] %></div>
+    <div class="text-xs text-gray-500">Ошибки</div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white shadow rounded-lg mb-6">
+  <div class="px-4 py-3">
+    <div class="flex flex-wrap gap-2">
+      <%= link_to 'Все', dashboard_generations_path, 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter == 'all' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      <%= link_to 'Virtual Try-On', dashboard_generations_path(filter: 'virtual_tryon'), 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter.in?(%w[virtual_tryon virtual_try_on]) ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      <%= link_to 'Fashion Model', dashboard_generations_path(filter: 'fashion_model'), 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter == 'fashion_model' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      <%= link_to 'Вариации', dashboard_generations_path(filter: 'variation'), 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter == 'variation' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      
+      <div class="hidden sm:block w-px h-6 bg-gray-300 mx-2 self-center"></div>
+      
+      <%= link_to 'Успешные', dashboard_generations_path(filter: 'completed'), 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter == 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+      <%= link_to 'Ошибки', dashboard_generations_path(filter: 'failed'), 
+          class: "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium #{@filter == 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+    </div>
+  </div>
+</div>
+
+<!-- Generations Grid -->
+<% if @generations.any? %>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+    <% @generations.each do |generation| %>
+      <%= link_to dashboard_generation_path(generation), class: "group" do %>
+        <div class="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <% if generation.primary_output_url.present? %>
+            <img src="<%= generation.primary_output_url %>" 
+                 alt="Generation" 
+                 class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-300">
+          <% elsif generation.status == 'processing' %>
+            <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+              <div class="text-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto"></div>
+                <p class="mt-3 text-sm text-gray-500">Обработка...</p>
+              </div>
+            </div>
+          <% elsif generation.status == 'failed' %>
+            <div class="h-full w-full flex items-center justify-center bg-red-50">
+              <div class="text-center">
+                <svg class="h-10 w-10 text-red-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p class="mt-2 text-sm text-red-600">Ошибка</p>
+              </div>
+            </div>
+          <% else %>
+            <div class="h-full w-full flex items-center justify-center">
+              <svg class="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          <% end %>
+          
+          <!-- Status Badge -->
+          <div class="absolute top-3 right-3">
+            <% case generation.status %>
+            <% when 'completed' %>
+              <span class="inline-flex items-center rounded-full bg-green-500/90 backdrop-blur px-2 py-1 text-xs font-medium text-white shadow-sm">
+                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Готово
+              </span>
+            <% when 'processing' %>
+              <span class="inline-flex items-center rounded-full bg-yellow-500/90 backdrop-blur px-2 py-1 text-xs font-medium text-white shadow-sm">
+                <svg class="animate-spin h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Обработка
+              </span>
+            <% when 'failed' %>
+              <span class="inline-flex items-center rounded-full bg-red-500/90 backdrop-blur px-2 py-1 text-xs font-medium text-white shadow-sm">
+                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Ошибка
+              </span>
+            <% end %>
+          </div>
+          
+          <!-- Type Badge -->
+          <div class="absolute bottom-3 left-3">
+            <span class="inline-flex items-center rounded-full bg-black/50 backdrop-blur px-2 py-1 text-xs font-medium text-white">
+              <% case generation.generation_type %>
+              <% when 'virtual_try_on' %>
+                👤 Try-On
+              <% when 'fashion_model' %>
+                ✨ Model
+              <% when 'variation' %>
+                🔄 Вариация
+              <% else %>
+                🎨 AI
+              <% end %>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Meta Info -->
+        <div class="mt-3">
+          <p class="text-sm text-gray-900 font-medium truncate">
+            <% case generation.generation_type %>
+            <% when 'virtual_try_on' %>
+              Virtual Try-On
+            <% when 'fashion_model' %>
+              Fashion Model
+            <% when 'variation' %>
+              Вариация дизайна
+            <% else %>
+              AI-генерация
+            <% end %>
+          </p>
+          <p class="text-xs text-gray-500">
+            <%= generation.created_at.strftime('%d.%m.%Y в %H:%M') %>
+          </p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+  
+  <!-- Pagination -->
+  <% if @generations.respond_to?(:total_pages) && @generations.total_pages > 1 %>
+    <div class="mt-8 flex items-center justify-center">
+      <nav class="flex items-center space-x-2">
+        <% if @generations.prev_page %>
+          <%= link_to dashboard_generations_path(page: @generations.prev_page, filter: @filter), 
+              class: "inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+            <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Назад
+          <% end %>
+        <% end %>
+        
+        <span class="text-sm text-gray-500">
+          Страница <%= @generations.current_page %> из <%= @generations.total_pages %>
+        </span>
+        
+        <% if @generations.next_page %>
+          <%= link_to dashboard_generations_path(page: @generations.next_page, filter: @filter), 
+              class: "inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" do %>
+            Вперёд
+            <svg class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          <% end %>
+        <% end %>
+      </nav>
+    </div>
+  <% end %>
+<% else %>
+  <div class="text-center py-16 bg-white rounded-xl shadow">
+    <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    </svg>
+    <h3 class="mt-4 text-lg font-semibold text-gray-900">Нет генераций</h3>
+    <p class="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+      <% if @filter != 'all' %>
+        Генерации с таким фильтром не найдены. Попробуйте другой фильтр.
+      <% else %>
+        Создайте свою первую AI-генерацию в мобильном приложении Obrazz!
+      <% end %>
+    </p>
+    <% if @filter != 'all' %>
+      <div class="mt-6">
+        <%= link_to 'Показать все', dashboard_generations_path, 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50" %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

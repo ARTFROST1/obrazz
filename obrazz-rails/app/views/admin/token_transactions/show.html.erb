@@ -1,0 +1,95 @@
+<% content_for :title, "Transaction Details" %>
+
+<% content_for :header do %>
+  <div class="flex items-center">
+    <a href="<%= admin_token_transactions_path %>" class="mr-4 text-gray-400 hover:text-gray-600">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Transaction Details</h1>
+      <p class="text-sm text-gray-500"><%= @transaction.created_at.strftime('%B %d, %Y at %H:%M') %></p>
+    </div>
+  </div>
+<% end %>
+
+<div class="px-4 sm:px-0">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Token Transaction</h3>
+      <span class="text-2xl font-bold <%= @transaction.amount > 0 ? 'text-green-600' : 'text-red-600' %>">
+        <%= @transaction.amount > 0 ? '+' : '' %><%= @transaction.amount %> tokens
+      </span>
+    </div>
+    <div class="border-t border-gray-200">
+      <dl>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">User</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <a href="<%= admin_user_path(@transaction.user) %>" class="text-brand-600 hover:text-brand-900">
+              <%= @transaction.user.email %>
+            </a>
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Reason</dt>
+          <dd class="mt-1 sm:mt-0 sm:col-span-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+              <%= case @transaction.reason
+                  when 'subscription_renewal' then 'bg-blue-100 text-blue-800'
+                  when 'purchase' then 'bg-green-100 text-green-800'
+                  when 'ai_generation' then 'bg-purple-100 text-purple-800'
+                  when 'refund' then 'bg-yellow-100 text-yellow-800'
+                  when 'bonus', 'promo', 'registration_bonus', 'referral' then 'bg-pink-100 text-pink-800'
+                  when 'expiration' then 'bg-gray-100 text-gray-800'
+                  else 'bg-gray-100 text-gray-800'
+                  end %>">
+              <%= (@transaction.reason || '—').to_s.titleize %>
+            </span>
+          </dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Operation</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @transaction.operation %></dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Token Balance</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @transaction.token_balance&.token_type || '—' %></dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Description</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @transaction.description || '—' %></dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Balance After</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @transaction.balance_after %> tokens</dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Created</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"><%= @transaction.created_at.strftime('%B %d, %Y at %H:%M:%S UTC') %></dd>
+        </div>
+        <% if @transaction.ai_generation_id.present? %>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">AI Generation</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <a href="<%= admin_ai_generation_path(@transaction.ai_generation_id) %>" class="text-brand-600 hover:text-brand-900">
+                <%= @transaction.ai_generation_id %>
+              </a>
+            </dd>
+          </div>
+        <% end %>
+        <% if @transaction.payment_id.present? %>
+          <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">Payment</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <a href="<%= admin_payment_path(@transaction.payment_id) %>" class="text-brand-600 hover:text-brand-900">
+                <%= @transaction.payment_id %>
+              </a>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+</div>

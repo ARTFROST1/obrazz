@@ -22,24 +22,24 @@ class TokenTransaction < ApplicationRecord
   validates :reason, inclusion: { in: REASONS }, allow_nil: true
 
   # ==================== SCOPES ====================
-  scope :credits, -> { where(operation: 'credit') }
-  scope :debits, -> { where(operation: 'debit') }
-  scope :for_ai_generations, -> { where(reason: 'ai_generation') }
-  scope :for_purchases, -> { where(reason: 'purchase') }
+  scope :credits, -> { where(operation: "credit") }
+  scope :debits, -> { where(operation: "debit") }
+  scope :for_ai_generations, -> { where(reason: "ai_generation") }
+  scope :for_purchases, -> { where(reason: "purchase") }
   scope :recent, -> { order(created_at: :desc) }
   scope :in_period, ->(start_date, end_date) { where(created_at: start_date..end_date) }
 
   # ==================== INSTANCE METHODS ====================
 
   def credit?
-    operation == 'credit'
+    operation == "credit"
   end
 
   def debit?
-    operation == 'debit'
+    operation == "debit"
   end
 
   def refund?
-    operation == 'refund'
+    operation == "refund"
   end
 end

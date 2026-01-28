@@ -1,0 +1,126 @@
+<% content_for :title, "AI Generations" %>
+
+<% content_for :header do %>
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900">AI Generations</h1>
+    <div class="mt-4 sm:mt-0">
+      <span class="text-sm text-gray-500">Total: <span class="font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></span></span>
+    </div>
+  </div>
+<% end %>
+
+<div class="px-4 sm:px-0">
+  <!-- Stats -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-6">
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Total</dt>
+      <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= number_with_delimiter(@stats[:total]) %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Today</dt>
+      <dd class="mt-1 text-3xl font-semibold text-green-600"><%= @stats[:today] %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">By Type</dt>
+      <dd class="mt-1 text-sm text-gray-600">
+        <% @stats[:by_type].each do |type, count| %>
+          <span class="block"><%= type.titleize %>: <span class="font-semibold"><%= count %></span></span>
+        <% end %>
+      </dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Avg Processing Time</dt>
+      <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @stats[:avg_processing_time] || '—' %><span class="text-sm font-normal text-gray-500">s</span></dd>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white shadow rounded-lg mb-6 p-4">
+    <%= form_with url: admin_ai_generations_path, method: :get, class: "flex flex-wrap gap-4" do %>
+      <div>
+        <select name="type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All types</option>
+          <option value="virtual_try_on" <%= 'selected' if params[:type] == 'virtual_try_on' %>>Virtual Try-On</option>
+          <option value="fashion_model" <%= 'selected' if params[:type] == 'fashion_model' %>>Fashion Model</option>
+          <option value="variation" <%= 'selected' if params[:type] == 'variation' %>>Variation</option>
+        </select>
+      </div>
+      <div>
+        <select name="status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All statuses</option>
+          <option value="pending" <%= 'selected' if params[:status] == 'pending' %>>Pending</option>
+          <option value="processing" <%= 'selected' if params[:status] == 'processing' %>>Processing</option>
+          <option value="completed" <%= 'selected' if params[:status] == 'completed' %>>Completed</option>
+          <option value="failed" <%= 'selected' if params[:status] == 'failed' %>>Failed</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700">
+          Filter
+        </button>
+        <% if params[:type].present? || params[:status].present? %>
+          <a href="<%= admin_ai_generations_path %>" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Grid -->
+  <div class="bg-white shadow rounded-lg p-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+      <% @generations.each do |gen| %>
+        <a href="<%= admin_ai_generation_path(gen) %>" class="group relative">
+          <div class="aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <% if gen.primary_output_url.present? %>
+              <img src="<%= gen.primary_output_url %>" alt="" class="h-full w-full object-cover group-hover:opacity-75 transition-opacity">
+            <% else %>
+              <div class="h-full w-full flex items-center justify-center text-gray-400">
+                <% if gen.status == 'processing' %>
+                  <svg class="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                <% elsif gen.status == 'failed' %>
+                  <svg class="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                <% else %>
+                  <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                <% end %>
+              </div>
+            <% end %>
+            
+            <!-- Status badge -->
+            <div class="absolute top-2 right-2">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium 
+                <%= case gen.status
+                    when 'completed' then 'bg-green-100 text-green-800'
+                    when 'processing' then 'bg-yellow-100 text-yellow-800'
+                    when 'failed' then 'bg-red-100 text-red-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= gen.status %>
+              </span>
+            </div>
+          </div>
+          <div class="mt-1">
+            <p class="text-xs text-gray-500 truncate"><%= gen.generation_type.titleize %></p>
+            <p class="text-xs text-gray-400 truncate"><%= gen.user&.email&.split('@')&.first %></p>
+          </div>
+        </a>
+      <% end %>
+    </div>
+    
+    <% if @generations.empty? %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No generations</h3>
+        <p class="mt-1 text-sm text-gray-500">No AI generations found matching your criteria.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

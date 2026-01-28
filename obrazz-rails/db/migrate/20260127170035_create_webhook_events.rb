@@ -14,16 +14,16 @@ class CreateWebhookEvents < ActiveRecord::Migration[8.0]
       # Данные
       t.jsonb :payload, null: false, default: {} # Полные данные вебхука
       t.jsonb :headers, default: {} # HTTP заголовки
-      
+
       # Обработка
       t.integer :attempts, default: 0 # Количество попыток обработки
       t.datetime :processed_at
       t.datetime :last_attempted_at
-      
+
       # Ошибки
       t.string :error_code
       t.text :error_message
-      
+
       # Связи (заполняются после обработки)
       t.uuid :user_id
       t.uuid :payment_id
@@ -32,7 +32,7 @@ class CreateWebhookEvents < ActiveRecord::Migration[8.0]
 
       t.timestamps
 
-      t.index [:source, :external_id], unique: true
+      t.index [ :source, :external_id ], unique: true
       t.index :status
       t.index :event_type
       t.index :user_id

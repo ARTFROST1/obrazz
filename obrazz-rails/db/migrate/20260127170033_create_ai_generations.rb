@@ -15,26 +15,26 @@ class CreateAiGenerations < ActiveRecord::Migration[8.0]
       # The New Black API
       t.string :external_id # ID задачи в The New Black
       t.string :external_status # Статус в The New Black API
-      
+
       # Входные параметры
       t.jsonb :input_params, default: {} # garment_url, model_url, prompt и т.д.
-      
+
       # Входные изображения (URLs)
       t.text :input_image_urls, array: true, default: []
-      
+
       # Результаты
       t.text :output_image_urls, array: true, default: []
       t.jsonb :output_metadata, default: {}
-      
+
       # Ошибки
       t.string :error_code
       t.text :error_message
-      
+
       # Время обработки
       t.datetime :started_at
       t.datetime :completed_at
       t.integer :processing_time_ms
-      
+
       # Метаданные (для аналитики)
       t.jsonb :metadata, default: {}
 

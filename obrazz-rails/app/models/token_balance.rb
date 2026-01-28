@@ -16,12 +16,12 @@ class TokenBalance < ApplicationRecord
   validates :source, inclusion: { in: SOURCES }, allow_nil: true
 
   # ==================== SCOPES ====================
-  scope :active, -> { where('expires_at IS NULL OR expires_at > ?', Time.current) }
-  scope :expired, -> { where('expires_at < ?', Time.current) }
-  scope :with_balance, -> { where('balance > 0') }
-  scope :subscription_tokens, -> { where(token_type: 'subscription_tokens') }
-  scope :purchased_tokens, -> { where(token_type: 'purchased_tokens') }
-  scope :bonus_tokens, -> { where(token_type: 'bonus_tokens') }
+  scope :active, -> { where("expires_at IS NULL OR expires_at > ?", Time.current) }
+  scope :expired, -> { where("expires_at < ?", Time.current) }
+  scope :with_balance, -> { where("balance > 0") }
+  scope :subscription_tokens, -> { where(token_type: "subscription_tokens") }
+  scope :purchased_tokens, -> { where(token_type: "purchased_tokens") }
+  scope :bonus_tokens, -> { where(token_type: "bonus_tokens") }
 
   # ==================== INSTANCE METHODS ====================
 
@@ -48,7 +48,7 @@ class TokenBalance < ApplicationRecord
 
       token_transactions.create!(
         user: user,
-        operation: 'credit',
+        operation: "credit",
         amount: amount,
         balance_before: old_balance,
         balance_after: new_balance,
@@ -74,7 +74,7 @@ class TokenBalance < ApplicationRecord
 
       token_transactions.create!(
         user: user,
-        operation: 'debit',
+        operation: "debit",
         amount: -amount,
         balance_before: old_balance,
         balance_after: new_balance,
@@ -94,16 +94,16 @@ class TokenBalance < ApplicationRecord
 
     transaction do
       old_balance = balance
-      
+
       update!(balance: 0)
 
       token_transactions.create!(
         user: user,
-        operation: 'expire',
+        operation: "expire",
         amount: -old_balance,
         balance_before: old_balance,
         balance_after: 0,
-        reason: 'expiration',
+        reason: "expiration",
         description: "Tokens expired at #{expires_at}"
       )
     end

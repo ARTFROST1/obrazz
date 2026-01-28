@@ -68,15 +68,6 @@ export const ContextMenuView: React.FC<ContextMenuViewProps> = ({
   // For Android gesture handling
   const scale = useSharedValue(1);
 
-  // Handle native menu action (iOS)
-  const handleMenuAction = useCallback(
-    ({ nativeEvent }: { nativeEvent: { event: string } }) => {
-      const actionId = nativeEvent.event;
-      onPressAction(actionId);
-    },
-    [onPressAction],
-  );
-
   // Callbacks for gesture handlers
   const handleTap = useCallback(() => {
     onPress?.();

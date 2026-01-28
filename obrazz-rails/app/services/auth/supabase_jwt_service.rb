@@ -6,7 +6,7 @@ module Auth
     class ExpiredTokenError < StandardError; end
     class MissingTokenError < StandardError; end
 
-    ALGORITHM = 'HS256'
+    ALGORITHM = "HS256"
 
     def initialize(token)
       @token = token
@@ -15,7 +15,7 @@ module Auth
     # Декодирует и валидирует JWT токен Supabase
     # Возвращает payload с данными пользователя
     def decode
-      raise MissingTokenError, 'Token is missing' if @token.blank?
+      raise MissingTokenError, "Token is missing" if @token.blank?
 
       decoded = JWT.decode(
         @token,
@@ -25,7 +25,7 @@ module Auth
           algorithm: ALGORITHM,
           verify_expiration: true,
           verify_iat: true,
-          aud: 'authenticated',
+          aud: "authenticated",
           verify_aud: true
         }
       )
@@ -34,9 +34,9 @@ module Auth
       validate_payload!(payload)
       payload
     rescue JWT::ExpiredSignature
-      raise ExpiredTokenError, 'Token has expired'
+      raise ExpiredTokenError, "Token has expired"
     rescue JWT::InvalidAudError
-      raise InvalidTokenError, 'Invalid audience'
+      raise InvalidTokenError, "Invalid audience"
     rescue JWT::DecodeError => e
       raise InvalidTokenError, "Invalid token: #{e.message}"
     end
@@ -70,18 +70,18 @@ module Auth
     private
 
     def jwt_secret
-      secret = ENV['SUPABASE_JWT_SECRET']
-      raise InvalidTokenError, 'JWT secret not configured' if secret.blank?
+      secret = ENV["SUPABASE_JWT_SECRET"]
+      raise InvalidTokenError, "JWT secret not configured" if secret.blank?
       secret
     end
 
     def validate_payload!(payload)
       # Проверяем обязательные поля
-      raise InvalidTokenError, 'Missing user ID (sub)' if payload[:sub].blank?
-      
+      raise InvalidTokenError, "Missing user ID (sub)" if payload[:sub].blank?
+
       # Проверяем issuer (должен быть URL Supabase)
       if payload[:iss].present?
-        supabase_url = ENV['SUPABASE_URL']
+        supabase_url = ENV["SUPABASE_URL"]
         expected_issuer = "#{supabase_url}/auth/v1"
         unless payload[:iss] == expected_issuer
           Rails.logger.warn "JWT issuer mismatch: expected #{expected_issuer}, got #{payload[:iss]}"
@@ -90,7 +90,7 @@ module Auth
       end
 
       # Проверяем role
-      if payload[:role].present? && payload[:role] != 'authenticated'
+      if payload[:role].present? && payload[:role] != "authenticated"
         raise InvalidTokenError, "Invalid role: #{payload[:role]}"
       end
     end

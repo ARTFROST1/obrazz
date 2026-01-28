@@ -1,0 +1,136 @@
+<% content_for :title, "Payments" %>
+
+<% content_for :header do %>
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Payments</h1>
+    <div class="mt-4 sm:mt-0">
+      <span class="text-sm text-gray-500">Total Revenue: <span class="font-semibold text-gray-900"><%= number_to_currency(@stats[:total_revenue], unit: '₽', precision: 0, format: '%n %u') %></span></span>
+    </div>
+  </div>
+<% end %>
+
+<div class="px-4 sm:px-0">
+  <!-- Stats -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
+      <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= number_to_currency(@stats[:total_revenue], unit: '₽', precision: 0, format: '%n%u') %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">This Month</dt>
+      <dd class="mt-1 text-3xl font-semibold text-green-600"><%= number_to_currency(@stats[:this_month], unit: '₽', precision: 0, format: '%n%u') %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">By Provider</dt>
+      <dd class="mt-1 text-sm text-gray-600">
+        <% @stats[:by_provider].each do |provider, amount| %>
+          <span class="inline-flex items-center mr-3"><%= provider %>: <span class="font-semibold ml-1"><%= number_to_currency(amount, unit: '₽', precision: 0, format: '%n%u') %></span></span>
+        <% end %>
+        <% if @stats[:by_provider].empty? %>
+          <span class="text-gray-400">No data</span>
+        <% end %>
+      </dd>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white shadow rounded-lg mb-6 p-4">
+    <%= form_with url: admin_payments_path, method: :get, class: "flex flex-wrap gap-4" do %>
+      <div>
+        <select name="status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All statuses</option>
+          <option value="succeeded" <%= 'selected' if params[:status] == 'succeeded' %>>Succeeded</option>
+          <option value="pending" <%= 'selected' if params[:status] == 'pending' %>>Pending</option>
+          <option value="failed" <%= 'selected' if params[:status] == 'failed' %>>Failed</option>
+        </select>
+      </div>
+      <div>
+        <select name="payment_type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All types</option>
+          <option value="subscription" <%= 'selected' if params[:payment_type] == 'subscription' %>>Subscription</option>
+          <option value="token_pack" <%= 'selected' if params[:payment_type] == 'token_pack' %>>Token Pack</option>
+        </select>
+      </div>
+      <div>
+        <select name="provider" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All providers</option>
+          <option value="yookassa" <%= 'selected' if params[:provider] == 'yookassa' %>>YooKassa</option>
+          <option value="apple_iap" <%= 'selected' if params[:provider] == 'apple_iap' %>>Apple IAP</option>
+          <option value="google_play" <%= 'selected' if params[:provider] == 'google_play' %>>Google Play</option>
+        </select>
+      </div>
+      <div>
+        <input type="date" name="date_from" value="<%= params[:date_from] %>" 
+               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+               placeholder="From">
+      </div>
+      <div>
+        <input type="date" name="date_to" value="<%= params[:date_to] %>" 
+               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+               placeholder="To">
+      </div>
+      <div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700">
+          Filter
+        </button>
+        <% if params.except(:controller, :action).any? %>
+          <a href="<%= admin_payments_path %>" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Provider</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <% @payments.each do |payment| %>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500"><%= payment.created_at.strftime('%b %d, %Y %H:%M') %></td>
+            <td class="px-6 py-4">
+              <a href="<%= admin_user_path(payment.user) %>" class="text-sm font-medium text-brand-600 hover:text-brand-900">
+                <%= payment.user.email %>
+              </a>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900"><%= payment.payment_type.titleize %></td>
+            <td class="px-6 py-4 text-sm text-gray-500"><%= payment.provider.titleize %></td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                <%= case payment.status
+                    when 'succeeded' then 'bg-green-100 text-green-800'
+                    when 'pending' then 'bg-yellow-100 text-yellow-800'
+                    when 'failed' then 'bg-red-100 text-red-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= payment.status %>
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-right font-semibold <%= payment.status == 'succeeded' ? 'text-green-600' : 'text-gray-600' %>">
+              <%= number_to_currency(payment.amount, unit: '₽', precision: 0, format: '%n%u') %>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <a href="<%= admin_payment_path(payment) %>" class="text-brand-600 hover:text-brand-900 text-sm font-medium">View</a>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    
+    <% if @payments.empty? %>
+      <div class="text-center py-12">
+        <p class="text-sm text-gray-500">No payments found</p>
+      </div>
+    <% end %>
+  </div>
+</div>

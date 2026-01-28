@@ -1,0 +1,220 @@
+<% content_for(:title) { 'Токены - Obrazz' } %>
+
+<!-- Page Header -->
+<div class="md:flex md:items-center md:justify-between mb-8">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+      Токены
+    </h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Управляйте балансом токенов для AI-генераций
+    </p>
+  </div>
+</div>
+
+<!-- Token Balance Card -->
+<div class="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-xl overflow-hidden mb-8">
+  <div class="px-6 py-8 sm:p-10">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-purple-100">Ваш баланс</p>
+        <p class="mt-2 text-5xl font-bold text-white"><%= @token_balance %></p>
+        <p class="mt-1 text-sm text-purple-200">токенов доступно</p>
+      </div>
+      <div class="hidden sm:block">
+        <svg class="h-24 w-24 text-purple-300 opacity-30" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Token Breakdown -->
+    <% if @token_balances.any? %>
+      <div class="mt-6 pt-6 border-t border-purple-400/30">
+        <p class="text-sm font-medium text-purple-100 mb-3">Детализация:</p>
+        <div class="space-y-2">
+          <% @token_balances.each do |balance| %>
+            <div class="flex justify-between text-sm">
+              <span class="text-purple-200">
+                <% case balance.token_type %>
+                <% when 'subscription_tokens' %>
+                  Токены подписки
+                <% when 'purchased_tokens' %>
+                  Купленные токены
+                <% when 'bonus_tokens' %>
+                  Бонусные токены
+                <% else %>
+                  <%= balance.token_type&.humanize %>
+                <% end %>
+                <% if balance.expires_at %>
+                  <span class="text-purple-300">(до <%= balance.expires_at.strftime('%d.%m') %>)</span>
+                <% end %>
+              </span>
+              <span class="font-semibold text-white"><%= balance.balance %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Token Packs -->
+<div class="bg-white shadow rounded-xl overflow-hidden mb-8">
+  <div class="px-6 py-5 border-b border-gray-200">
+    <h2 class="text-lg font-semibold text-gray-900">Купить токены</h2>
+    <p class="mt-1 text-sm text-gray-500">Выберите подходящий пакет</p>
+  </div>
+  
+  <div class="p-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <% @token_packs.each do |pack| %>
+        <div class="relative rounded-xl border-2 <%= pack[:popular] ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white' %> p-6 hover:border-purple-400 transition-colors">
+          <% if pack[:popular] %>
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span class="inline-flex items-center rounded-full bg-purple-600 px-3 py-0.5 text-xs font-semibold text-white">
+                Популярный
+              </span>
+            </div>
+          <% end %>
+          
+          <div class="text-center">
+            <div class="text-4xl font-bold text-gray-900"><%= pack[:tokens] %></div>
+            <div class="mt-1 text-sm text-gray-500">токенов</div>
+            
+            <div class="mt-4">
+              <span class="text-2xl font-bold text-gray-900"><%= pack[:price] %></span>
+              <span class="text-gray-500">₽</span>
+            </div>
+            
+            <% if pack[:savings] %>
+              <div class="mt-1 text-sm text-green-600 font-medium">
+                Экономия <%= pack[:savings] %>₽
+              </div>
+            <% end %>
+            
+            <p class="mt-2 text-xs text-gray-500"><%= pack[:description] %></p>
+            
+            <%= button_to 'Купить', purchase_dashboard_tokens_path(pack_id: pack[:id]), 
+                method: :post,
+                class: "mt-4 w-full rounded-lg py-2 px-4 text-sm font-semibold #{pack[:popular] ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-gray-900 text-white hover:bg-gray-800'} transition-colors" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction History -->
+<div class="bg-white shadow rounded-xl overflow-hidden">
+  <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">История транзакций</h2>
+      <p class="mt-1 text-sm text-gray-500">Последние операции с токенами</p>
+    </div>
+    <%= link_to 'Вся история', history_dashboard_tokens_path, class: "text-sm font-medium text-purple-600 hover:text-purple-500" %>
+  </div>
+  
+  <% if @recent_transactions.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Дата
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Операция
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Детали
+            </th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Сумма
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @recent_transactions.each do |transaction| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= transaction.created_at.strftime('%d.%m.%Y %H:%M') %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% label_key = transaction.reason.presence || transaction.operation %>
+                <% case label_key %>
+                <% when 'ai_generation', 'debit' %>
+                  <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                    Списание
+                  </span>
+                <% when 'purchase', 'credit' %>
+                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                    <%= label_key == 'purchase' ? 'Покупка' : 'Начисление' %>
+                  </span>
+                <% when 'refund' %>
+                  <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                    Возврат
+                  </span>
+                <% when 'subscription_renewal' %>
+                  <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                    Подписка
+                  </span>
+                <% when 'expiration', 'expire' %>
+                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                    Сгорание
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                    <%= label_key.to_s.humanize %>
+                  </span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <% if transaction.ai_generation %>
+                  <div class="flex items-center">
+                    <% if transaction.ai_generation.primary_output_url.present? %>
+                      <img src="<%= transaction.ai_generation.primary_output_url %>" 
+                           alt="" 
+                           class="h-8 w-8 rounded object-cover mr-3">
+                    <% end %>
+                    <span>
+                      <% case transaction.ai_generation.generation_type %>
+                      <% when 'virtual_try_on' %>
+                        Virtual Try-On
+                      <% when 'fashion_model' %>
+                        Fashion Model
+                      <% when 'variation' %>
+                        Вариация
+                      <% else %>
+                        AI-генерация
+                      <% end %>
+                    </span>
+                  </div>
+                <% elsif transaction.description.present? %>
+                  <%= transaction.description %>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                <% if transaction.amount > 0 %>
+                  <span class="text-green-600">+<%= transaction.amount %></span>
+                <% else %>
+                  <span class="text-red-600"><%= transaction.amount %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="p-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">Нет транзакций</h3>
+      <p class="mt-1 text-sm text-gray-500">История операций пуста</p>
+    </div>
+  <% end %>
+</div>

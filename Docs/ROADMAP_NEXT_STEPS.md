@@ -17,7 +17,7 @@
 - AI-интеграция (The New Black API)
 - Система токенов и биллинг (YooKassa + IAP)
 - Личный кабинет пользователя (Hotwire + Tailwind)
-- Админ-панель (Administrate)
+- Админ-панель (custom Rails views; Administrate/ActiveAdmin опционально)
 
 ---
 
@@ -294,7 +294,7 @@ async removeBackground(imageUri: string): Promise<string> {
 - Быстрая разработка (convention over configuration)
 - Отличная экосистема для платежей (pay gem, yookassa, stripe)
 - Hotwire для dashboard без отдельного SPA
-- Sidekiq для background jobs (AI генерация)
+- Solid Queue для background jobs (Rails 8, без Redis; Sidekiq опционально)
 - Зрелые решения для биллинга и админки
 
 **Но есть альтернативы** (см. раздел "Анализ Backend стека" ниже).
@@ -329,8 +329,8 @@ Payments::YookassaService, IapService
 - ✅ Быстрая разработка fullstack (API + Dashboard)
 - ✅ Hotwire/Turbo — современный frontend без SPA
 - ✅ Отличные gems для платежей (pay, stripe, yookassa)
-- ✅ Sidekiq для background jobs
-- ✅ ActiveAdmin/Administrate для админки
+- ✅ Solid Queue для background jobs (Sidekiq опционально)
+- ✅ Admin panel: custom Rails views (Administrate/ActiveAdmin опционально)
 - ✅ Проверенный стек для SaaS
 
 **Недостатки:**
@@ -736,7 +736,7 @@ class CleanupAiGenerationsJob < ApplicationJob
   end
 end
 
-# config/schedule.rb (Sidekiq-scheduler)
+# config/schedule.rb (опционально: если используем Sidekiq-scheduler)
 cleanup_ai_generations:
   cron: '0 3 * * *'  # Каждый день в 3:00
   class: CleanupAiGenerationsJob
@@ -765,7 +765,7 @@ cleanup_ai_generations:
 
 #### 5.1 Rails Backend Foundation (1 неделя)
 
-- [ ] Инициализация Rails 7.2 проекта
+- [ ] Инициализация Rails 8 проекта
 - [ ] JWT authentication (Supabase integration)
 - [ ] Модели: User, Subscription, TokenBalance, TokenTransaction, AiGeneration
 - [ ] API endpoints: /subscription, /tokens
@@ -775,7 +775,7 @@ cleanup_ai_generations:
 
 - [ ] The New Black API client
 - [ ] VirtualTryon, FashionModels, Variations services
-- [ ] ProcessAiGenerationJob (Sidekiq)
+- [ ] ProcessAiGenerationJob (Solid Queue; Sidekiq опционально)
 - [ ] Сохранение результатов в Supabase Storage
 - [ ] API endpoints: /ai/virtual_tryon, /ai/fashion_model, /ai/generations/:id
 

@@ -11,9 +11,9 @@ class AiGeneration < ApplicationRecord
 
   # Стоимость в токенах для каждого типа генерации
   TOKEN_COSTS = {
-    'virtual_try_on' => 1,
-    'fashion_model' => 1,
-    'variation' => 1
+    "virtual_try_on" => 1,
+    "fashion_model" => 1,
+    "variation" => 1
   }.freeze
 
   # ==================== VALIDATIONS ====================
@@ -22,10 +22,10 @@ class AiGeneration < ApplicationRecord
   validates :tokens_cost, presence: true, numericality: { greater_than: 0 }
 
   # ==================== SCOPES ====================
-  scope :pending, -> { where(status: 'pending') }
-  scope :processing, -> { where(status: 'processing') }
-  scope :completed, -> { where(status: 'completed') }
-  scope :failed, -> { where(status: 'failed') }
+  scope :pending, -> { where(status: "pending") }
+  scope :processing, -> { where(status: "processing") }
+  scope :completed, -> { where(status: "completed") }
+  scope :failed, -> { where(status: "failed") }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_type, ->(type) { where(generation_type: type) }
   scope :in_period, ->(start_date, end_date) { where(created_at: start_date..end_date) }
@@ -36,35 +36,35 @@ class AiGeneration < ApplicationRecord
   # ==================== INSTANCE METHODS ====================
 
   def pending?
-    status == 'pending'
+    status == "pending"
   end
 
   def processing?
-    status == 'processing'
+    status == "processing"
   end
 
   def completed?
-    status == 'completed'
+    status == "completed"
   end
 
   def failed?
-    status == 'failed'
+    status == "failed"
   end
 
   def cancelled?
-    status == 'cancelled'
+    status == "cancelled"
   end
 
   def start_processing!
     update!(
-      status: 'processing',
+      status: "processing",
       started_at: Time.current
     )
   end
 
   def complete!(output_urls, metadata = {})
     update!(
-      status: 'completed',
+      status: "completed",
       output_image_urls: output_urls,
       output_metadata: metadata,
       completed_at: Time.current,
@@ -74,7 +74,7 @@ class AiGeneration < ApplicationRecord
 
   def fail!(error_code, error_message)
     update!(
-      status: 'failed',
+      status: "failed",
       error_code: error_code,
       error_message: error_message,
       completed_at: Time.current,
@@ -85,22 +85,22 @@ class AiGeneration < ApplicationRecord
   def cancel!
     return unless pending? || processing?
 
-    update!(status: 'cancelled')
-    
+    update!(status: "cancelled")
+
     # Возврат токенов
     refund_tokens!
   end
 
   def virtual_try_on?
-    generation_type == 'virtual_try_on'
+    generation_type == "virtual_try_on"
   end
 
   def fashion_model?
-    generation_type == 'fashion_model'
+    generation_type == "fashion_model"
   end
 
   def variation?
-    generation_type == 'variation'
+    generation_type == "variation"
   end
 
   def primary_output_url
@@ -120,14 +120,14 @@ class AiGeneration < ApplicationRecord
 
   def refund_tokens!
     # Найти транзакцию списания токенов
-    debit_transaction = token_transactions.find_by(operation: 'debit')
+    debit_transaction = token_transactions.find_by(operation: "debit")
     return unless debit_transaction
 
     # Вернуть токены
     balance = debit_transaction.token_balance
     balance.credit!(
       tokens_cost,
-      reason: 'refund',
+      reason: "refund",
       description: "Refund for cancelled generation ##{id}"
     )
   end

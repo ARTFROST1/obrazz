@@ -1,0 +1,13 @@
+<%# Navigation Item Partial %>
+<%# Usage: render 'layouts/dashboard/nav_item', path: some_path, icon: 'home', label: 'Home' %>
+<% 
+  is_active = current_page?(path)
+  active_class = is_active ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+%>
+
+<li>
+  <%= link_to path, class: "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold #{active_class}" do %>
+    <%= render "layouts/dashboard/icons/#{icon}", active: is_active %>
+    <%= label %>
+  <% end %>
+</li>

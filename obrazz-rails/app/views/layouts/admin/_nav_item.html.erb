@@ -1,0 +1,12 @@
+<%# Admin navigation item partial %>
+<%# locals: (path:, title:, icon:) %>
+<%
+  is_current = current_page?(path)
+  base_classes = "px-3 py-2 rounded-md text-sm font-medium flex items-center"
+  active_classes = is_current ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+%>
+
+<a href="<%= path %>" class="<%= base_classes %> <%= active_classes %>">
+  <%= render partial: "layouts/admin/icons/#{icon}" %>
+  <span class="ml-2"><%= title %></span>
+</a>

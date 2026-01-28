@@ -1,0 +1,139 @@
+<% content_for(:title) { 'Выбор плана - Obrazz' } %>
+
+<!-- Page Header -->
+<div class="text-center mb-12">
+  <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+    Выберите подходящий план
+  </h1>
+  <p class="mt-4 text-lg leading-8 text-gray-600">
+    Начните с бесплатного плана или получите полный доступ к AI-функциям
+  </p>
+</div>
+
+<!-- Pricing Cards -->
+<div class="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
+  <% @plans.each do |plan| %>
+    <div class="relative rounded-2xl <%= plan[:id] == 'pro_monthly' ? 'bg-gray-900 shadow-xl ring-2 ring-purple-500' : 'bg-white shadow ring-1 ring-gray-200' %> p-8 <%= plan[:id] == @current_plan ? 'ring-2 ring-green-500' : '' %>">
+      
+      <% if plan[:id] == 'pro_monthly' %>
+        <div class="absolute -top-5 left-0 right-0 mx-auto w-fit">
+          <span class="inline-flex items-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-1 text-sm font-semibold text-white shadow-sm">
+            Популярный
+          </span>
+        </div>
+      <% end %>
+      
+      <% if plan[:id] == @current_plan %>
+        <div class="absolute top-4 right-4">
+          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+            Текущий
+          </span>
+        </div>
+      <% end %>
+      
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold leading-8 <%= plan[:id] == 'pro_monthly' ? 'text-white' : 'text-gray-900' %>">
+          <%= plan[:name] %>
+        </h3>
+        
+        <p class="mt-4 flex items-baseline gap-x-2">
+          <span class="text-4xl font-bold tracking-tight <%= plan[:id] == 'pro_monthly' ? 'text-white' : 'text-gray-900' %>">
+            <%= plan[:price] == 0 ? 'Бесплатно' : "#{plan[:price]}₽" %>
+          </span>
+          <% if plan[:price] > 0 %>
+            <span class="text-sm font-semibold leading-6 <%= plan[:id] == 'pro_monthly' ? 'text-gray-300' : 'text-gray-500' %>">
+              /<%= plan[:id] == 'pro_yearly' ? 'год' : 'месяц' %>
+            </span>
+          <% end %>
+        </p>
+        
+        <% if plan[:yearly_savings] %>
+          <p class="mt-2 text-sm <%= plan[:id] == 'pro_monthly' ? 'text-gray-300' : 'text-green-600' %>">
+            Экономия <%= plan[:yearly_savings] %>₽ в год
+          </p>
+        <% end %>
+        
+        <% if plan[:tokens] && plan[:tokens] > 0 %>
+          <p class="mt-3 text-sm <%= plan[:id] == 'pro_monthly' ? 'text-gray-300' : 'text-gray-500' %>">
+            <span class="font-semibold <%= plan[:id] == 'pro_monthly' ? 'text-white' : 'text-gray-900' %>"><%= plan[:tokens] %></span> токенов/месяц
+          </p>
+        <% end %>
+      </div>
+      
+      <!-- Features -->
+      <ul class="space-y-3 mb-8">
+        <% plan[:features].each do |feature| %>
+          <li class="flex gap-x-3">
+            <svg class="h-6 w-5 flex-none <%= plan[:id] == 'pro_monthly' ? 'text-purple-400' : 'text-purple-600' %>" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm leading-6 <%= plan[:id] == 'pro_monthly' ? 'text-gray-300' : 'text-gray-600' %>">
+              <%= feature %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+      
+      <!-- CTA Button -->
+      <% if plan[:id] == @current_plan %>
+        <button disabled class="w-full rounded-lg py-2.5 px-4 text-center text-sm font-semibold bg-gray-100 text-gray-400 cursor-not-allowed">
+          Текущий план
+        </button>
+      <% elsif plan[:id] == 'free' %>
+        <%= button_to 'Перейти на Free', upgrade_dashboard_subscription_path(plan: plan[:id]), 
+            method: :post,
+            data: { turbo_confirm: 'Вы уверены? Вы потеряете преимущества Pro-плана.' },
+            class: "w-full rounded-lg py-2.5 px-4 text-center text-sm font-semibold #{plan[:id] == 'pro_monthly' ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-purple-600 text-white hover:bg-purple-500'} shadow-sm transition-colors" %>
+      <% else %>
+        <%= button_to "Выбрать #{plan[:name]}", upgrade_dashboard_subscription_path(plan: plan[:id]), 
+            method: :post,
+            class: "w-full rounded-lg py-2.5 px-4 text-center text-sm font-semibold #{plan[:id] == 'pro_monthly' ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-purple-600 text-white hover:bg-purple-500'} shadow-sm transition-colors" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<!-- FAQ Section -->
+<div class="mt-16 max-w-3xl mx-auto">
+  <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Частые вопросы</h2>
+  
+  <dl class="space-y-6 divide-y divide-gray-200">
+    <div class="pt-6">
+      <dt class="text-base font-semibold text-gray-900">Что такое токены?</dt>
+      <dd class="mt-2 text-sm text-gray-600">
+        Токены — это единицы для использования AI-функций. 1 токен = 1 генерация изображения (Virtual Try-On, Fashion Model или Вариация).
+      </dd>
+    </div>
+    
+    <div class="pt-6">
+      <dt class="text-base font-semibold text-gray-900">Можно ли докупить токены?</dt>
+      <dd class="mt-2 text-sm text-gray-600">
+        Да! Вы можете купить дополнительные токены в любое время. Они не сгорают и остаются на вашем аккаунте.
+      </dd>
+    </div>
+    
+    <div class="pt-6">
+      <dt class="text-base font-semibold text-gray-900">Как отменить подписку?</dt>
+      <dd class="mt-2 text-sm text-gray-600">
+        Вы можете отменить подписку в любой момент. Она будет действовать до конца оплаченного периода.
+      </dd>
+    </div>
+    
+    <div class="pt-6">
+      <dt class="text-base font-semibold text-gray-900">Сгорают ли токены подписки?</dt>
+      <dd class="mt-2 text-sm text-gray-600">
+        Токены, полученные по подписке, действуют в течение месяца и обновляются в день продления подписки.
+      </dd>
+    </div>
+  </dl>
+</div>
+
+<!-- Back Link -->
+<div class="mt-12 text-center">
+  <%= link_to dashboard_subscription_path, class: "inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900" do %>
+    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    Назад к подписке
+  <% end %>
+</div>

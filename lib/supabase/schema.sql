@@ -291,7 +291,41 @@ CREATE POLICY "Users can unfollow"
   ON public.follows FOR DELETE
   USING (auth.uid() = follower_id);
 
+-- ============================================
+-- GRANT permissions to Supabase roles
+-- ============================================
+-- CRITICAL: RLS policies control WHICH rows are visible
+-- But GRANT controls IF the table is accessible at all
+
+-- Core tables: Full CRUD for authenticated, SELECT for anon
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT SELECT ON public.profiles TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.items TO authenticated;
+GRANT SELECT ON public.items TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.outfits TO authenticated;
+GRANT SELECT ON public.outfits TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.outfit_items TO authenticated;
+GRANT SELECT ON public.outfit_items TO anon;
+
+-- Social tables (Community feed is not in current scope, but keeping for reference)
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO authenticated;
+GRANT SELECT ON public.posts TO anon;
+
+GRANT SELECT, INSERT, DELETE ON public.likes TO authenticated;
+GRANT SELECT ON public.likes TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
+GRANT SELECT ON public.comments TO anon;
+
+GRANT SELECT, INSERT, DELETE ON public.follows TO authenticated;
+GRANT SELECT ON public.follows TO anon;
+
+-- ============================================
 -- Functions and triggers for updated_at
+-- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN

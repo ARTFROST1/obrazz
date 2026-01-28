@@ -121,14 +121,6 @@ export const GlassDropdownMenu: React.FC<GlassDropdownMenuProps> = ({
       setIsMenuOpen(false);
     };
 
-    const handleMenuWillShow = () => {
-      setIsMenuOpen(true);
-    };
-
-    const handleMenuWillHide = () => {
-      setIsMenuOpen(false);
-    };
-
     // iOS 26+: Glass button with native UIMenu
     if (supportsLiquidGlass && mounted) {
       return (

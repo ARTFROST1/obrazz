@@ -345,7 +345,8 @@ export const WardrobeTab: React.FC<WardrobeTabProps> = ({
 
   const filteredItems = useMemo(() => {
     return getFilteredItems();
-  }, [items, getFilteredItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getFilteredItems]);
 
   const hasActiveFilters =
     filter.categories?.length ||

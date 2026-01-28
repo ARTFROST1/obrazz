@@ -34,11 +34,11 @@ module Auth
         username: extract_username,
         full_name: @user_metadata[:full_name] || @user_metadata[:name],
         avatar_url: @user_metadata[:avatar_url] || @user_metadata[:picture],
-        status: 'active',
+        status: "active",
         last_active_at: Time.current,
         metadata: {
           provider: @user_metadata[:provider],
-          created_via: 'jwt_sync'
+          created_via: "jwt_sync"
         }
       )
     rescue ActiveRecord::RecordNotUnique => e
@@ -72,7 +72,7 @@ module Auth
       # Пытаемся извлечь username из user_metadata или email
       @user_metadata[:username] ||
         @user_metadata[:preferred_username] ||
-        @email&.split('@')&.first
+        @email&.split("@")&.first
     end
   end
 end

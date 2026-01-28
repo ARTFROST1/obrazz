@@ -6,7 +6,6 @@ import { Tabs, usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import React from 'react';
 import { Platform, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '../../constants/Colors';
 
@@ -33,7 +32,6 @@ export default function TabLayout() {
   const { t } = useTranslation('navigation');
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
   // Determine if we're on profile tab to change add button icon

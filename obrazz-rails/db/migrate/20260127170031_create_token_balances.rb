@@ -8,16 +8,16 @@ class CreateTokenBalances < ActiveRecord::Migration[8.0]
 
       # Баланс
       t.integer :balance, null: false, default: 0
-      
+
       # Срок действия (для subscription_tokens)
       t.datetime :expires_at
-      
+
       # Источник начисления
       t.string :source # subscription, purchase, referral, bonus, promo
 
       t.timestamps
 
-      t.index [:user_id, :token_type], unique: true
+      t.index [ :user_id, :token_type ], unique: true
       t.index :expires_at
       t.index :token_type
     end

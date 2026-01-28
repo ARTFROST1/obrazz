@@ -13,7 +13,7 @@ module Api
 
         # Фильтр по типу
         generations = generations.by_type(params[:type]) if params[:type].present?
-        
+
         # Фильтр по статусу
         generations = generations.where(status: params[:status]) if params[:status].present?
 
@@ -38,21 +38,21 @@ module Api
       # Создание новой генерации (универсальный endpoint)
       def create
         result = case generation_params[:type]
-                 when 'virtual_try_on'
+        when "virtual_try_on"
                    ai_service.create_virtual_try_on(**virtual_try_on_params)
-                 when 'fashion_model'
+        when "fashion_model"
                    ai_service.create_fashion_model(**fashion_model_params)
-                 when 'variation'
+        when "variation"
                    ai_service.create_variation(**variation_params)
-                 else
-                   return render_error('Invalid generation type', status: :bad_request)
-                 end
+        else
+                   return render_error("Invalid generation type", status: :bad_request)
+        end
 
         render_success(result, status: :created)
       rescue Ai::GenerationService::InsufficientTokensError => e
-        render_error(e.message, status: :payment_required, code: 'insufficient_tokens')
+        render_error(e.message, status: :payment_required, code: "insufficient_tokens")
       rescue Ai::GenerationService::GenerationError => e
-        render_error(e.message, status: :unprocessable_entity, code: 'generation_error')
+        render_error(e.message, status: :unprocessable_entity, code: "generation_error")
       end
 
       # GET /api/v1/ai_generations/:id/status
@@ -68,7 +68,7 @@ module Api
       def cancel
         generation = current_user.ai_generations.find(params[:id])
         result = ai_service.cancel(generation)
-        
+
         if result[:error]
           render_error(result[:error], status: :unprocessable_entity)
         else

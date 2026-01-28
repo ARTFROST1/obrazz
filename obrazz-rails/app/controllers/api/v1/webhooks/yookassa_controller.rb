@@ -11,22 +11,22 @@ module Api
           # Верификация подписи
           unless verify_signature
             Rails.logger.warn "YooKassa webhook signature verification failed"
-            return render json: { error: 'Invalid signature' }, status: :unauthorized
+            return render json: { error: "Invalid signature" }, status: :unauthorized
           end
 
           payload = JSON.parse(request.body.read)
-          event_type = payload['event']
-          object = payload['object']
+          event_type = payload["event"]
+          object = payload["object"]
 
           # Записываем событие
           event = record_webhook_event(
-            source: 'yookassa',
-            external_id: object['id'],
+            source: "yookassa",
+            external_id: object["id"],
             event_type: event_type,
             payload: payload
           )
 
-          return render_ignored('Duplicate event') unless event
+          return render_ignored("Duplicate event") unless event
 
           # Обрабатываем в фоне
           ProcessYookassaWebhookJob.perform_later(event.id)
@@ -40,17 +40,17 @@ module Api
           # В development пропускаем проверку подписи
           return true if Rails.env.development?
 
-          secret = ENV['YOOKASSA_WEBHOOK_SECRET']
+          secret = ENV["YOOKASSA_WEBHOOK_SECRET"]
           return true if secret.blank? # Если секрет не настроен, пропускаем
 
-          signature = request.headers['X-YooKassa-Signature']
+          signature = request.headers["X-YooKassa-Signature"]
           return false if signature.blank?
 
           # YooKassa использует HMAC-SHA256
           body = request.body.read
           request.body.rewind
 
-          expected = OpenSSL::HMAC.hexdigest('SHA256', secret, body)
+          expected = OpenSSL::HMAC.hexdigest("SHA256", secret, body)
           ActiveSupport::SecurityUtils.secure_compare(signature, expected)
         end
       end

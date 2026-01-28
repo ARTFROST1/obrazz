@@ -40,5 +40,10 @@ module ObrazRails
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Enable session and cookies for non-API controllers (Dashboard, Admin)
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: "_obrazz_rails_session"
+    config.middleware.use ActionDispatch::Flash
   end
 end

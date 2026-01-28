@@ -147,7 +147,7 @@
 
 - единая авторизация админов (отдельный `AdminUser` в Rails)
 - единые политики доступа (server-side, без выдачи прав на write клиентам)
-- проще подключить аналитику, кэш, фоновую обработку изображений (Sidekiq)
+- проще подключить аналитику, кэш, фоновую обработку изображений (Solid Queue; Sidekiq опционально)
 - веб-админка (Rails Views + Hotwire) — единственный интерфейс для управления контентом
 
 ---
@@ -508,8 +508,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ### 5.3 Роли и доступ
 
-- отдельная модель `AdminUser` (Devise) для входа в Dashboard/Admin
+- отдельная модель `AdminUser` (custom + `has_secure_password`) для входа в `/admin` (сейчас защищено HTTP Basic)
 - таблица админов **не должна** быть в Supabase Auth, чтобы не смешивать домены “пользователь приложения” и “админ контента”
+
+Примечание: Devise можно подключить позже (опционально), если появятся требования к полноценным admin-сессиям/2FA/управлению ролями.
 
 ---
 
@@ -1182,15 +1184,15 @@ export const collectionsApi = new CollectionsApi();
 
 ### Phase 3: Rails Admin (3-5 дней)
 
-| #   | Задача                                                        | Оценка | Приоритет |
-| --- | ------------------------------------------------------------- | ------ | --------- |
-| 3.1 | Добавить `AdminUser` (Devise) + доступ к `/admin`             | 2ч     | P0        |
-| 3.2 | Подключить Administrate/ActiveAdmin (выбрать один)            | 2ч     | P0        |
-| 3.3 | CRUD для `collections`                                        | 3ч     | P0        |
-| 3.4 | CRUD для `collection_items`                                   | 4ч     | P0        |
-| 3.5 | Upload изображений в Supabase Storage (full + thumb)          | 4ч     | P0        |
-| 3.6 | Авто-`image_width/height` + генерация thumb (job/inline)      | 3ч     | P1        |
-| 3.7 | Деплой Rails (Render/Railway) + секреты Supabase service-role | 2ч     | P0        |
+| #   | Задача                                                                    | Оценка | Приоритет |
+| --- | ------------------------------------------------------------------------- | ------ | --------- |
+| 3.1 | Добавить `AdminUser` (custom + `has_secure_password`) + доступ к `/admin` | 2ч     | P0        |
+| 3.2 | (Опционально) подключить Administrate/ActiveAdmin (выбрать один)          | 2ч     | P1        |
+| 3.3 | CRUD для `collections`                                                    | 3ч     | P0        |
+| 3.4 | CRUD для `collection_items`                                               | 4ч     | P0        |
+| 3.5 | Upload изображений в Supabase Storage (full + thumb)                      | 4ч     | P0        |
+| 3.6 | Авто-`image_width/height` + генерация thumb (job/inline)                  | 3ч     | P1        |
+| 3.7 | Деплой Rails (Render/Railway) + секреты Supabase service-role             | 2ч     | P0        |
 
 ### Phase 4: Polish & Launch (2-3 дня)
 

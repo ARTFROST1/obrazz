@@ -1,0 +1,115 @@
+<% content_for :title, "Token Transactions" %>
+
+<% content_for :header do %>
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Token Transactions</h1>
+  </div>
+<% end %>
+
+<div class="px-4 sm:px-0">
+  <!-- Stats -->
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-6">
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Total Tokens Spent</dt>
+      <dd class="mt-1 text-3xl font-semibold text-red-600"><%= number_with_delimiter(@stats[:total_spent]) %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Total Tokens Granted</dt>
+      <dd class="mt-1 text-3xl font-semibold text-green-600">+<%= number_with_delimiter(@stats[:total_granted]) %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">Spent Today</dt>
+      <dd class="mt-1 text-3xl font-semibold text-gray-900"><%= @stats[:today_spent] %></dd>
+    </div>
+    <div class="bg-white overflow-hidden shadow rounded-lg px-4 py-5">
+      <dt class="text-sm font-medium text-gray-500 truncate">By Type</dt>
+      <dd class="mt-1 text-sm text-gray-600">
+        <% @stats[:by_type].each do |type, amount| %>
+          <span class="block"><%= (type || 'unknown').to_s.titleize %>: <span class="font-semibold <%= amount > 0 ? 'text-green-600' : 'text-red-600' %>"><%= amount > 0 ? '+' : '' %><%= amount %></span></span>
+        <% end %>
+      </dd>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white shadow rounded-lg mb-6 p-4">
+    <%= form_with url: admin_token_transactions_path, method: :get, class: "flex flex-wrap gap-4" do %>
+      <div>
+        <select name="reason" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+          <option value="">All reasons</option>
+          <option value="ai_generation" <%= 'selected' if params[:reason] == 'ai_generation' %>>AI Generation</option>
+          <option value="subscription_renewal" <%= 'selected' if params[:reason] == 'subscription_renewal' %>>Subscription Renewal</option>
+          <option value="purchase" <%= 'selected' if params[:reason] == 'purchase' %>>Purchase</option>
+          <option value="bonus" <%= 'selected' if params[:reason] == 'bonus' %>>Bonus</option>
+          <option value="registration_bonus" <%= 'selected' if params[:reason] == 'registration_bonus' %>>Registration Bonus</option>
+          <option value="promo" <%= 'selected' if params[:reason] == 'promo' %>>Promo</option>
+          <option value="referral" <%= 'selected' if params[:reason] == 'referral' %>>Referral</option>
+          <option value="refund" <%= 'selected' if params[:reason] == 'refund' %>>Refund</option>
+          <option value="expiration" <%= 'selected' if params[:reason] == 'expiration' %>>Expiration</option>
+          <option value="manual_adjustment" <%= 'selected' if params[:reason] == 'manual_adjustment' %>>Manual Adjustment</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700">
+          Filter
+        </button>
+        <% if params[:reason].present? %>
+          <a href="<%= admin_token_transactions_path %>" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance After</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <% @transactions.each do |tx| %>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500"><%= tx.created_at.strftime('%b %d, %H:%M') %></td>
+            <td class="px-6 py-4">
+              <a href="<%= admin_user_path(tx.user) %>" class="text-sm font-medium text-brand-600 hover:text-brand-900">
+                <%= tx.user.email.truncate(25) %>
+              </a>
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                <%= case tx.reason
+                    when 'subscription_renewal' then 'bg-blue-100 text-blue-800'
+                    when 'purchase' then 'bg-green-100 text-green-800'
+                    when 'ai_generation' then 'bg-purple-100 text-purple-800'
+                    when 'refund' then 'bg-yellow-100 text-yellow-800'
+                    when 'bonus', 'promo', 'registration_bonus', 'referral' then 'bg-pink-100 text-pink-800'
+                    when 'expiration' then 'bg-gray-100 text-gray-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= (tx.reason.presence || tx.operation).to_s.titleize %>
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate"><%= tx.description %></td>
+            <td class="px-6 py-4 text-sm text-right font-semibold <%= tx.amount > 0 ? 'text-green-600' : 'text-red-600' %>">
+              <%= tx.amount > 0 ? '+' : '' %><%= tx.amount %>
+            </td>
+            <td class="px-6 py-4 text-sm text-right text-gray-900"><%= tx.balance_after %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    
+    <% if @transactions.empty? %>
+      <div class="text-center py-12">
+        <p class="text-sm text-gray-500">No transactions found</p>
+      </div>
+    <% end %>
+  </div>
+</div>

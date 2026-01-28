@@ -9,23 +9,23 @@ class CreateTokenTransactions < ActiveRecord::Migration[8.0]
 
       # Количество (положительное для credit, отрицательное для debit)
       t.integer :amount, null: false
-      
+
       # Баланс до и после операции
       t.integer :balance_before, null: false
       t.integer :balance_after, null: false
-      
+
       # Причина операции
       t.string :reason # ai_generation, subscription_renewal, purchase, bonus, refund, expiration
-      
+
       # Связь с AI генерацией (если debit за генерацию)
       t.uuid :ai_generation_id
-      
+
       # Связь с платежом (если credit за покупку)
       t.uuid :payment_id
-      
+
       # Описание
       t.string :description
-      
+
       # Метаданные
       t.jsonb :metadata, default: {}
 

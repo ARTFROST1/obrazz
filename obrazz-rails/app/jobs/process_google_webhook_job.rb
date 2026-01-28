@@ -2,7 +2,7 @@
 
 class ProcessGoogleWebhookJob < ApplicationJob
   queue_as :webhooks
-  
+
   retry_on StandardError, wait: :polynomially_longer, attempts: 5
   discard_on ActiveRecord::RecordNotFound
 
@@ -49,7 +49,7 @@ class ProcessGoogleWebhookJob < ApplicationJob
         event.mark_processed!
       end
     rescue => e
-      event.mark_failed!('processing_error', e.message)
+      event.mark_failed!("processing_error", e.message)
       raise
     end
   end
@@ -62,10 +62,10 @@ class ProcessGoogleWebhookJob < ApplicationJob
 
     # TODO: Вызвать Google Play API для получения полной информации о покупке
     # Пока работаем с тем, что есть
-    
+
     # Ищем пользователя (purchase_token может содержать obfuscatedExternalAccountId)
     user = find_user_by_token(purchase_token)
-    
+
     unless user
       Rails.logger.warn "User not found for Google subscription: #{purchase_token}"
       event.mark_processed!
@@ -73,13 +73,13 @@ class ProcessGoogleWebhookJob < ApplicationJob
     end
 
     payment = user.payments.find_or_create_by!(
-      provider: 'google_play',
+      provider: "google_play",
       external_id: purchase_token
     ) do |p|
-      p.payment_type = 'subscription'
+      p.payment_type = "subscription"
       p.subscription_plan = map_sku_to_plan(subscription_id)
       p.amount = 0 # Нужен API запрос для получения цены
-      p.currency = 'RUB'
+      p.currency = "RUB"
     end
 
     payment.mark_as_succeeded! unless payment.succeeded?
@@ -93,10 +93,10 @@ class ProcessGoogleWebhookJob < ApplicationJob
 
   def handle_subscription_renewed(event, payload)
     purchase_token = payload[:purchase_token]
-    
+
     # Находим пользователя по purchase_token
     previous_payment = Payment.find_by(
-      provider: 'google_play',
+      provider: "google_play",
       external_id: purchase_token
     )
 
@@ -115,8 +115,8 @@ class ProcessGoogleWebhookJob < ApplicationJob
 
   def handle_subscription_canceled(event, payload)
     purchase_token = payload[:purchase_token]
-    
-    payment = Payment.find_by(provider: 'google_play', external_id: purchase_token)
+
+    payment = Payment.find_by(provider: "google_play", external_id: purchase_token)
     user = payment&.user
 
     if user&.subscription
@@ -131,12 +131,12 @@ class ProcessGoogleWebhookJob < ApplicationJob
 
   def handle_subscription_hold(event, payload)
     purchase_token = payload[:purchase_token]
-    
-    payment = Payment.find_by(provider: 'google_play', external_id: purchase_token)
+
+    payment = Payment.find_by(provider: "google_play", external_id: purchase_token)
     user = payment&.user
 
     if user&.subscription
-      user.subscription.update!(status: 'past_due')
+      user.subscription.update!(status: "past_due")
     end
 
     event.mark_processed!(
@@ -147,17 +147,17 @@ class ProcessGoogleWebhookJob < ApplicationJob
 
   def find_user_by_token(purchase_token)
     # Ищем по предыдущим платежам
-    Payment.find_by(provider: 'google_play', external_id: purchase_token)&.user
+    Payment.find_by(provider: "google_play", external_id: purchase_token)&.user
   end
 
   def map_sku_to_plan(subscription_id)
     case subscription_id
     when /monthly/i
-      'pro_monthly'
+      "pro_monthly"
     when /yearly/i, /annual/i
-      'pro_yearly'
+      "pro_yearly"
     else
-      'pro_monthly'
+      "pro_monthly"
     end
   end
 end

@@ -2,7 +2,7 @@
 
 class ProcessTheNewBlackWebhookJob < ApplicationJob
   queue_as :webhooks
-  
+
   retry_on StandardError, wait: :polynomially_longer, attempts: 5
   discard_on ActiveRecord::RecordNotFound
 
@@ -27,16 +27,16 @@ class ProcessTheNewBlackWebhookJob < ApplicationJob
       end
 
       case status.to_s.downcase
-      when 'completed', 'done', 'success'
+      when "completed", "done", "success"
         handle_completed(event, generation, payload)
-      when 'failed', 'error'
+      when "failed", "error"
         handle_failed(event, generation, payload)
       else
         Rails.logger.info "Unknown The New Black status: #{status}"
         event.mark_processed!(ai_generation_id: generation.id, user_id: generation.user_id)
       end
     rescue => e
-      event.mark_failed!('processing_error', e.message)
+      event.mark_failed!("processing_error", e.message)
       raise
     end
   end
@@ -45,10 +45,10 @@ class ProcessTheNewBlackWebhookJob < ApplicationJob
 
   def handle_completed(event, generation, payload)
     images = extract_images(payload)
-    
+
     generation.complete!(images, {
       webhook_payload: payload,
-      completed_via: 'webhook'
+      completed_via: "webhook"
     })
 
     event.mark_processed!(
@@ -60,8 +60,8 @@ class ProcessTheNewBlackWebhookJob < ApplicationJob
   end
 
   def handle_failed(event, generation, payload)
-    error_message = payload[:error] || payload[:message] || 'Generation failed'
-    error_code = payload[:error_code] || 'webhook_error'
+    error_message = payload[:error] || payload[:message] || "Generation failed"
+    error_code = payload[:error_code] || "webhook_error"
 
     generation.fail!(error_code, error_message)
 
@@ -78,6 +78,6 @@ class ProcessTheNewBlackWebhookJob < ApplicationJob
       payload[:output_images] ||
       payload[:result_images] ||
       payload[:result] ||
-      [payload[:image_url]].compact
+      [ payload[:image_url] ].compact
   end
 end

@@ -16,16 +16,15 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
           "http://localhost:8081"
         ]
       end
-      
+
       allowed.include?(source) || Rails.env.development?
     end
 
     resource "*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
-      expose: ["X-Request-Id", "X-Runtime"],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+      expose: [ "X-Request-Id", "X-Runtime" ],
       credentials: true,
       max_age: 86400
   end
 end
-

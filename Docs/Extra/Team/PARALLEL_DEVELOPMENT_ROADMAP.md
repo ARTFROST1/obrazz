@@ -224,7 +224,7 @@ Stage 8 (Polish) - можно начинать параллельно с Stage 5
 **День 1-3: Rails Backend Setup**
 
 - [ ] Создать Rails API проект (`api-backend/`)
-- [ ] JWT авторизация (Devise + Doorkeeper)
+- [ ] JWT авторизация (валидация Supabase JWT; Devise/Doorkeeper опционально)
 - [ ] API endpoints для AI-генерации
 - [ ] Token balance система
 

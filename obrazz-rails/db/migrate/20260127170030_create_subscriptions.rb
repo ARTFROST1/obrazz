@@ -15,10 +15,10 @@ class CreateSubscriptions < ActiveRecord::Migration[8.0]
       # Информация о платеже
       t.string :payment_provider # yookassa, apple_iap, google_play
       t.string :external_id # ID подписки во внешней системе
-      
+
       # Автопродление
       t.boolean :auto_renew, default: true
-      
+
       # Метаданные
       t.jsonb :metadata, default: {}
 

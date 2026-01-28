@@ -12,7 +12,7 @@ class CreatePayments < ActiveRecord::Migration[8.0]
       t.string :external_status # Статус во внешней системе
 
       # Статус платежа
-      t.string :status, null: false, default: 'pending' 
+      t.string :status, null: false, default: 'pending'
       # pending, processing, succeeded, failed, cancelled, refunded
 
       # Тип платежа
@@ -21,25 +21,25 @@ class CreatePayments < ActiveRecord::Migration[8.0]
       # Суммы
       t.decimal :amount, precision: 10, scale: 2, null: false
       t.string :currency, null: false, default: 'RUB'
-      
+
       # Для покупки токенов
       t.integer :tokens_amount # Количество токенов при покупке пакета
       t.string :token_pack_id # ID пакета токенов
-      
+
       # Для подписки
       t.string :subscription_plan # free, pro_monthly, pro_yearly
-      
+
       # Даты
       t.datetime :paid_at
       t.datetime :refunded_at
-      
+
       # Метод оплаты
       t.string :payment_method # bank_card, apple_pay, google_pay, yoomoney, sbp
-      
+
       # Ошибки
       t.string :error_code
       t.text :error_message
-      
+
       # Метаданные
       t.jsonb :metadata, default: {}
 

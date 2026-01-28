@@ -12,12 +12,12 @@ module Ai
     end
 
     # ==================== VIRTUAL TRY-ON ====================
-    
+
     def create_virtual_try_on(garment_url:, model_url:, **options)
       create_generation(
-        generation_type: 'virtual_try_on',
+        generation_type: "virtual_try_on",
         input_params: { garment_url: garment_url, model_url: model_url, **options },
-        input_image_urls: [garment_url, model_url]
+        input_image_urls: [ garment_url, model_url ]
       ) do |generation|
         @client.create_virtual_try_on(
           garment_url: garment_url,
@@ -28,12 +28,12 @@ module Ai
     end
 
     # ==================== FASHION MODEL ====================
-    
+
     def create_fashion_model(garment_url:, prompt:, **options)
       create_generation(
-        generation_type: 'fashion_model',
+        generation_type: "fashion_model",
         input_params: { garment_url: garment_url, prompt: prompt, **options },
-        input_image_urls: [garment_url]
+        input_image_urls: [ garment_url ]
       ) do |generation|
         @client.create_fashion_model(
           garment_url: garment_url,
@@ -44,12 +44,12 @@ module Ai
     end
 
     # ==================== VARIATION ====================
-    
+
     def create_variation(garment_url:, prompt:, **options)
       create_generation(
-        generation_type: 'variation',
+        generation_type: "variation",
         input_params: { garment_url: garment_url, prompt: prompt, **options },
-        input_image_urls: [garment_url]
+        input_image_urls: [ garment_url ]
       ) do |generation|
         @client.create_variation(
           garment_url: garment_url,
@@ -75,8 +75,8 @@ module Ai
     end
 
     def cancel(generation)
-      return { error: 'Cannot cancel completed generation' } if generation.completed?
-      return { error: 'Already cancelled' } if generation.cancelled?
+      return { error: "Cannot cancel completed generation" } if generation.completed?
+      return { error: "Already cancelled" } if generation.cancelled?
 
       begin
         @client.cancel_task(generation.external_id) if generation.external_id.present?
@@ -104,7 +104,7 @@ module Ai
         # Создаём запись генерации
         generation = @user.ai_generations.create!(
           generation_type: generation_type,
-          status: 'pending',
+          status: "pending",
           tokens_cost: tokens_cost,
           input_params: input_params,
           input_image_urls: input_image_urls
@@ -119,15 +119,15 @@ module Ai
         # Вызываем API
         begin
           api_response = yield(generation)
-          
+
           generation.update!(
             external_id: api_response[:task_id] || api_response[:id],
             external_status: api_response[:status],
-            status: 'processing',
+            status: "processing",
             started_at: Time.current
           )
         rescue TheNewBlackClient::ApiError => e
-          generation.fail!(e.error_code || 'api_error', e.message)
+          generation.fail!(e.error_code || "api_error", e.message)
           raise GenerationError, e.message
         end
       end
@@ -140,13 +140,13 @@ module Ai
 
     def update_from_api_status(generation, result)
       case result[:status]
-      when 'completed', 'done', 'success'
-        images = result[:images] || result[:output_images] || [result[:image_url]].compact
+      when "completed", "done", "success"
+        images = result[:images] || result[:output_images] || [ result[:image_url] ].compact
         generation.complete!(images, result)
-      when 'failed', 'error'
-        error_message = result[:error] || result[:message] || 'Generation failed'
-        generation.fail!('generation_failed', error_message)
-      when 'processing', 'pending', 'queued'
+      when "failed", "error"
+        error_message = result[:error] || result[:message] || "Generation failed"
+        generation.fail!("generation_failed", error_message)
+      when "processing", "pending", "queued"
         generation.update!(external_status: result[:status])
       end
     end

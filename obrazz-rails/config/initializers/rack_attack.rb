@@ -53,11 +53,11 @@ class Rack::Attack
       /\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i,
       /((\%27)|(\'))union/i
     ]
-    
+
     query = req.query_string.to_s
     body = req.body&.read.to_s rescue ""
     req.body&.rewind rescue nil
-    
+
     sql_patterns.any? { |pattern| query.match?(pattern) || body.match?(pattern) }
   end
 
@@ -75,11 +75,11 @@ class Rack::Attack
         "Content-Type" => "application/json",
         "Retry-After" => retry_after.to_s
       },
-      [{
+      [ {
         error: "rate_limit_exceeded",
         message: "Rate limit exceeded. Retry after #{retry_after} seconds.",
         retry_after: retry_after
-      }.to_json]
+      }.to_json ]
     ]
   end
 
@@ -88,15 +88,15 @@ class Rack::Attack
     [
       403,
       { "Content-Type" => "application/json" },
-      [{
+      [ {
         error: "forbidden",
         message: "Your request has been blocked."
-      }.to_json]
+      }.to_json ]
     ]
   end
 
   ### Logging ###
-  
+
   ActiveSupport::Notifications.subscribe("throttle.rack_attack") do |_name, _start, _finish, _id, payload|
     req = payload[:request]
     Rails.logger.warn "[Rack::Attack] Throttled #{req.ip}: #{req.path}"

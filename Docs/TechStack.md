@@ -111,30 +111,38 @@
 **📋 Для Stage 8 (Подписки и биллинг):**
 
 ```ruby
-# Gemfile - основные зависимости
-gem 'rails', '~> 7.2'
+# Gemfile - основные зависимости (ориентир)
+gem 'rails', '~> 8.0'
 gem 'puma', '~> 6.0'
-gem 'pg', '~> 1.5'                # PostgreSQL
-gem 'redis', '~> 5.0'             # Кэш и очереди
-gem 'sidekiq', '~> 7.2'           # Background jobs
+gem 'pg', '~> 1.5'                 # PostgreSQL (Supabase)
+
+# Background Jobs (Rails 8)
+gem 'solid_queue'                  # database-backed jobs (без Redis)
+gem 'mission_control-jobs'         # Web UI для очередей (опционально)
+
+# (опционально) если понадобится Redis/Sidekiq позже
+gem 'redis', '~> 5.0'
+gem 'sidekiq', '~> 7.2'
 
 # Auth (интеграция с Supabase)
 gem 'jwt'                          # JWT валидация
 
 # Payments
-gem 'pay', '~> 7.0'               # Абстракция платежей
-gem 'stripe', '~> 10.0'           # Stripe
-gem 'yookassa', '~> 0.3'          # YooMoney/YooKassa для РФ
+gem 'stripe', '~> 10.0'            # (опционально) Stripe
+gem 'faraday'                      # HTTP клиент (в т.ч. для YooKassa API)
+gem 'pay', '~> 7.0'                # (опционально) абстракция платежей
 
 # Frontend (Dashboard)
-gem 'turbo-rails'                 # Hotwire Turbo
-gem 'stimulus-rails'              # Hotwire Stimulus
-gem 'tailwindcss-rails'           # Стили
+gem 'turbo-rails'                  # Hotwire Turbo
+gem 'stimulus-rails'               # Hotwire Stimulus
+gem 'tailwindcss-rails'            # Стили
 
 # Admin & Monitoring
-gem 'administrate'                # Admin панель
-gem 'sentry-ruby'                 # Error tracking
+gem 'administrate'                 # Admin панель (опционально)
+gem 'sentry-ruby'                  # Error tracking
 ```
+
+**Примечание (актуально для `obrazz-rails`):** сейчас используется Rails 8 + Solid Queue (без Redis), YooKassa интеграция сделана через сервис на Faraday, а админка реализована как custom Rails views (HTTP Basic). Administrate можно подключать позже при необходимости.
 
 **Документация:** [Extra/Features/Backend.md](./Extra/Features/Backend.md)
 

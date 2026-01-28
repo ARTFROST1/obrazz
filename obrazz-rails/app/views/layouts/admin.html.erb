@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= content_for(:title) || 'Admin' %> | Obrazz Admin</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce',
+              800: '#6b21a8',
+              900: '#581c87',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+  
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+</head>
+<body class="h-full">
+  <div class="min-h-full">
+    <!-- Navigation -->
+    <nav class="bg-gray-800">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <span class="text-2xl font-bold text-white">Obrazz</span>
+              <span class="ml-2 text-xs bg-brand-600 text-white px-2 py-1 rounded">Admin</span>
+            </div>
+            <div class="hidden md:block">
+              <div class="ml-10 flex items-baseline space-x-4">
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_root_path, title: 'Dashboard', icon: 'chart-bar' } %>
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_users_path, title: 'Users', icon: 'users' } %>
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_subscriptions_path, title: 'Subscriptions', icon: 'credit-card' } %>
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_payments_path, title: 'Payments', icon: 'currency-dollar' } %>
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_ai_generations_path, title: 'Generations', icon: 'sparkles' } %>
+                <%= render partial: 'layouts/admin/nav_item', locals: { path: admin_token_transactions_path, title: 'Tokens', icon: 'coins' } %>
+              </div>
+            </div>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-4 flex items-center md:ml-6">
+              <span class="text-gray-300 text-sm mr-4"><%= current_admin&.email %></span>
+              <a href="/" target="_blank" class="text-gray-300 hover:text-white text-sm">
+                View Site →
+              </a>
+            </div>
+          </div>
+          <div class="-mr-2 flex md:hidden">
+            <!-- Mobile menu button -->
+            <button type="button" 
+                    id="mobile-menu-button"
+                    class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+              <span class="sr-only">Open main menu</span>
+              <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="md:hidden hidden" id="mobile-menu">
+        <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+          <a href="<%= admin_root_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+          <a href="<%= admin_users_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Users</a>
+          <a href="<%= admin_subscriptions_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Subscriptions</a>
+          <a href="<%= admin_payments_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Payments</a>
+          <a href="<%= admin_ai_generations_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Generations</a>
+          <a href="<%= admin_token_transactions_path %>" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Tokens</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page header -->
+    <% if content_for?(:header) %>
+      <header class="bg-white shadow">
+        <div class="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
+          <%= yield :header %>
+        </div>
+      </header>
+    <% end %>
+
+    <!-- Flash messages -->
+    <% if notice %>
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+        <div class="rounded-md bg-green-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-green-800"><%= notice %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if alert %>
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+        <div class="rounded-md bg-red-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-red-800"><%= alert %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <main>
+      <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+        <%= yield %>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+      document.getElementById('mobile-menu')?.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 # 🚀 Obrazz Rails Backend — Полный План Реализации
 
 > **Дата создания:** 27 января 2026  
-> **Версия:** 1.0.0  
-> **Статус:** План на реализацию  
+> **Версия:** 1.0.1  
+> **Статус:** В работе (частично реализовано: Dashboard + custom Admin)  
 > **Целевая платформа:** Render Free Tier (без Redis)
 
 ---
@@ -70,6 +70,37 @@
 │  • Monthly token reset                                                 │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Текущее состояние реализации (Jan 2026)
+
+- В `obrazz-rails` уже подключены маршруты и экраны: **Dashboard** (`/dashboard/*`) и **Admin** (`/admin/*`).
+- Админка сейчас **custom** (Rails views + Tailwind + Hotwire) и защищена **HTTP Basic**.
+- Из-за Zeitwerk `Admin` используется как namespace для контроллеров; модель админа — `AdminUser` (таблица `admins`).
+- Если миграции не получается прогнать на удалённой Supabase/Postgres, таблицу `admins` можно создать SQL-ом (pgcrypto + bcrypt-совместимый хеш):
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.admins (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  password_digest text not null,
+  name text not null,
+  active boolean not null default true,
+  last_login_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.admins (email, password_digest, name, active)
+values (
+  'admin@obrazz.app',
+  crypt('changeme123', gen_salt('bf', 12)),
+  'Super Admin',
+  true
+)
+on conflict (email) do nothing;
 ```
 
 ---
@@ -180,7 +211,7 @@ gem 'faraday', '~> 2.9'       # для multipart uploads
 
 # Payments
 gem 'stripe', '~> 12.0'       # Stripe для глобальных платежей
-# YooKassa — используем HTTParty (официального gem нет хорошего)
+# YooKassa — custom service (см. app/services/payments/yookassa_service.rb)
 
 # Frontend (Dashboard)
 gem 'turbo-rails', '~> 2.0'
@@ -189,7 +220,7 @@ gem 'tailwindcss-rails', '~> 3.0'
 gem 'importmap-rails'
 
 # Admin
-gem 'administrate', '~> 0.20'
+gem 'administrate', '~> 1.0.0.beta3' # optional (custom admin already exists)
 
 # Serialization
 gem 'jbuilder', '~> 2.12'
@@ -1678,7 +1709,10 @@ end
 
 ## 🔧 Админ-панель
 
-### Administrate Setup
+### Admin Panel (custom сейчас; Administrate optional)
+
+> Примечание: в `obrazz-rails` уже есть custom admin (`/admin/*`) на Rails views + HTTP Basic.
+> Ниже — пример, как можно подключить Administrate позже, если понадобится генерация CRUD-дашбордов.
 
 ```ruby
 # app/dashboards/collection_dashboard.rb
@@ -2189,7 +2223,7 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 
 | Задача                           | Приоритет | Время |
 | -------------------------------- | --------- | ----- |
-| Administrate setup               | 🔴        | 2ч    |
+| Administrate setup (optional)    | 🔴        | 2ч    |
 | Collections CRUD                 | 🔴        | 3ч    |
 | Collection Items CRUD            | 🔴        | 3ч    |
 | Users list (read-only)           | 🟡        | 2ч    |

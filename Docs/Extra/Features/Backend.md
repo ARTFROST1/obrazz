@@ -96,20 +96,22 @@
 1. **Быстрая разработка** — convention over configuration
 2. **Встроенная поддержка платежей** — отличные gems (pay, stripe, yookassa)
 3. **Hotwire/Turbo** — современный fullstack без отдельного SPA
-4. **Background Jobs** — Sidekiq для асинхронных задач
-5. **Admin панель** — Rails Admin / ActiveAdmin из коробки
+4. **Background Jobs** — Solid Queue (Rails 8, без Redis); Sidekiq опционально
+5. **Admin панель** — custom Rails views (Administrate/ActiveAdmin опционально)
 6. **Зрелая экосистема** — проверенные решения для биллинга
 
 ### Стек технологий
+
+> **Примечание (текущее состояние `obrazz-rails`):** Rails 8 + Solid Queue (без Redis) + Hotwire/Tailwind. Админка реализована как custom Rails views (HTTP Basic). Administrate можно подключить позже.
 
 ```ruby
 # Gemfile (основные зависимости)
 
 # Rails Core
-gem 'rails', '~> 7.2'
+gem 'rails', '~> 8.0'
 gem 'puma', '~> 6.0'
 gem 'pg', '~> 1.5'           # PostgreSQL (Supabase)
-gem 'redis', '~> 5.0'        # Кэширование и очереди
+gem 'redis', '~> 5.0'        # (опционально) кэширование/очереди, не требуется при Solid Queue
 
 # Authentication (интеграция с Supabase)
 gem 'jwt'                     # Валидация JWT токенов от Supabase
@@ -118,11 +120,15 @@ gem 'omniauth'               # OAuth провайдеры (опциональн�
 # Billing & Payments
 gem 'pay', '~> 7.0'          # Абстракция над платёжными системами
 gem 'stripe', '~> 10.0'      # Stripe для глобальных платежей
-gem 'yookassa', '~> 0.3'     # YooMoney/YooKassa для РФ
+gem 'yookassa', '~> 0.3'     # (опционально) YooMoney/YooKassa для РФ
 
 # Background Jobs
-gem 'sidekiq', '~> 7.2'      # Фоновые задачи
-gem 'sidekiq-scheduler'      # Периодические задачи
+gem 'solid_queue'            # Rails 8 database-backed jobs (без Redis)
+gem 'mission_control-jobs'   # (опционально) Web UI для очередей
+
+# (опционально) фоновые задачи через Sidekiq
+gem 'sidekiq', '~> 7.2'
+gem 'sidekiq-scheduler'
 
 # API & Serialization
 gem 'jbuilder'               # JSON responses
@@ -134,7 +140,7 @@ gem 'stimulus-rails'         # Hotwire Stimulus
 gem 'tailwindcss-rails'      # Стили
 
 # Admin
-gem 'administrate'           # Admin панель
+gem 'administrate'           # (опционально) Admin панель
 gem 'pagy'                   # Пагинация
 
 # Monitoring
@@ -164,7 +170,7 @@ rails-backend/
 │   │   │   ├── billing_controller.rb
 │   │   │   └── settings_controller.rb
 │   │   ├── admin/
-│   │   │   └── ... (Administrate - управление контентом)
+│   │   │   └── ... (custom Rails admin; Administrate optional)
 │   │   └── webhooks/
 │   │       ├── yookassa_controller.rb
 │   │       ├── stripe_controller.rb
@@ -1605,11 +1611,12 @@ Rails.application.routes.draw do
   end
 
   # Admin
-  # Best practice: отдельная admin-аутентификация (например AdminUser через Devise)
-  # и изоляция админки от Supabase user session.
+  # Best practice: отдельная admin-аутентификация и изоляция админки от Supabase user session.
+  # Текущее состояние `obrazz-rails`: AdminUser (custom + has_secure_password) + HTTP Basic.
+  # Devise можно подключить позже (опционально) при необходимости.
   # Administrate НЕ монтируется как engine; он генерирует routes/controllers в namespace :admin.
-  # Sidekiq Web также лучше защищать отдельной admin-аутентификацией.
-  mount Sidekiq::Web, at: '/sidekiq'
+  # Sidekiq Web (если используем Sidekiq) также лучше защищать отдельной admin-аутентификацией.
+  # mount Sidekiq::Web, at: '/sidekiq'
 end
 ```
 
@@ -1787,7 +1794,7 @@ SENTRY_DSN=xxx
 
 ### Phase 1: Foundation (1-2 недели)
 
-- [ ] Инициализация Rails 7.2 проекта
+- [ ] Инициализация Rails 8 проекта
 - [ ] Настройка PostgreSQL (connection к Supabase или отдельная БД для Rails)
 - [ ] JWT аутентификация (Supabase интеграция)
 - [ ] Базовые модели (User, Subscription, TokenBalance, TokenTransaction)
@@ -1801,7 +1808,7 @@ SENTRY_DSN=xxx
 - [ ] Profile management
 - [ ] Subscription display
 - [ ] Token balance & history
-- [ ] Admin: базовая панель (Administrate)
+- [ ] Admin: базовая панель (custom уже есть; Administrate optional)
 
 ### Phase 3: Payments - Russia (1-2 недели)
 
@@ -1824,7 +1831,7 @@ SENTRY_DSN=xxx
 - [ ] Virtual Try-On wrapper service
 - [ ] Fashion Models wrapper service
 - [ ] Variations wrapper service
-- [ ] Background job для AI генерации (Sidekiq)
+- [ ] Background job для AI генерации (Solid Queue; Sidekiq опционально)
 - [ ] Сохранение результатов в Supabase Storage
 - [ ] API endpoints: /ai/virtual_tryon, /ai/fashion_model, /ai/variation
 - [ ] Tokens spending logic
@@ -1834,13 +1841,13 @@ SENTRY_DSN=xxx
 - [ ] Read-only API для Mobile (collections + items) через Rails
 - [ ] Пагинация (cursor/limit) и сортировка
 - [ ] Маппинг snake_case -> camelCase
-- [ ] Admin CRUD для подборок (Administrate)
+- [ ] Admin CRUD для подборок (custom or Administrate)
 
 ### Phase 6: Production (1 неделя)
 
 - [ ] Деплой на Render/Railway
 - [ ] SSL + Domain setup
-- [ ] Sidekiq + Redis в production
+- [ ] (Опционально) Sidekiq + Redis в production
 - [ ] Monitoring (Sentry)
 - [ ] Backup strategy
 

@@ -16,9 +16,9 @@ module Api
 
           render_success(result, status: :created)
         rescue Ai::GenerationService::InsufficientTokensError => e
-          render_error(e.message, status: :payment_required, code: 'insufficient_tokens')
+          render_error(e.message, status: :payment_required, code: "insufficient_tokens")
         rescue Ai::GenerationService::GenerationError => e
-          render_error(e.message, status: :unprocessable_entity, code: 'generation_error')
+          render_error(e.message, status: :unprocessable_entity, code: "generation_error")
         end
 
         private

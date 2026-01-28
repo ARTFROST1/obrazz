@@ -26,7 +26,7 @@ module Tokens
 
     # Списывает токены для AI генерации
     # Порядок списания: subscription -> purchased -> bonus
-    def debit_for_generation!(amount:, ai_generation:, reason: 'ai_generation')
+    def debit_for_generation!(amount:, ai_generation:, reason: "ai_generation")
       raise InsufficientTokensError, "Insufficient tokens. Need #{amount}, have #{available_balance}" if available_balance < amount
 
       remaining = amount
@@ -34,18 +34,18 @@ module Tokens
 
       ActiveRecord::Base.transaction do
         # 1. Сначала списываем с subscription_tokens
-        remaining, txns = debit_from_type('subscription_tokens', remaining, ai_generation, reason)
+        remaining, txns = debit_from_type("subscription_tokens", remaining, ai_generation, reason)
         transactions.concat(txns)
 
         # 2. Затем с purchased_tokens
         if remaining > 0
-          remaining, txns = debit_from_type('purchased_tokens', remaining, ai_generation, reason)
+          remaining, txns = debit_from_type("purchased_tokens", remaining, ai_generation, reason)
           transactions.concat(txns)
         end
 
         # 3. Наконец с bonus_tokens
         if remaining > 0
-          remaining, txns = debit_from_type('bonus_tokens', remaining, ai_generation, reason)
+          remaining, txns = debit_from_type("bonus_tokens", remaining, ai_generation, reason)
           transactions.concat(txns)
         end
 
@@ -57,11 +57,11 @@ module Tokens
 
     # Начисляет токены от покупки
     def credit_from_purchase!(amount:, payment:, token_pack_id: nil)
-      balance = find_or_create_balance('purchased_tokens', source: 'purchase')
-      
+      balance = find_or_create_balance("purchased_tokens", source: "purchase")
+
       balance.credit!(
         amount,
-        reason: 'purchase',
+        reason: "purchase",
         description: "Token purchase: #{token_pack_id || 'manual'}",
         payment_id: payment.id,
         metadata: { token_pack_id: token_pack_id }
@@ -70,8 +70,8 @@ module Tokens
 
     # Начисляет бонусные токены
     def credit_bonus!(amount:, reason:, description: nil, expires_in: nil)
-      balance = find_or_create_balance('bonus_tokens', source: 'bonus')
-      
+      balance = find_or_create_balance("bonus_tokens", source: "bonus")
+
       # Обновляем срок действия если указан
       if expires_in
         balance.update!(expires_at: expires_in.from_now)
@@ -86,10 +86,10 @@ module Tokens
 
     # Обновляет токены подписки (вызывается при renewal)
     def refresh_subscription_tokens!(amount:, expires_at:)
-      balance = find_or_create_balance('subscription_tokens', source: 'subscription')
-      
+      balance = find_or_create_balance("subscription_tokens", source: "subscription")
+
       old_balance = balance.balance
-      
+
       balance.update!(
         balance: amount,
         expires_at: expires_at
@@ -98,12 +98,12 @@ module Tokens
       # Записываем транзакцию
       @user.token_transactions.create!(
         token_balance: balance,
-        operation: 'credit',
+        operation: "credit",
         amount: amount,
         balance_before: old_balance,
         balance_after: amount,
-        reason: 'subscription_renewal',
-        description: 'Monthly subscription tokens refresh'
+        reason: "subscription_renewal",
+        description: "Monthly subscription tokens refresh"
       )
     end
 
@@ -145,13 +145,13 @@ module Tokens
     end
 
     def debit_from_type(token_type, amount, ai_generation, reason)
-      return [amount, []] if amount <= 0
+      return [ amount, [] ] if amount <= 0
 
       balance = @user.token_balances.find_by(token_type: token_type)
-      return [amount, []] unless balance&.active? && balance.balance > 0
+      return [ amount, [] ] unless balance&.active? && balance.balance > 0
 
-      debit_amount = [amount, balance.balance].min
-      
+      debit_amount = [ amount, balance.balance ].min
+
       balance.debit!(
         debit_amount,
         reason: reason,
@@ -161,7 +161,7 @@ module Tokens
       )
 
       transaction = balance.token_transactions.last
-      [amount - debit_amount, [transaction].compact]
+      [ amount - debit_amount, [ transaction ].compact ]
     end
 
     def find_or_create_balance(token_type, source: nil)

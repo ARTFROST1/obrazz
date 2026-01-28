@@ -15,30 +15,30 @@ class WebhookEvent < ApplicationRecord
   validates :external_id, uniqueness: { scope: :source }
 
   # ==================== SCOPES ====================
-  scope :pending, -> { where(status: 'pending') }
-  scope :processing, -> { where(status: 'processing') }
-  scope :processed, -> { where(status: 'processed') }
-  scope :failed, -> { where(status: 'failed') }
-  scope :retriable, -> { where(status: 'failed').where('attempts < ?', MAX_ATTEMPTS) }
+  scope :pending, -> { where(status: "pending") }
+  scope :processing, -> { where(status: "processing") }
+  scope :processed, -> { where(status: "processed") }
+  scope :failed, -> { where(status: "failed") }
+  scope :retriable, -> { where(status: "failed").where("attempts < ?", MAX_ATTEMPTS) }
   scope :by_source, ->(source) { where(source: source) }
   scope :recent, -> { order(created_at: :desc) }
 
   # ==================== INSTANCE METHODS ====================
 
   def pending?
-    status == 'pending'
+    status == "pending"
   end
 
   def processing?
-    status == 'processing'
+    status == "processing"
   end
 
   def processed?
-    status == 'processed'
+    status == "processed"
   end
 
   def failed?
-    status == 'failed'
+    status == "failed"
   end
 
   def can_retry?
@@ -47,7 +47,7 @@ class WebhookEvent < ApplicationRecord
 
   def start_processing!
     update!(
-      status: 'processing',
+      status: "processing",
       last_attempted_at: Time.current,
       attempts: attempts + 1
     )
@@ -55,7 +55,7 @@ class WebhookEvent < ApplicationRecord
 
   def mark_processed!(user_id: nil, payment_id: nil, subscription_id: nil, ai_generation_id: nil)
     update!(
-      status: 'processed',
+      status: "processed",
       processed_at: Time.current,
       user_id: user_id,
       payment_id: payment_id,
@@ -66,7 +66,7 @@ class WebhookEvent < ApplicationRecord
 
   def mark_failed!(error_code, error_message)
     update!(
-      status: attempts >= MAX_ATTEMPTS ? 'failed' : 'pending',
+      status: attempts >= MAX_ATTEMPTS ? "failed" : "pending",
       error_code: error_code,
       error_message: error_message
     )
@@ -74,6 +74,6 @@ class WebhookEvent < ApplicationRecord
 
   # Идемпотентность - проверка дубликатов
   def self.already_processed?(source, external_id)
-    exists?(source: source, external_id: external_id, status: 'processed')
+    exists?(source: source, external_id: external_id, status: "processed")
   end
 end

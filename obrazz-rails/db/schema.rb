@@ -10,10 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_27_170035) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_27_180008) do
+  create_schema "auth"
+  create_schema "extensions"
+  create_schema "graphql"
+  create_schema "graphql_public"
+  create_schema "pgbouncer"
+  create_schema "realtime"
+  create_schema "storage"
+  create_schema "supabase_migrations"
+  create_schema "vault"
+
   # These are extensions that must be enabled in order to support this database
+  enable_extension "extensions.pg_stat_statements"
+  enable_extension "extensions.pgcrypto"
+  enable_extension "extensions.uuid-ossp"
+  enable_extension "graphql.pg_graphql"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "pgcrypto"
+  enable_extension "vault.supabase_vault"
+
+  create_table "admins", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.string "name"
+    t.boolean "active", default: true, null: false
+    t.datetime "last_login_at", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["email"], name: "index_admins_on_email", unique: true
+  end
 
   create_table "ai_generations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
@@ -39,6 +64,69 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_27_170035) do
     t.index ["generation_type"], name: "index_ai_generations_on_generation_type"
     t.index ["status"], name: "index_ai_generations_on_status"
     t.index ["user_id"], name: "index_ai_generations_on_user_id"
+  end
+
+  create_table "items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id"
+    t.string "name"
+    t.string "category", null: false
+    t.string "subcategory"
+    t.jsonb "colors", default: []
+    t.jsonb "primary_color"
+    t.string "material"
+    t.jsonb "style", default: []
+    t.jsonb "season", default: []
+    t.string "image_url"
+    t.boolean "is_default", default: false
+    t.string "brand"
+    t.string "size"
+    t.decimal "price", precision: 10, scale: 2
+    t.jsonb "tags", default: []
+    t.boolean "favorite", default: false
+    t.integer "wear_count", default: 0
+    t.datetime "last_worn_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "color"
+    t.string "thumbnail_url"
+    t.string "image_hash"
+    t.index ["category"], name: "index_items_on_category"
+    t.index ["created_at"], name: "index_items_on_created_at"
+    t.index ["favorite"], name: "index_items_on_favorite"
+    t.index ["image_hash"], name: "index_items_on_image_hash"
+    t.index ["is_default"], name: "index_items_on_is_default"
+    t.index ["user_id"], name: "index_items_on_user_id"
+  end
+
+  create_table "outfits", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "title"
+    t.text "description"
+    t.jsonb "items", default: []
+    t.jsonb "background", default: {"type" => "color", "value" => "#FFFFFF"}
+    t.string "visibility", default: "private"
+    t.boolean "is_ai_generated", default: false
+    t.jsonb "ai_metadata"
+    t.jsonb "tags", default: []
+    t.jsonb "styles", default: []
+    t.jsonb "seasons", default: []
+    t.jsonb "occasions", default: []
+    t.datetime "last_worn_at"
+    t.integer "wear_count", default: 0
+    t.boolean "is_favorite", default: false
+    t.integer "likes_count", default: 0
+    t.integer "views_count", default: 0
+    t.integer "shares_count", default: 0
+    t.jsonb "canvas_settings"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_outfits_on_created_at"
+    t.index ["is_ai_generated"], name: "index_outfits_on_is_ai_generated"
+    t.index ["is_favorite"], name: "index_outfits_on_is_favorite"
+    t.index ["last_worn_at"], name: "index_outfits_on_last_worn_at"
+    t.index ["user_id"], name: "index_outfits_on_user_id"
+    t.index ["visibility"], name: "index_outfits_on_visibility"
   end
 
   create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -126,6 +214,32 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_27_170035) do
     t.index ["user_id"], name: "index_token_transactions_on_user_id"
   end
 
+  create_table "user_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "display_name"
+    t.text "bio"
+    t.string "location"
+    t.string "website"
+    t.jsonb "preferences", default: {"theme" => "system", "language" => "ru", "notifications" => {"promotions" => false, "pushEnabled" => true, "aiSuggestions" => true, "communityUpdates" => true}}
+    t.integer "items_count", default: 0
+    t.integer "outfits_count", default: 0
+    t.integer "ai_generations_used", default: 0
+    t.integer "likes_received", default: 0
+    t.integer "followers_count", default: 0
+    t.integer "following_count", default: 0
+    t.integer "streak_days", default: 0
+    t.datetime "last_streak_date"
+    t.integer "total_points", default: 0
+    t.jsonb "achievements", default: []
+    t.jsonb "badges", default: []
+    t.boolean "onboarding_completed", default: false
+    t.jsonb "onboarding_progress", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["display_name"], name: "index_user_profiles_on_display_name"
+    t.index ["user_id"], name: "index_user_profiles_on_user_id", unique: true
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "supabase_id", null: false
     t.string "email", null: false
@@ -176,4 +290,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_27_170035) do
   add_foreign_key "token_balances", "users"
   add_foreign_key "token_transactions", "token_balances"
   add_foreign_key "token_transactions", "users"
+  add_foreign_key "user_profiles", "users", on_delete: :cascade
 end

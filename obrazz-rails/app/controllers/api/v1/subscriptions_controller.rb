@@ -15,14 +15,14 @@ module Api
       def create
         # Обычно подписки создаются через webhooks от платежных систем
         # Этот endpoint для ручного тестирования или специальных случаев
-        render_error('Subscriptions are created via payment flow', status: :method_not_allowed)
+        render_error("Subscriptions are created via payment flow", status: :method_not_allowed)
       end
 
       # POST /api/v1/subscription/upgrade
       # Апгрейд подписки
       def upgrade
         plan = params.require(:plan)
-        
+
         unless Subscription::PLANS.include?(plan)
           return render_error("Invalid plan: #{plan}", status: :bad_request)
         end
@@ -30,11 +30,11 @@ module Api
         subscription = current_user.subscription
 
         if subscription.plan == plan
-          return render_error('Already on this plan', status: :unprocessable_entity)
+          return render_error("Already on this plan", status: :unprocessable_entity)
         end
 
-        if plan == 'free'
-          return render_error('Use cancel endpoint to downgrade to free', status: :bad_request)
+        if plan == "free"
+          return render_error("Use cancel endpoint to downgrade to free", status: :bad_request)
         end
 
         # Возвращаем информацию для инициации платежа
@@ -43,7 +43,7 @@ module Api
           upgrade_to: plan,
           prices: Subscription::SUBSCRIPTION_PRICES[plan] || Payment::SUBSCRIPTION_PRICES[plan],
           payment_required: true,
-          message: 'Initiate payment to complete upgrade'
+          message: "Initiate payment to complete upgrade"
         })
       end
 
@@ -53,14 +53,14 @@ module Api
         subscription = current_user.subscription
 
         if subscription.free?
-          return render_error('No active subscription to cancel', status: :unprocessable_entity)
+          return render_error("No active subscription to cancel", status: :unprocessable_entity)
         end
 
         subscription.cancel!
-        
+
         render_success({
           subscription: subscription_data(subscription),
-          message: 'Subscription cancelled. Will expire at end of current period.',
+          message: "Subscription cancelled. Will expire at end of current period.",
           expires_at: subscription.current_period_end&.iso8601
         })
       end
@@ -71,21 +71,21 @@ module Api
         subscription = current_user.subscription
 
         if subscription.free?
-          return render_error('Already on free plan', status: :unprocessable_entity)
+          return render_error("Already on free plan", status: :unprocessable_entity)
         end
 
         subscription.downgrade_to_free!
 
         render_success({
           subscription: subscription_data(subscription),
-          message: 'Subscription cancelled and downgraded to free plan'
+          message: "Subscription cancelled and downgraded to free plan"
         })
       end
 
       private
 
       def subscription_data(subscription)
-        return { plan: 'free', status: 'active' } unless subscription
+        return { plan: "free", status: "active" } unless subscription
 
         {
           id: subscription.id,

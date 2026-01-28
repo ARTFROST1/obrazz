@@ -338,7 +338,7 @@
 - API для мобильного приложения
 - Webhook обработка (YooMoney, App Store, Google Play)
 - Интеграция с Supabase Auth (JWT валидация)
-- Admin-панель для контента (Administrate)
+- Admin-панель для контента (custom Rails views; Administrate/ActiveAdmin опционально)
 
 **Supabase:**
 

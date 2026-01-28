@@ -15,7 +15,7 @@ class User < ApplicationRecord
   validates :status, inclusion: { in: %w[active suspended deleted] }
 
   # ==================== SCOPES ====================
-  scope :active, -> { where(status: 'active') }
+  scope :active, -> { where(status: "active") }
   scope :with_active_subscription, -> { joins(:subscription).merge(Subscription.active) }
 
   # ==================== CALLBACKS ====================
@@ -23,9 +23,9 @@ class User < ApplicationRecord
   after_create :create_initial_token_balance
 
   # ==================== INSTANCE METHODS ====================
-  
+
   def active?
-    status == 'active'
+    status == "active"
   end
 
   def has_pro_subscription?
@@ -39,7 +39,7 @@ class User < ApplicationRecord
   def available_tokens
     # Subscription tokens (не истёкшие) + purchased + bonus
     token_balances
-      .where('expires_at IS NULL OR expires_at > ?', Time.current)
+      .where("expires_at IS NULL OR expires_at > ?", Time.current)
       .sum(:balance)
   end
 
@@ -54,15 +54,15 @@ class User < ApplicationRecord
   private
 
   def create_default_subscription
-    create_subscription!(plan: 'free', status: 'active')
+    create_subscription!(plan: "free", status: "active")
   end
 
   def create_initial_token_balance
     # Начальный баланс для free плана (3 бесплатных токена)
     token_balances.create!(
-      token_type: 'bonus_tokens',
+      token_type: "bonus_tokens",
       balance: 3,
-      source: 'registration_bonus',
+      source: "registration_bonus",
       expires_at: 30.days.from_now
     )
   end

@@ -339,8 +339,8 @@
 
 #### Stage 6: Ruby on Rails Backend
 
-- JWT авторизация (Devise + Doorkeeper)
-- Admin panel (ActiveAdmin)
+- JWT авторизация (Supabase JWT validation)
+- Admin panel (custom Rails admin)
 - Token balance management
 - Webhooks for YooMoney/RevenueCat
 

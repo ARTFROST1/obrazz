@@ -998,7 +998,7 @@ components/
 
 **Dependencies:** Stage 5 (можно параллельно)
 **Timeline:** 4-6 недель
-**Status:** PLANNED
+**Status:** IN PROGRESS (частично реализовано: Dashboard + custom Admin)
 
 **Цель:** Единый backend для подписок, токенов, AI proxy, admin
 
@@ -1012,13 +1012,13 @@ components/
 - **Solid Queue** вместо Sidekiq/Redis (работает на Render Free Tier)
 - **PostgreSQL only** — никакого Redis для MVP
 - **Hotwire + Tailwind** для Dashboard
-- **Administrate** для админки
+- **Admin panel:** custom Rails views (Administrate опционально)
 
 #### Sub-steps:
 
 **Phase 1: Foundation (1-2 недели)**
 
-- [ ] Инициализация Rails 7.2 проекта
+- [ ] Инициализация Rails 8 проекта
 - [ ] JWT аутентификация (Supabase интеграция)
 - [ ] Модели: User, Subscription, TokenBalance, TokenTransaction
 - [ ] API endpoints: /subscription, /tokens
@@ -1027,7 +1027,7 @@ components/
 
 - [ ] HTTP клиент к The New Black API
 - [ ] Wrapper services: VirtualTryon, FashionModels, Variations
-- [ ] Background jobs (Sidekiq) для AI генерации
+- [ ] Background jobs (Solid Queue; Sidekiq опционально) для AI генерации
 - [ ] Сохранение результатов в Supabase Storage
 
 **Phase 3: Dashboard (1 неделя)**
@@ -1038,7 +1038,7 @@ components/
 
 **Phase 4: Admin (3-5 дней)**
 
-- [ ] Administrate setup
+- [ ] Admin setup (custom уже есть; Administrate опционально)
 - [ ] CRUD для Curated Collections
 - [ ] Управление пользователями
 
@@ -1095,7 +1095,7 @@ components/
 #### Sub-steps:
 
 - [ ] Expo Notifications setup
-- [ ] Push-сервер (Rails Sidekiq)
+- [ ] Push-воркеры (Rails Solid Queue; Sidekiq опционально)
 - [ ] Streak система (ежедневный вход)
 - [ ] Бонусные токены за streak
 - [ ] Настройки уведомлений в профиле
@@ -1127,7 +1127,7 @@ components/
 
 **Ruby on Rails Backend (Fullstack):**
 
-- [ ] Инициализация Rails 7.2 проекта
+- [ ] Инициализация Rails 8 проекта
 - [ ] Интеграция с Supabase Auth (JWT валидация)
 - [ ] Модели: User, Subscription, Payment, UsageLimit
 - [ ] API endpoints для мобильного приложения

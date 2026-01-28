@@ -51,6 +51,12 @@
 - **Subscriptions & Payments** — IAP (iOS/Android) + веб-биллинг (YooMoney для РФ)
 - **Onboarding & Paywall** — первичный тур, конверсия в подписку
 
+### Rails backend progress (Jan 2026)
+
+- В `obrazz-rails` уже есть базовый **Dashboard** (`/dashboard/*`) и **Admin** (`/admin/*`) на Rails views.
+- Админка сейчас **custom** (HTTP Basic + Tailwind + Hotwire). Administrate/ActiveAdmin остаются опциональными.
+- Таблица `admins` создавалась в Supabase через SQL (workaround), когда миграции не удавалось прогнать на удалённой БД.
+
 👉 **Подробный план:** [ROADMAP_NEXT_STEPS.md](./ROADMAP_NEXT_STEPS.md)
 
 ## Tech Snapshot (from package.json)

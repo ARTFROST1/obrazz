@@ -23,9 +23,9 @@ module Api
 
     def authenticate_user!
       token = extract_bearer_token
-      
+
       if token.blank?
-        render_unauthorized('Missing authentication token')
+        render_unauthorized("Missing authentication token")
         return
       end
 
@@ -36,7 +36,7 @@ module Api
       @current_user = Auth::UserSyncService.sync_from_token(payload)
 
       unless @current_user&.active?
-        render_unauthorized('User account is not active')
+        render_unauthorized("User account is not active")
       end
     rescue Auth::SupabaseJwtService::InvalidTokenError,
            Auth::SupabaseJwtService::ExpiredTokenError,
@@ -72,23 +72,23 @@ module Api
       render json: response, status: status
     end
 
-    def render_unauthorized(message = 'Unauthorized')
-      render_error(message, status: :unauthorized, code: 'unauthorized')
+    def render_unauthorized(message = "Unauthorized")
+      render_error(message, status: :unauthorized, code: "unauthorized")
     end
 
-    def render_forbidden(message = 'Forbidden')
-      render_error(message, status: :forbidden, code: 'forbidden')
+    def render_forbidden(message = "Forbidden")
+      render_error(message, status: :forbidden, code: "forbidden")
     end
 
-    def render_not_found(message = 'Resource not found')
-      render_error(message, status: :not_found, code: 'not_found')
+    def render_not_found(message = "Resource not found")
+      render_error(message, status: :not_found, code: "not_found")
     end
 
     def render_validation_error(errors)
       render_error(
-        'Validation failed',
+        "Validation failed",
         status: :unprocessable_entity,
-        code: 'validation_error',
+        code: "validation_error",
         details: errors
       )
     end
@@ -96,12 +96,12 @@ module Api
     private
 
     def extract_bearer_token
-      header = request.headers['Authorization']
+      header = request.headers["Authorization"]
       return nil unless header.present?
-      
+
       # Формат: "Bearer <token>"
       pattern = /^Bearer /i
-      header.gsub(pattern, '') if header.match?(pattern)
+      header.gsub(pattern, "") if header.match?(pattern)
     end
 
     # Error handlers
@@ -113,9 +113,9 @@ module Api
       Sentry.capture_exception(error) if defined?(Sentry) && Rails.env.production?
 
       render_error(
-        Rails.env.production? ? 'Internal server error' : error.message,
+        Rails.env.production? ? "Internal server error" : error.message,
         status: :internal_server_error,
-        code: 'internal_error'
+        code: "internal_error"
       )
     end
 
@@ -131,7 +131,7 @@ module Api
       render_error(
         "Missing parameter: #{error.param}",
         status: :bad_request,
-        code: 'missing_parameter'
+        code: "missing_parameter"
       )
     end
 
@@ -141,9 +141,9 @@ module Api
 
     def handle_token_expired(_error)
       render_error(
-        'Token has expired',
+        "Token has expired",
         status: :unauthorized,
-        code: 'token_expired'
+        code: "token_expired"
       )
     end
   end
