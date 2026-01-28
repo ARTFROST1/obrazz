@@ -73,7 +73,8 @@
         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700">
           Filter
         </button>
-        <% if params.except(:controller, :action).any? %>
+        <% active_filters = params.to_unsafe_h.except('controller', 'action').reject { |_, value| value.blank? } %>
+        <% if active_filters.any? %>
           <a href="<%= admin_payments_path %>" class="ml-2 text-sm text-gray-500 hover:text-gray-700">Clear</a>
         <% end %>
       </div>
