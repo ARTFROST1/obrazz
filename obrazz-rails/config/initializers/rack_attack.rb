@@ -4,17 +4,10 @@
 
 class Rack::Attack
   ### Configure Cache ###
-  # Use Rails cache for throttling
-  # Gracefully handle case when Solid Cache tables don't exist yet
-  begin
-    # Test if cache is available by doing a simple operation
-    Rails.cache.exist?("rack_attack_test") if Rails.cache.respond_to?(:exist?)
-    Rack::Attack.cache.store = Rails.cache
-  rescue ActiveRecord::StatementInvalid, PG::UndefinedTable => e
-    # Solid Cache tables don't exist yet - use memory store as fallback
-    Rails.logger.warn "[Rack::Attack] Solid Cache not available (#{e.class}), using memory store fallback"
-    Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
-  end
+  # IMPORTANT: Rack::Attack initializes BEFORE Rails connects to database,
+  # so we cannot use Solid Cache (which requires database connection).
+  # Using dedicated MemoryStore instead.
+  Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
   ### Throttle Strategies ###
 
