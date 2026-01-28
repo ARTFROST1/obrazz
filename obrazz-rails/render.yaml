@@ -17,7 +17,10 @@ services:
     buildCommand: |
       bundle install &&
       bundle exec rails assets:precompile &&
-      bundle exec rails db:migrate
+      bundle exec rails db:migrate &&
+      bundle exec rails db:migrate:cache &&
+      bundle exec rails db:migrate:queue &&
+      bundle exec rails db:migrate:cable
     startCommand: bundle exec rails server -p $PORT -e production
     healthCheckPath: /api/v1/health
     envVars:
