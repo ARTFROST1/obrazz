@@ -53,7 +53,7 @@ class Subscription < ApplicationRecord
   # ==================== SCOPES ====================
   scope :active, -> { where(status: "active") }
   scope :pro, -> { where(plan: %w[pro_monthly pro_yearly]) }
-  scope :max, -> { where(plan: %w[max_monthly max_yearly]) }
+  scope :max_plan, -> { where(plan: %w[max_monthly max_yearly]) }  # renamed from 'max' to avoid conflict with ActiveRecord::Relation#max
   scope :paid, -> { where(plan: %w[pro_monthly pro_yearly max_monthly max_yearly]) }
   scope :expiring_soon, ->(days = 3) { where("current_period_end < ?", days.days.from_now) }
   scope :expired, -> { where("current_period_end < ?", Time.current) }

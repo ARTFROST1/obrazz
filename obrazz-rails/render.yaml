@@ -28,13 +28,21 @@ services:
         value: "true"
       - key: RAILS_SERVE_STATIC_FILES
         value: "true"
+      # Memory optimization for free tier (512MB limit)
+      - key: WEB_CONCURRENCY
+        value: "0"  # 0 workers = single process mode (saves ~200MB RAM)
+      - key: RAILS_MAX_THREADS
+        value: "3"
+      - key: MALLOC_ARENA_MAX
+        value: "2"  # Limit glibc memory arenas to reduce fragmentation
       - key: SECRET_KEY_BASE
         generateValue: true
       - key: RAILS_MASTER_KEY
         sync: false
       # Run Solid Queue in-process (no separate worker on free tier)
+      # TEMPORARILY DISABLED - debugging startup issues
       - key: SOLID_QUEUE_IN_PUMA
-        value: "true"
+        value: "false"
       # Supabase Auth
       - key: SUPABASE_URL
         value: https://oyyzncjezesrdxxowdrx.supabase.co

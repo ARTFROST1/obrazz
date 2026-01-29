@@ -27,12 +27,13 @@
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
 threads threads_count, threads_count
 
-# Specifies the `port` that Puma will listen on to receive requests; default is 3000.
-port ENV.fetch("PORT", 3000)
+# Specifies the number of `workers` to boot in clustered mode.
+# For Render free tier (512MB RAM): use 0 workers to save memory
+workers ENV.fetch("WEB_CONCURRENCY") { 0 }
 
-# Specifies the `bind` address that Puma will listen on
-# Bind to 0.0.0.0 to accept connections from any IP
-bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}"
+# Bind to 0.0.0.0 on the PORT specified by Render
+# Render requires binding to 0.0.0.0 to accept external traffic
+bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 10000)}"
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
