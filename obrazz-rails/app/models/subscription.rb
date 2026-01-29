@@ -6,14 +6,43 @@ class Subscription < ApplicationRecord
   has_many :payments, dependent: :nullify
 
   # ==================== CONSTANTS ====================
-  PLANS = %w[free pro_monthly pro_yearly].freeze
+  PLANS = %w[free pro_monthly pro_yearly max_monthly max_yearly].freeze
   STATUSES = %w[active cancelled expired past_due].freeze
 
-  # Токены в месяц для каждого плана
+  # Лимиты для каждого плана (ИИ-примерки в месяц)
   PLAN_TOKENS = {
-    "free" => 0,
+    "free" => 5,        # 5 бонусных примерок
+    "pro_monthly" => 30,
+    "pro_yearly" => 30,
+    "max_monthly" => 50,
+    "max_yearly" => 50
+  }.freeze
+
+  # ИИ-подборы в месяц
+  PLAN_AI_SUGGESTIONS = {
+    "free" => 30,       # 1 в день
+    "pro_monthly" => 60,
+    "pro_yearly" => 60,
+    "max_monthly" => 100,
+    "max_yearly" => 100
+  }.freeze
+
+  # Удалений фона в месяц
+  PLAN_BG_REMOVALS = {
+    "free" => 50,
     "pro_monthly" => 100,
-    "pro_yearly" => 100
+    "pro_yearly" => 100,
+    "max_monthly" => 200,
+    "max_yearly" => 200
+  }.freeze
+
+  # Лимит вещей в каталоге
+  PLAN_ITEMS_LIMIT = {
+    "free" => 100,
+    "pro_monthly" => 250,
+    "pro_yearly" => 250,
+    "max_monthly" => 500,
+    "max_yearly" => 500
   }.freeze
 
   # ==================== VALIDATIONS ====================
@@ -24,6 +53,8 @@ class Subscription < ApplicationRecord
   # ==================== SCOPES ====================
   scope :active, -> { where(status: "active") }
   scope :pro, -> { where(plan: %w[pro_monthly pro_yearly]) }
+  scope :max, -> { where(plan: %w[max_monthly max_yearly]) }
+  scope :paid, -> { where(plan: %w[pro_monthly pro_yearly max_monthly max_yearly]) }
   scope :expiring_soon, ->(days = 3) { where("current_period_end < ?", days.days.from_now) }
   scope :expired, -> { where("current_period_end < ?", Time.current) }
 
@@ -37,12 +68,32 @@ class Subscription < ApplicationRecord
     plan.in?(%w[pro_monthly pro_yearly])
   end
 
+  def max?
+    plan.in?(%w[max_monthly max_yearly])
+  end
+
+  def paid?
+    pro? || max?
+  end
+
   def free?
     plan == "free"
   end
 
   def monthly_tokens
     PLAN_TOKENS[plan] || 0
+  end
+
+  def monthly_ai_suggestions
+    PLAN_AI_SUGGESTIONS[plan] || 0
+  end
+
+  def monthly_bg_removals
+    PLAN_BG_REMOVALS[plan] || 0
+  end
+
+  def items_limit
+    PLAN_ITEMS_LIMIT[plan] || 100
   end
 
   def expired?

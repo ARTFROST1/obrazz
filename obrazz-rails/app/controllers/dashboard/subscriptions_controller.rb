@@ -109,14 +109,28 @@ module Dashboard
     end
 
     def create_subscription_payment(plan)
-      price_rub = plan == "pro_monthly" ? 499 : 3990
+      prices = {
+        "pro_monthly" => 399,
+        "pro_yearly" => 3299,
+        "max_monthly" => 799,
+        "max_yearly" => 5699
+      }
+
+      plan_names = {
+        "pro_monthly" => "PRO Monthly",
+        "pro_yearly" => "PRO Yearly",
+        "max_monthly" => "MAX Monthly",
+        "max_yearly" => "MAX Yearly"
+      }
+
+      price_rub = prices[plan] || 399
 
       payment = current_user.payments.create!(
         provider: "yookassa",
         external_id: "local_#{SecureRandom.uuid}",
         status: "pending",
         payment_type: "subscription",
-        amount: price_rub,
+        amount: price_rub * 100, # в копейках
         currency: "RUB",
         subscription_plan: plan,
         metadata: { plan: plan }
@@ -125,7 +139,7 @@ module Dashboard
       result = Payments::YookassaService.new.create_payment(
         amount: price_rub,
         currency: "RUB",
-        description: "Подписка Obrazz #{plan == 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'}",
+        description: "Подписка Obrazz #{plan_names[plan]}",
         metadata: {
           internal_payment_id: payment.id,
           user_id: current_user.id,
