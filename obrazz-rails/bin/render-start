@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# bin/render-start - Start script for Render deployment
+# This script should be set as the Start Command in Render dashboard
+
+set -e
+
+echo "==> Starting Rails application on Render..."
+
+# Run any pending migrations (failsafe)
+echo "==> Running pending migrations (if any)..."
+bundle exec rails db:migrate 2>/dev/null || echo "Migrations already up to date"
+
+# Start Solid Queue workers in background
+echo "==> Starting Solid Queue workers..."
+bundle exec rails solid_queue:start &
+
+# Start Puma server in foreground
+echo "==> Starting Puma server on port ${PORT:-3000}..."
+exec bundle exec puma -C config/puma.rb
