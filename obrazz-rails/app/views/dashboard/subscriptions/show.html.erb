@@ -177,8 +177,8 @@
     </div>
   </div>
 
-  <!-- Plans Grid (3 columns like landing page) -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+  <!-- Plans Grid (2 columns: Free + PRO) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
     
     <!-- Free Plan -->
     <div class="bg-white rounded-2xl border border-[#E5E5E5] p-6 flex flex-col relative">
@@ -281,78 +281,10 @@
       </ul>
       
       <div class="mt-auto">
-        <%= link_to subscribe_dashboard_subscription_path(plan: 'pro_yearly'), 
-            class: "block w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-white text-[#1A1A2E] hover:bg-white/90 transition-colors",
-            data: { billing_toggle_target: "proButton" } do %>
-          Попробовать PRO
-        <% end %>
-      </div>
-    </div>
-
-    <!-- MAX Plan -->
-    <div class="bg-white rounded-2xl border border-[#E5E5E5] p-6 flex flex-col relative">
-      <div class="absolute top-4 right-4">
-        <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-2 py-1 text-xs font-medium text-[#666666]">
-          Максимум
-        </span>
-      </div>
-      
-      <div class="mb-6">
-        <h3 class="text-xl font-semibold text-[#1A1A2E] mb-3">MAX</h3>
-        <div class="flex items-baseline gap-1">
-          <span class="text-4xl font-bold text-[#1A1A2E]" data-billing-toggle-target="maxPrice">665₽</span>
-          <span class="text-[#666666]">/мес</span>
-        </div>
-        <p class="mt-2 text-sm text-[#999999]" data-billing-toggle-target="maxSubtext">
-          7 990₽/год · <span class="text-[#34C759]">-17%</span>
-        </p>
-      </div>
-      
-      <ul class="space-y-3 mb-6 flex-grow">
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">200 AI-токенов ежемесячно</span>
-        </li>
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">Virtual Try-On (примерка)</span>
-        </li>
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">Fashion Models</span>
-        </li>
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">Неограниченный гардероб</span>
-        </li>
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">VIP-поддержка</span>
-        </li>
-        <li class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-sm text-[#666666]">Ранний доступ к функциям</span>
-        </li>
-      </ul>
-      
-      <div class="mt-auto">
-        <%= link_to subscribe_dashboard_subscription_path(plan: 'max_yearly'), 
-            class: "block w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-[#1A1A2E] text-white hover:opacity-90 transition-opacity",
-            data: { billing_toggle_target: "maxButton" } do %>
-          Выбрать MAX
-        <% end %>
+        <%= button_to 'Попробовать PRO', upgrade_dashboard_subscription_path(plan: 'pro_yearly'), 
+            method: :post,
+            class: "w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-white text-[#1A1A2E] hover:bg-white/90 transition-colors",
+            data: { billing_toggle_target: "proButton" } %>
       </div>
     </div>
 
@@ -449,10 +381,7 @@
     const yearlyLabel = document.querySelector('[data-billing-toggle-target="yearlyLabel"]');
     const proPrice = document.querySelector('[data-billing-toggle-target="proPrice"]');
     const proSubtext = document.querySelector('[data-billing-toggle-target="proSubtext"]');
-    const maxPrice = document.querySelector('[data-billing-toggle-target="maxPrice"]');
-    const maxSubtext = document.querySelector('[data-billing-toggle-target="maxSubtext"]');
     const proButton = document.querySelector('[data-billing-toggle-target="proButton"]');
-    const maxButton = document.querySelector('[data-billing-toggle-target="maxButton"]');
     
     let isYearly = true;
     
@@ -479,17 +408,19 @@
         if (isYearly) {
           proPrice.textContent = '332₽';
           proSubtext.innerHTML = '3 990₽/год · <span class="text-[#34C759]">-17%</span>';
-          maxPrice.textContent = '665₽';
-          maxSubtext.innerHTML = '7 990₽/год · <span class="text-[#34C759]">-17%</span>';
-          proButton.href = proButton.href.replace('pro_monthly', 'pro_yearly');
-          maxButton.href = maxButton.href.replace('max_monthly', 'max_yearly');
+          
+          // Update form action for yearly plan
+          if (proButton && proButton.parentElement.tagName === 'FORM') {
+            proButton.parentElement.action = proButton.parentElement.action.replace('plan=pro_monthly', 'plan=pro_yearly');
+          }
         } else {
           proPrice.textContent = '399₽';
           proSubtext.textContent = 'или 332₽/мес при оплате за год';
-          maxPrice.textContent = '799₽';
-          maxSubtext.textContent = 'или 665₽/мес при оплате за год';
-          proButton.href = proButton.href.replace('pro_yearly', 'pro_monthly');
-          maxButton.href = maxButton.href.replace('max_yearly', 'max_monthly');
+          
+          // Update form action for monthly plan
+          if (proButton && proButton.parentElement.tagName === 'FORM') {
+            proButton.parentElement.action = proButton.parentElement.action.replace('plan=pro_yearly', 'plan=pro_monthly');
+          }
         }
       });
     }
