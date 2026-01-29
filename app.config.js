@@ -59,6 +59,7 @@ export default {
       'expo-camera',
       'expo-image-picker',
       'expo-web-browser',
+      'react-native-iap',
       './modules/subject-lifter-plugin',
       './modules/obrazz-context-menu-plugin',
     ],

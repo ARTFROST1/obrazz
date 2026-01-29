@@ -94,11 +94,17 @@ obrazz/
 │   ├── shopping/ ✅        # Shopping browser (Stage 4.11)
 │   │   ├── storeService.ts ✅         # Store management
 │   │   └── webCaptureService.ts ✅    # Screenshot capture
-│   └── subscription/ 🚧    # Payment handling (Stage 7)
+│   ├── iap/ ✅             # In-App Purchases (Stage 5)
+│   │   └── iapService.ts ✅           # IAP logic (App Store / Google Play)
+│   ├── region/ ✅          # Region detection (Stage 5)
+│   │   └── regionService.ts ✅        # RU/Global detection for payments
+│   └── subscription/ ✅    # Payment handling (Stage 5)
+│       └── subscriptionService.ts ✅  # Rails backend API
 ├── store/ 📋                  # Zustand stores
 │   ├── auth/ ✅            # Auth store with persistence (authStore.ts)
 │   ├── wardrobe/ ✅        # Wardrobe store (Stage 3)
 │   ├── outfit/ ✅          # Outfit store with undo/redo (Stage 4)
+│   ├── subscription/ ✅    # Subscription store (Stage 5)
 │   └── ui/ 🚧
 ├── styles/ 📋                 # Global styles and themes (готова структура)
 │   ├── themes/ 🚧

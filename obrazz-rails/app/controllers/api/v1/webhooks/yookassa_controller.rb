@@ -40,8 +40,8 @@ module Api
           # В development пропускаем проверку подписи
           return true if Rails.env.development?
 
-          secret = ENV["YOOKASSA_WEBHOOK_SECRET"]
-          return true if secret.blank? # Если секрет не настроен, пропускаем
+          # Если верификация не настроена, пропускаем
+          return true unless YookassaConfig.webhook_verification_enabled?
 
           signature = request.headers["X-YooKassa-Signature"]
           return false if signature.blank?
@@ -50,7 +50,7 @@ module Api
           body = request.body.read
           request.body.rewind
 
-          expected = OpenSSL::HMAC.hexdigest("SHA256", secret, body)
+          expected = OpenSSL::HMAC.hexdigest("SHA256", YookassaConfig.webhook_secret, body)
           ActiveSupport::SecurityUtils.secure_compare(signature, expected)
         end
       end

@@ -6,37 +6,66 @@
     "noEmail": "Email не указан",
     "defaultName": "Пользователь"
   },
-  "sections": {
-    "account": "Аккаунт",
-    "appSettings": "Настройки приложения",
-    "subscription": "Подписка",
-    "support": "Поддержка"
+  "tokens": {
+    "title": "Токены",
+    "available": "доступно",
+    "used": "Использовано {{used}} из {{total}}",
+    "subscription": "От подписки",
+    "purchased": "Купленные",
+    "buyMore": "Купить ещё"
   },
-  "menu": {
-    "editProfile": "Редактировать профиль",
-    "changePassword": "Изменить пароль",
-    "notifications": "Уведомления",
-    "darkMode": "Темная тема",
-    "language": "Язык",
-    "upgradeToPro": "Обновить до Pro",
-    "helpSupport": "Помощь и поддержка",
-    "termsPrivacy": "Условия и конфиденциальность",
-    "about": "О приложении"
+  "subscription": {
+    "status": {
+      "active": "Активна",
+      "cancelled": "Отменена",
+      "expired": "Истекла",
+      "paused": "Приостановлена",
+      "trial": "Пробный период"
+    },
+    "monthlyTokens": "{{count}} токенов в месяц",
+    "renewsOn": "Продлится {{date}}",
+    "expiresOn": "Истекает {{date}}",
+    "provider": {
+      "web": "Оплата на сайте",
+      "ios": "Apple App Store",
+      "android": "Google Play"
+    },
+    "upgrade": "Улучшить план",
+    "manage": "Управление подпиской"
   },
-  "settings": {
-    "language": "Язык",
-    "selectLanguage": "Выберите язык",
-    "currentLanguage": {
-      "ru": "Русский",
-      "en": "English"
-    }
+  "stats": {
+    "title": "Статистика",
+    "aiGenerations": "AI генераций",
+    "outfits": "Образов",
+    "wardrobeItems": "Вещей"
   },
-  "signOut": {
-    "title": "Выход",
-    "message": "Вы уверены, что хотите выйти?",
-    "confirm": "Выйти",
-    "cancel": "Отмена",
-    "error": "Не удалось выйти из системы"
+  "purchase": {
+    "subscriptionTitle": "Выберите подписку",
+    "tokensTitle": "Купить токены",
+    "subscriptionDescription": "Подписка даёт доступ к AI-функциям и токены каждый месяц. Вы можете отменить в любое время.",
+    "tokensDescription": "Токены используются для AI-генераций: примерки, создания образов и вариаций одежды.",
+    "loading": "Загрузка продуктов...",
+    "perMonth": "в месяц",
+    "perYear": "в год",
+    "tokensCount": "{{count}} токенов",
+    "noProducts": "Продукты недоступны",
+    "restore": "Восстановить покупки",
+    "restored": "Покупки восстановлены",
+    "restoredMessage": "Ваши покупки успешно восстановлены.",
+    "restoreError": "Не удалось восстановить покупки",
+    "error": "Ошибка",
+    "unknownError": "Произошла неизвестная ошибка",
+    "orPayOnWeb": "или оплатите на сайте",
+    "payOnWebsite": "Оплатить на сайте",
+    "ruPaymentNotice": "Для пользователей из России доступна оплата банковской картой через наш сайт.",
+    "subscriptionTerms": "Подписка продлевается автоматически. Вы можете отменить её в любое время в настройках App Store или Google Play. Условия использования и политика конфиденциальности доступны на сайте.",
+    "tokensTerms": "Токены не сгорают и могут быть использованы в любое время. Условия использования доступны на сайте."
+  },
+  "payment": {
+    "ruNotice": "Для пользователей из России оплата доступна через веб-сайт. Нажмите на ссылку ниже для перехода."
+  },
+  "dashboard": {
+    "openWeb": "Открыть личный кабинет на сайте"
   },
   "version": "Версия {{version}}"
 }

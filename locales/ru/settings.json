@@ -1,0 +1,52 @@
+{
+  "header": {
+    "title": "Настройки"
+  },
+  "sections": {
+    "account": "Аккаунт",
+    "appSettings": "Настройки приложения",
+    "support": "Поддержка",
+    "danger": "Опасная зона"
+  },
+  "menu": {
+    "editProfile": "Редактировать профиль",
+    "changePassword": "Изменить пароль",
+    "notifications": "Уведомления",
+    "darkMode": "Темная тема",
+    "language": "Язык",
+    "helpSupport": "Помощь и поддержка",
+    "termsPrivacy": "Условия и конфиденциальность",
+    "about": "О приложении",
+    "deleteAccount": "Удалить аккаунт"
+  },
+  "settings": {
+    "selectLanguage": "Выберите язык",
+    "currentLanguage": {
+      "ru": "Русский",
+      "en": "English"
+    },
+    "notifications": {
+      "enabled": "Включены",
+      "disabled": "Отключены"
+    },
+    "theme": {
+      "light": "Светлая",
+      "dark": "Темная",
+      "system": "Системная"
+    }
+  },
+  "signOut": {
+    "title": "Выход",
+    "message": "Вы уверены, что хотите выйти?",
+    "confirm": "Выйти",
+    "cancel": "Отмена",
+    "error": "Не удалось выйти из системы"
+  },
+  "deleteAccount": {
+    "title": "Удаление аккаунта",
+    "message": "Это действие необратимо. Все ваши данные будут удалены.",
+    "confirm": "Удалить",
+    "cancel": "Отмена"
+  },
+  "version": "Версия {{version}}"
+}

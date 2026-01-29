@@ -1,0 +1,52 @@
+{
+  "header": {
+    "title": "Settings"
+  },
+  "sections": {
+    "account": "Account",
+    "appSettings": "App Settings",
+    "support": "Support",
+    "danger": "Danger Zone"
+  },
+  "menu": {
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "helpSupport": "Help & Support",
+    "termsPrivacy": "Terms & Privacy",
+    "about": "About",
+    "deleteAccount": "Delete Account"
+  },
+  "settings": {
+    "selectLanguage": "Select Language",
+    "currentLanguage": {
+      "ru": "Русский",
+      "en": "English"
+    },
+    "notifications": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "signOut": {
+    "title": "Sign Out",
+    "message": "Are you sure you want to sign out?",
+    "confirm": "Sign Out",
+    "cancel": "Cancel",
+    "error": "Failed to sign out"
+  },
+  "deleteAccount": {
+    "title": "Delete Account",
+    "message": "This action cannot be undone. All your data will be deleted.",
+    "confirm": "Delete",
+    "cancel": "Cancel"
+  },
+  "version": "Version {{version}}"
+}

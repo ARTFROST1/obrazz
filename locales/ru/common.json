@@ -48,5 +48,9 @@
     "daysAgo": "{{count}} дн. назад",
     "weeksAgo": "{{count}} нед. назад",
     "monthsAgo": "{{count}} мес. назад"
+  },
+  "profile": {
+    "defaultName": "Пользователь",
+    "noEmail": "Email не указан"
   }
 }

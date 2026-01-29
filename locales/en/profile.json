@@ -6,37 +6,66 @@
     "noEmail": "No email",
     "defaultName": "User"
   },
-  "sections": {
-    "account": "Account",
-    "appSettings": "App Settings",
-    "subscription": "Subscription",
-    "support": "Support"
+  "tokens": {
+    "title": "Tokens",
+    "available": "available",
+    "used": "Used {{used}} of {{total}}",
+    "subscription": "From subscription",
+    "purchased": "Purchased",
+    "buyMore": "Buy More"
   },
-  "menu": {
-    "editProfile": "Edit Profile",
-    "changePassword": "Change Password",
-    "notifications": "Notifications",
-    "darkMode": "Dark Mode",
-    "language": "Language",
-    "upgradeToPro": "Upgrade to Pro",
-    "helpSupport": "Help & Support",
-    "termsPrivacy": "Terms & Privacy",
-    "about": "About"
+  "subscription": {
+    "status": {
+      "active": "Active",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "paused": "Paused",
+      "trial": "Trial"
+    },
+    "monthlyTokens": "{{count}} tokens per month",
+    "renewsOn": "Renews on {{date}}",
+    "expiresOn": "Expires on {{date}}",
+    "provider": {
+      "web": "Web payment",
+      "ios": "Apple App Store",
+      "android": "Google Play"
+    },
+    "upgrade": "Upgrade Plan",
+    "manage": "Manage Subscription"
   },
-  "settings": {
-    "language": "Language",
-    "selectLanguage": "Select Language",
-    "currentLanguage": {
-      "ru": "Русский",
-      "en": "English"
-    }
+  "stats": {
+    "title": "Statistics",
+    "aiGenerations": "AI Generations",
+    "outfits": "Outfits",
+    "wardrobeItems": "Items"
   },
-  "signOut": {
-    "title": "Sign Out",
-    "message": "Are you sure you want to sign out?",
-    "confirm": "Sign Out",
-    "cancel": "Cancel",
-    "error": "Failed to sign out"
+  "purchase": {
+    "subscriptionTitle": "Choose a Subscription",
+    "tokensTitle": "Buy Tokens",
+    "subscriptionDescription": "A subscription gives you access to AI features and tokens every month. You can cancel anytime.",
+    "tokensDescription": "Tokens are used for AI generations: virtual try-on, outfit creation, and clothing variations.",
+    "loading": "Loading products...",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "tokensCount": "{{count}} tokens",
+    "noProducts": "Products unavailable",
+    "restore": "Restore Purchases",
+    "restored": "Purchases Restored",
+    "restoredMessage": "Your purchases have been successfully restored.",
+    "restoreError": "Failed to restore purchases",
+    "error": "Error",
+    "unknownError": "An unknown error occurred",
+    "orPayOnWeb": "or pay on website",
+    "payOnWebsite": "Pay on Website",
+    "ruPaymentNotice": "For users in Russia, card payment is available through our website.",
+    "subscriptionTerms": "Subscription renews automatically. You can cancel anytime in App Store or Google Play settings. Terms of use and privacy policy are available on our website.",
+    "tokensTerms": "Tokens don't expire and can be used anytime. Terms of use are available on our website."
+  },
+  "payment": {
+    "ruNotice": "For users in Russia, payment is available through the website. Click the link below to proceed."
+  },
+  "dashboard": {
+    "openWeb": "Open dashboard on website"
   },
   "version": "Version {{version}}"
 }

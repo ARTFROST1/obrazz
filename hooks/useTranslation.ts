@@ -9,6 +9,7 @@ export type Namespace =
   | 'common'
   | 'auth'
   | 'profile'
+  | 'settings'
   | 'wardrobe'
   | 'outfit'
   | 'navigation'

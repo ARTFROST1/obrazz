@@ -3,39 +3,41 @@
 <!-- Page Header -->
 <div class="md:flex md:items-center md:justify-between mb-8">
   <div class="min-w-0 flex-1">
-    <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+    <h1 class="text-2xl font-bold leading-7 text-[#1A1A2E] sm:truncate sm:text-3xl sm:tracking-tight">
       Токены
     </h1>
-    <p class="mt-1 text-sm text-gray-500">
+    <p class="mt-1 text-sm text-[#666666]">
       Управляйте балансом токенов для AI-генераций
     </p>
   </div>
 </div>
 
 <!-- Token Balance Card -->
-<div class="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-xl overflow-hidden mb-8">
+<div class="bg-[#1A1A2E] rounded-2xl overflow-hidden mb-8">
   <div class="px-6 py-8 sm:p-10">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm font-medium text-purple-100">Ваш баланс</p>
+        <p class="text-sm font-medium text-white/60">Ваш баланс</p>
         <p class="mt-2 text-5xl font-bold text-white"><%= @token_balance %></p>
-        <p class="mt-1 text-sm text-purple-200">токенов доступно</p>
+        <p class="mt-1 text-sm text-white/40">токенов доступно</p>
       </div>
       <div class="hidden sm:block">
-        <svg class="h-24 w-24 text-purple-300 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-        </svg>
+        <div class="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center">
+          <svg class="h-10 w-10 text-white/40" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z"/>
+          </svg>
+        </div>
       </div>
     </div>
     
     <!-- Token Breakdown -->
     <% if @token_balances.any? %>
-      <div class="mt-6 pt-6 border-t border-purple-400/30">
-        <p class="text-sm font-medium text-purple-100 mb-3">Детализация:</p>
+      <div class="mt-6 pt-6 border-t border-white/10">
+        <p class="text-sm font-medium text-white/60 mb-3">Детализация:</p>
         <div class="space-y-2">
           <% @token_balances.each do |balance| %>
             <div class="flex justify-between text-sm">
-              <span class="text-purple-200">
+              <span class="text-white/60">
                 <% case balance.token_type %>
                 <% when 'subscription_tokens' %>
                   Токены подписки
@@ -47,7 +49,7 @@
                   <%= balance.token_type&.humanize %>
                 <% end %>
                 <% if balance.expires_at %>
-                  <span class="text-purple-300">(до <%= balance.expires_at.strftime('%d.%m') %>)</span>
+                  <span class="text-white/40">(до <%= balance.expires_at.strftime('%d.%m') %>)</span>
                 <% end %>
               </span>
               <span class="font-semibold text-white"><%= balance.balance %></span>
@@ -60,44 +62,44 @@
 </div>
 
 <!-- Token Packs -->
-<div class="bg-white shadow rounded-xl overflow-hidden mb-8">
-  <div class="px-6 py-5 border-b border-gray-200">
-    <h2 class="text-lg font-semibold text-gray-900">Купить токены</h2>
-    <p class="mt-1 text-sm text-gray-500">Выберите подходящий пакет</p>
+<div class="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden mb-8">
+  <div class="px-6 py-5 border-b border-[#E5E5E5]">
+    <h2 class="text-lg font-semibold text-[#1A1A2E]">Купить токены</h2>
+    <p class="mt-1 text-sm text-[#666666]">Выберите подходящий пакет</p>
   </div>
   
   <div class="p-6">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <% @token_packs.each do |pack| %>
-        <div class="relative rounded-xl border-2 <%= pack[:popular] ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white' %> p-6 hover:border-purple-400 transition-colors">
+        <div class="relative rounded-2xl border-2 <%= pack[:popular] ? 'border-[#1A1A2E] bg-[#FAFAFA]' : 'border-[#E5E5E5] bg-white' %> p-6 hover:border-[#1A1A2E] transition-colors">
           <% if pack[:popular] %>
             <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span class="inline-flex items-center rounded-full bg-purple-600 px-3 py-0.5 text-xs font-semibold text-white">
+              <span class="inline-flex items-center rounded-full bg-[#1A1A2E] px-3 py-0.5 text-xs font-semibold text-white">
                 Популярный
               </span>
             </div>
           <% end %>
           
           <div class="text-center">
-            <div class="text-4xl font-bold text-gray-900"><%= pack[:tokens] %></div>
-            <div class="mt-1 text-sm text-gray-500">токенов</div>
+            <div class="text-4xl font-bold text-[#1A1A2E]"><%= pack[:tokens] %></div>
+            <div class="mt-1 text-sm text-[#999999]">токенов</div>
             
             <div class="mt-4">
-              <span class="text-2xl font-bold text-gray-900"><%= pack[:price] %></span>
-              <span class="text-gray-500">₽</span>
+              <span class="text-2xl font-bold text-[#1A1A2E]"><%= pack[:price] %></span>
+              <span class="text-[#666666]">₽</span>
             </div>
             
             <% if pack[:savings] %>
-              <div class="mt-1 text-sm text-green-600 font-medium">
+              <div class="mt-1 text-sm text-[#34C759] font-medium">
                 Экономия <%= pack[:savings] %>₽
               </div>
             <% end %>
             
-            <p class="mt-2 text-xs text-gray-500"><%= pack[:description] %></p>
+            <p class="mt-2 text-xs text-[#999999]"><%= pack[:description] %></p>
             
             <%= button_to 'Купить', purchase_dashboard_tokens_path(pack_id: pack[:id]), 
                 method: :post,
-                class: "mt-4 w-full rounded-lg py-2 px-4 text-sm font-semibold #{pack[:popular] ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-gray-900 text-white hover:bg-gray-800'} transition-colors" %>
+                class: "mt-4 w-full rounded-full py-3 px-4 text-sm font-semibold #{pack[:popular] ? 'bg-[#1A1A2E] text-white hover:opacity-90' : 'bg-[#F5F5F5] text-[#1A1A2E] hover:bg-[#EBEBEB]'} transition-all" %>
           </div>
         </div>
       <% end %>
@@ -106,76 +108,76 @@
 </div>
 
 <!-- Transaction History -->
-<div class="bg-white shadow rounded-xl overflow-hidden">
-  <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+<div class="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
+  <div class="px-6 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
     <div>
-      <h2 class="text-lg font-semibold text-gray-900">История транзакций</h2>
-      <p class="mt-1 text-sm text-gray-500">Последние операции с токенами</p>
+      <h2 class="text-lg font-semibold text-[#1A1A2E]">История транзакций</h2>
+      <p class="mt-1 text-sm text-[#666666]">Последние операции с токенами</p>
     </div>
-    <%= link_to 'Вся история', history_dashboard_tokens_path, class: "text-sm font-medium text-purple-600 hover:text-purple-500" %>
+    <%= link_to 'Вся история', history_dashboard_tokens_path, class: "text-sm font-medium text-[#1A1A2E] hover:opacity-70 transition-opacity" %>
   </div>
   
   <% if @recent_transactions.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+      <table class="min-w-full divide-y divide-[#E5E5E5]">
+        <thead class="bg-[#FAFAFA]">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Дата
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Операция
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Детали
             </th>
-            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-[#999999] uppercase tracking-wider">
               Сумма
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white divide-y divide-[#E5E5E5]">
           <% @recent_transactions.each do |transaction| %>
-            <tr class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <tr class="hover:bg-[#FAFAFA] transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-[#666666]">
                 <%= transaction.created_at.strftime('%d.%m.%Y %H:%M') %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <% label_key = transaction.reason.presence || transaction.operation %>
                 <% case label_key %>
                 <% when 'ai_generation', 'debit' %>
-                  <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                  <span class="inline-flex items-center rounded-full bg-[#FF3B30]/10 px-2.5 py-0.5 text-xs font-medium text-[#FF3B30]">
                     Списание
                   </span>
                 <% when 'purchase', 'credit' %>
-                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                  <span class="inline-flex items-center rounded-full bg-[#34C759]/10 px-2.5 py-0.5 text-xs font-medium text-[#34C759]">
                     <%= label_key == 'purchase' ? 'Покупка' : 'Начисление' %>
                   </span>
                 <% when 'refund' %>
-                  <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                  <span class="inline-flex items-center rounded-full bg-[#007AFF]/10 px-2.5 py-0.5 text-xs font-medium text-[#007AFF]">
                     Возврат
                   </span>
                 <% when 'subscription_renewal' %>
-                  <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                  <span class="inline-flex items-center rounded-full bg-[#1A1A2E]/10 px-2.5 py-0.5 text-xs font-medium text-[#1A1A2E]">
                     Подписка
                   </span>
                 <% when 'expiration', 'expire' %>
-                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                  <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-xs font-medium text-[#999999]">
                     Сгорание
                   </span>
                 <% else %>
-                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                  <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-xs font-medium text-[#666666]">
                     <%= label_key.to_s.humanize %>
                   </span>
                 <% end %>
               </td>
-              <td class="px-6 py-4 text-sm text-gray-900">
+              <td class="px-6 py-4 text-sm text-[#1A1A2E]">
                 <% if transaction.ai_generation %>
                   <div class="flex items-center">
                     <% if transaction.ai_generation.primary_output_url.present? %>
                       <img src="<%= transaction.ai_generation.primary_output_url %>" 
                            alt="" 
-                           class="h-8 w-8 rounded object-cover mr-3">
+                           class="h-8 w-8 rounded-lg object-cover mr-3">
                     <% end %>
                     <span>
                       <% case transaction.ai_generation.generation_type %>
@@ -196,11 +198,11 @@
                   —
                 <% end %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
                 <% if transaction.amount > 0 %>
-                  <span class="text-green-600">+<%= transaction.amount %></span>
+                  <span class="text-[#34C759]">+<%= transaction.amount %></span>
                 <% else %>
-                  <span class="text-red-600"><%= transaction.amount %></span>
+                  <span class="text-[#FF3B30]"><%= transaction.amount %></span>
                 <% end %>
               </td>
             </tr>
@@ -210,11 +212,11 @@
     </div>
   <% else %>
     <div class="p-12 text-center">
-      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="mx-auto h-12 w-12 text-[#E5E5E5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h3 class="mt-2 text-sm font-semibold text-gray-900">Нет транзакций</h3>
-      <p class="mt-1 text-sm text-gray-500">История операций пуста</p>
+      <h3 class="mt-4 text-sm font-semibold text-[#1A1A2E]">Нет транзакций</h3>
+      <p class="mt-1 text-sm text-[#666666]">История операций пуста</p>
     </div>
   <% end %>
 </div>

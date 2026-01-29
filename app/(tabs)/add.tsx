@@ -15,6 +15,7 @@
 
 import { AddItemContent } from '@components/add/AddItemContent';
 import { CreateOutfitContent } from '@components/add/CreateOutfitContent';
+import { SettingsContent } from '@components/settings/SettingsContent';
 import { Ionicons } from '@expo/vector-icons';
 import { useLibraryStore } from '@store/library/libraryStore';
 import { router } from 'expo-router';
@@ -56,27 +57,8 @@ function AddScreen() {
     }
 
     if (lastVisitedTab === 'profile') {
-      // Profile - show Settings placeholder
-      return (
-        <View style={styles.container}>
-          <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => router.navigate('/(tabs)/profile')}
-                style={styles.backButton}
-              >
-                <Ionicons name="arrow-back" size={24} color="#000" />
-              </TouchableOpacity>
-              <Text style={styles.title}>Настройки</Text>
-              <View style={styles.placeholder} />
-            </View>
-          </SafeAreaView>
-          <View style={styles.content}>
-            <Ionicons name="settings-outline" size={64} color="#CCC" />
-            <Text style={styles.comingSoonText}>Настройки скоро будут доступны</Text>
-          </View>
-        </View>
-      );
+      // Profile - show Settings screen
+      return <SettingsContent returnRoute={returnRoute} />;
     }
 
     // Home - show AI Features menu

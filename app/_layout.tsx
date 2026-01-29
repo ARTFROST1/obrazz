@@ -7,6 +7,8 @@ import '@lib/i18n/config'; // Initialize i18n
 import { validateAuthStorage } from '@lib/supabase/client';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { authService } from '@services/auth/authService';
+import { iapService } from '@services/iap/iapService';
+import { regionService } from '@services/region/regionService';
 import { initNetworkMonitor } from '@services/sync/networkMonitor';
 import { syncService } from '@services/sync/syncService';
 import { itemServiceOffline } from '@services/wardrobe/itemServiceOffline';
@@ -18,7 +20,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { Platform, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -102,8 +104,29 @@ function RootLayoutNav() {
         console.error('[RootLayoutNav] Failed to initialize item service:', error);
       });
 
+    // Detect user region for payment method selection
+    regionService.detectAndSetRegion().then(() => {
+      console.log('[RootLayoutNav] ✓ Region detection complete');
+    });
+
+    // Initialize IAP connection (only on native platforms)
+    if (Platform.OS !== 'web') {
+      iapService
+        .initialize()
+        .then(() => {
+          console.log('[RootLayoutNav] ✓ IAP service initialized');
+        })
+        .catch((error) => {
+          console.error('[RootLayoutNav] Failed to initialize IAP service:', error);
+        });
+    }
+
     return () => {
       unsubscribeNetwork();
+      // Cleanup IAP on unmount
+      if (Platform.OS !== 'web') {
+        iapService.cleanup();
+      }
     };
   }, []);
 

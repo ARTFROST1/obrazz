@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" class="h-full bg-gray-50">
+<html lang="ru" class="h-full bg-white">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,23 +15,37 @@
   <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   
+  <!-- Custom styles for Obrazz design system -->
+  <style>
+    :root {
+      --obrazz-primary: #1A1A2E;
+      --obrazz-text: #000000;
+      --obrazz-text-secondary: #666666;
+      --obrazz-text-muted: #999999;
+      --obrazz-bg: #FFFFFF;
+      --obrazz-bg-secondary: #FAFAFA;
+      --obrazz-input-bg: #F5F5F5;
+      --obrazz-border: #E5E5E5;
+      --obrazz-error: #FF3B30;
+      --obrazz-success: #34C759;
+      --obrazz-warning: #FF9500;
+    }
+  </style>
+  
   <!-- Turbo & Stimulus -->
   <%= javascript_importmap_tags %>
 </head>
-<body class="h-full">
+<body class="h-full bg-[#FAFAFA]">
   <div class="min-h-full">
     <!-- Sidebar (Desktop) -->
     <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-      <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
+      <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-[#1A1A2E] px-6 pb-4">
         <!-- Logo -->
-        <div class="flex h-16 shrink-0 items-center">
+        <div class="flex h-16 shrink-0 items-center border-b border-white/10">
           <a href="<%= dashboard_root_path %>" class="flex items-center space-x-3">
-            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <span class="text-white font-bold text-xl">O</span>
-            </div>
-            <span class="text-white text-xl font-semibold">Obrazz</span>
+            <span class="text-white text-2xl font-bold tracking-[3px]">OBRAZZ</span>
           </a>
-          <a href="https://obrazz.app" target="_blank" rel="noopener noreferrer" class="ml-4 text-xs text-gray-400 hover:text-white transition-colors">
+          <a href="https://obrazz.app" target="_blank" rel="noopener noreferrer" class="ml-auto text-xs text-white/50 hover:text-white transition-colors">
             ← На сайт
           </a>
         </div>
@@ -65,7 +79,7 @@
             
             <!-- Settings Section -->
             <li>
-              <div class="text-xs font-semibold leading-6 text-gray-400">Настройки</div>
+              <div class="text-xs font-semibold leading-6 text-white/40 uppercase tracking-wider">Настройки</div>
               <ul role="list" class="-mx-2 mt-2 space-y-1">
                 <%= render 'layouts/dashboard/nav_item', 
                     path: dashboard_settings_path, 
@@ -75,25 +89,24 @@
             </li>
             
             <!-- User Profile -->
-            <li class="mt-auto">
-              <div class="flex items-center gap-x-4 px-2 py-3 text-sm font-semibold leading-6 text-white">
+            <li class="mt-auto border-t border-white/10 pt-4">
+              <div class="flex items-center gap-x-4 px-2 py-3">
                 <% if current_user&.avatar_url.present? %>
-                  <img class="h-10 w-10 rounded-full bg-gray-800" 
+                  <img class="h-10 w-10 rounded-full bg-white/10 object-cover" 
                        src="<%= current_user.avatar_url %>" 
                        alt="<%= current_user.full_name || current_user.email %>">
                 <% else %>
-                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <div class="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                     <span class="text-white font-medium">
                       <%= (current_user&.full_name || current_user&.email || 'U').first.upcase %>
                     </span>
                   </div>
                 <% end %>
-                <span class="sr-only">Ваш профиль</span>
                 <div class="flex-1 min-w-0">
-                  <p class="truncate"><%= current_user&.full_name || 'Пользователь' %></p>
-                  <p class="truncate text-xs text-gray-400"><%= current_user&.email %></p>
+                  <p class="text-sm font-medium text-white truncate"><%= current_user&.full_name || 'Пользователь' %></p>
+                  <p class="text-xs text-white/50 truncate"><%= current_user&.email %></p>
                 </div>
-                <%= link_to logout_path, method: :delete, class: "text-gray-400 hover:text-white", data: { turbo_method: :delete } do %>
+                <%= link_to logout_path, method: :delete, class: "text-white/50 hover:text-white transition-colors", data: { turbo_method: :delete } do %>
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                   </svg>
@@ -107,10 +120,10 @@
 
     <!-- Mobile Header -->
     <div class="lg:hidden">
-      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6">
+      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-[#E5E5E5] bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6">
         <!-- Mobile menu button -->
         <button type="button" 
-                class="-m-2.5 p-2.5 text-gray-700" 
+                class="-m-2.5 p-2.5 text-[#1A1A2E]" 
                 data-controller="mobile-menu"
                 data-action="click->mobile-menu#toggle">
           <span class="sr-only">Открыть меню</span>
@@ -120,20 +133,17 @@
         </button>
         
         <!-- Logo -->
-        <a href="<%= dashboard_root_path %>" class="flex items-center space-x-2">
-          <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <span class="text-white font-bold">O</span>
-          </div>
-          <span class="font-semibold text-gray-900">Obrazz</span>
+        <a href="<%= dashboard_root_path %>" class="flex items-center">
+          <span class="font-bold text-xl tracking-[2px] text-[#1A1A2E]">OBRAZZ</span>
         </a>
         
         <!-- Token Balance (Mobile) -->
         <div class="ml-auto flex items-center gap-x-2">
-          <div class="flex items-center space-x-1 bg-purple-50 px-3 py-1.5 rounded-full">
-            <svg class="h-4 w-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+          <div class="flex items-center space-x-1.5 bg-[#F5F5F5] px-3 py-1.5 rounded-full">
+            <svg class="h-4 w-4 text-[#1A1A2E]" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z"/>
             </svg>
-            <span class="text-sm font-medium text-purple-700"><%= current_user&.available_tokens || 0 %></span>
+            <span class="text-sm font-semibold text-[#1A1A2E]"><%= current_user&.available_tokens || 0 %></span>
           </div>
         </div>
       </div>
@@ -142,21 +152,21 @@
     <!-- Main Content -->
     <main class="lg:pl-72">
       <!-- Top bar (Desktop) -->
-      <div class="sticky top-0 z-40 hidden lg:flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      <div class="sticky top-0 z-40 hidden lg:flex h-16 shrink-0 items-center gap-x-4 border-b border-[#E5E5E5] bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
         <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
           <div class="relative flex flex-1"></div>
           
           <!-- Token Balance -->
           <div class="flex items-center gap-x-4 lg:gap-x-6">
-            <%= link_to dashboard_tokens_path, class: "flex items-center space-x-2 bg-purple-50 hover:bg-purple-100 px-4 py-2 rounded-full transition-colors" do %>
-              <svg class="h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+            <%= link_to dashboard_tokens_path, class: "flex items-center space-x-2 bg-[#F5F5F5] hover:bg-[#EBEBEB] px-4 py-2 rounded-full transition-colors" do %>
+              <svg class="h-5 w-5 text-[#1A1A2E]" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z"/>
               </svg>
-              <span class="text-sm font-semibold text-purple-700"><%= current_user&.available_tokens || 0 %> токенов</span>
+              <span class="text-sm font-semibold text-[#1A1A2E]"><%= current_user&.available_tokens || 0 %> токенов</span>
             <% end %>
             
             <!-- Separator -->
-            <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"></div>
+            <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-[#E5E5E5]"></div>
             
             <!-- Profile Dropdown -->
             <div class="relative" data-controller="dropdown">
@@ -164,29 +174,29 @@
                       class="flex items-center gap-x-2 text-sm"
                       data-action="click->dropdown#toggle">
                 <% if current_user&.avatar_url.present? %>
-                  <img class="h-8 w-8 rounded-full bg-gray-50" 
+                  <img class="h-8 w-8 rounded-full bg-[#F5F5F5] object-cover" 
                        src="<%= current_user.avatar_url %>" 
                        alt="">
                 <% else %>
-                  <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <div class="h-8 w-8 rounded-full bg-[#1A1A2E] flex items-center justify-center">
                     <span class="text-white text-sm font-medium">
                       <%= (current_user&.full_name || current_user&.email || 'U').first.upcase %>
                     </span>
                   </div>
                 <% end %>
                 <span class="hidden lg:flex lg:items-center">
-                  <span class="text-sm font-semibold text-gray-900"><%= current_user&.full_name || 'Пользователь' %></span>
-                  <svg class="ml-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <span class="text-sm font-medium text-[#1A1A2E]"><%= current_user&.full_name || 'Пользователь' %></span>
+                  <svg class="ml-2 h-5 w-5 text-[#999999]" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                   </svg>
                 </span>
               </button>
               
               <!-- Dropdown menu -->
-              <div class="hidden absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
+              <div class="hidden absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-xl bg-white py-2 shadow-lg ring-1 ring-[#E5E5E5] focus:outline-none"
                    data-dropdown-target="menu">
-                <%= link_to 'Настройки', dashboard_settings_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" %>
-                <%= link_to 'Выйти', logout_path, method: :delete, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50", data: { turbo_method: :delete } %>
+                <%= link_to 'Настройки', dashboard_settings_path, class: "block px-4 py-2 text-sm text-[#1A1A2E] hover:bg-[#F5F5F5]" %>
+                <%= link_to 'Выйти', logout_path, method: :delete, class: "block px-4 py-2 text-sm text-[#FF3B30] hover:bg-[#F5F5F5]", data: { turbo_method: :delete } %>
               </div>
             </div>
           </div>
@@ -194,49 +204,37 @@
       </div>
 
       <!-- Page Content -->
-      <div class="py-10">
+      <div class="py-8">
         <div class="px-4 sm:px-6 lg:px-8">
           <!-- Flash Messages -->
           <% if notice.present? %>
-            <div class="mb-6 rounded-md bg-green-50 p-4" data-controller="alert" data-alert-dismiss-after-value="5000">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            <div class="mb-6 rounded-xl bg-[#F5F5F5] p-4 border-l-4 border-[#34C759]" data-controller="alert" data-alert-dismiss-after-value="5000">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-[#34C759] mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm font-medium text-[#1A1A2E]"><%= notice %></p>
+                <button type="button" class="ml-auto text-[#999999] hover:text-[#666666]" data-action="click->alert#dismiss">
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                   </svg>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-green-800"><%= notice %></p>
-                </div>
-                <div class="ml-auto pl-3">
-                  <button type="button" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100" data-action="click->alert#dismiss">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                    </svg>
-                  </button>
-                </div>
+                </button>
               </div>
             </div>
           <% end %>
           
           <% if alert.present? %>
-            <div class="mb-6 rounded-md bg-red-50 p-4" data-controller="alert">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            <div class="mb-6 rounded-xl bg-[#FFF5F5] p-4 border-l-4 border-[#FF3B30]" data-controller="alert">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-[#FF3B30] mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm font-medium text-[#FF3B30]"><%= alert %></p>
+                <button type="button" class="ml-auto text-[#999999] hover:text-[#666666]" data-action="click->alert#dismiss">
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                   </svg>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-red-800"><%= alert %></p>
-                </div>
-                <div class="ml-auto pl-3">
-                  <button type="button" class="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100" data-action="click->alert#dismiss">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                    </svg>
-                  </button>
-                </div>
+                </button>
               </div>
             </div>
           <% end %>
@@ -249,7 +247,7 @@
   
   <!-- Mobile Menu Overlay -->
   <div id="mobile-menu" class="hidden relative z-50 lg:hidden" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-gray-900/80"></div>
+    <div class="fixed inset-0 bg-black/60"></div>
     <div class="fixed inset-0 flex">
       <div class="relative mr-16 flex w-full max-w-xs flex-1">
         <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
@@ -261,12 +259,9 @@
           </button>
         </div>
         
-        <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
-          <div class="flex h-16 shrink-0 items-center">
-            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <span class="text-white font-bold text-xl">O</span>
-            </div>
-            <span class="ml-3 text-white text-xl font-semibold">Obrazz</span>
+        <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-[#1A1A2E] px-6 pb-4">
+          <div class="flex h-16 shrink-0 items-center border-b border-white/10">
+            <span class="text-white text-2xl font-bold tracking-[3px]">OBRAZZ</span>
           </div>
           <nav class="flex flex-1 flex-col">
             <ul role="list" class="flex flex-1 flex-col gap-y-7">

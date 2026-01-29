@@ -1,42 +1,48 @@
 <% content_for(:title) { 'Подписка - Obrazz' } %>
 
 <!-- Page Header -->
-<div class="mb-8">
-  <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-    Подписка
-  </h1>
-  <p class="mt-1 text-sm text-gray-500">
-    Управляйте вашей подпиской и платежами
-  </p>
+<div class="md:flex md:items-center md:justify-between mb-8">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-2xl font-bold leading-7 text-[#1A1A2E] sm:truncate sm:text-3xl sm:tracking-tight">
+      Подписка
+    </h1>
+    <p class="mt-1 text-sm text-[#666666]">
+      Управляйте вашей подпиской и платежами
+    </p>
+  </div>
 </div>
 
 <!-- Current Subscription Card -->
-<div class="bg-white shadow rounded-xl overflow-hidden mb-8">
+<div class="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden mb-8">
   <div class="p-6 sm:p-8">
     <div class="sm:flex sm:items-start sm:justify-between">
       <div>
-        <div class="flex items-center">
+        <div class="flex items-center gap-3">
           <% if @subscription.pro? %>
-            <span class="inline-flex items-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-1.5 text-sm font-semibold text-white">
+            <span class="inline-flex items-center rounded-full bg-[#1A1A2E] px-4 py-1.5 text-sm font-semibold text-white">
               <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" />
               </svg>
-              Pro
+              PRO
             </span>
           <% else %>
-            <span class="inline-flex items-center rounded-full bg-gray-100 px-4 py-1.5 text-sm font-semibold text-gray-600">
+            <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-4 py-1.5 text-sm font-semibold text-[#666666]">
               Free
             </span>
           <% end %>
           
           <% if @subscription.status == 'cancelled' %>
-            <span class="ml-3 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+            <span class="inline-flex items-center rounded-full bg-[#FF9500]/10 px-2.5 py-0.5 text-xs font-medium text-[#FF9500]">
               Отменена
+            </span>
+          <% elsif @subscription.status == 'active' && @subscription.pro? %>
+            <span class="inline-flex items-center rounded-full bg-[#34C759]/10 px-2.5 py-0.5 text-xs font-medium text-[#34C759]">
+              Активна
             </span>
           <% end %>
         </div>
         
-        <h2 class="mt-4 text-xl font-bold text-gray-900">
+        <h2 class="mt-4 text-xl font-bold text-[#1A1A2E]">
           <% if @subscription.pro? %>
             <%= @subscription.plan == 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly' %>
           <% else %>
@@ -45,7 +51,7 @@
         </h2>
         
         <% if @subscription.pro? && @subscription.current_period_end.present? %>
-          <p class="mt-1 text-sm text-gray-500">
+          <p class="mt-1 text-sm text-[#666666]">
             <% if @subscription.status == 'cancelled' %>
               Действует до: <%= @subscription.current_period_end.strftime('%d.%m.%Y') %>
             <% else %>
@@ -60,79 +66,80 @@
           <% if @subscription.status == 'cancelled' %>
             <%= button_to 'Возобновить', reactivate_dashboard_subscription_path, 
                 method: :post,
-                class: "inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500" %>
+                class: "inline-flex items-center rounded-full bg-[#1A1A2E] px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity" %>
           <% else %>
             <%= button_to 'Отменить подписку', cancel_dashboard_subscription_path, 
                 method: :post,
                 data: { turbo_confirm: 'Вы уверены? Подписка будет действовать до конца оплаченного периода.' },
-                class: "inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+                class: "inline-flex items-center rounded-full bg-[#F5F5F5] px-6 py-3 text-sm font-semibold text-[#1A1A2E] hover:bg-[#EBEBEB] transition-colors" %>
           <% end %>
-        <% else %>
-          <%= link_to 'Улучшить до Pro', plans_dashboard_subscription_path, 
-              class: "inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500" %>
         <% end %>
       </div>
     </div>
     
     <!-- Plan Features -->
-    <div class="mt-6 border-t border-gray-200 pt-6">
-      <h3 class="text-sm font-medium text-gray-900">Что включено:</h3>
-      <ul class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="mt-6 border-t border-[#E5E5E5] pt-6">
+      <h3 class="text-sm font-medium text-[#1A1A2E] mb-4">Что включено:</h3>
+      <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <% if @subscription.pro? %>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">100 AI-токенов ежемесячно</span>
+            <span class="text-sm text-[#666666]">100 AI-токенов ежемесячно</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">Virtual Try-On (примерка)</span>
+            <span class="text-sm text-[#666666]">Virtual Try-On (примерка)</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">Fashion Models</span>
+            <span class="text-sm text-[#666666]">Fashion Models</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">Неограниченный гардероб</span>
+            <span class="text-sm text-[#666666]">Неограниченный гардероб</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">Приоритетная поддержка</span>
+            <span class="text-sm text-[#666666]">Приоритетная поддержка</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-[#666666]">Без рекламы</span>
           </li>
         <% else %>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">3 бонусных токена при регистрации</span>
+            <span class="text-sm text-[#666666]">3 бонусных токена при регистрации</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">Базовый доступ к гардеробу</span>
+            <span class="text-sm text-[#666666]">Базовый доступ к гардеробу</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <li class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-[#34C759] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
             </svg>
-            <span class="ml-3 text-sm text-gray-600">До 50 вещей в гардеробе</span>
+            <span class="text-sm text-[#666666]">До 50 вещей в гардеробе</span>
           </li>
-          <li class="flex items-start">
-            <svg class="h-5 w-5 text-gray-300 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-            </svg>
-            <span class="ml-3 text-sm text-gray-400">AI-функции недоступны</span>
+          <li class="flex items-center gap-3">
+            <span class="h-5 w-5 flex items-center justify-center text-[#E5E5E5] flex-shrink-0">•</span>
+            <span class="text-sm text-[#999999]">AI-функции недоступны</span>
           </li>
         <% end %>
       </ul>
@@ -140,63 +147,279 @@
   </div>
 </div>
 
+<!-- Pricing Plans (Landing Page Style) -->
+<% unless @subscription.pro? %>
+<div class="mb-8">
+  <div class="text-center mb-8">
+    <span class="inline-block px-3 py-1 text-xs font-medium bg-[#F5F5F5] rounded-full mb-4 text-[#666666]">
+      ТАРИФЫ
+    </span>
+    <h2 class="text-2xl font-bold text-[#1A1A2E] mb-2">Выберите свой план</h2>
+    <p class="text-[#666666]">Начните бесплатно, улучшите при необходимости</p>
+  </div>
+
+  <!-- Billing Toggle -->
+  <div class="flex items-center justify-center gap-4 mb-8" data-controller="billing-toggle">
+    <span class="text-sm font-medium text-[#999999]" data-billing-toggle-target="monthlyLabel">Месяц</span>
+    <button 
+      type="button"
+      class="relative w-14 h-7 rounded-full bg-[#1A1A2E] transition-colors"
+      data-action="click->billing-toggle#toggle"
+      data-billing-toggle-target="switch"
+    >
+      <span class="absolute top-0.5 right-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform" data-billing-toggle-target="knob"></span>
+    </button>
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-medium text-[#1A1A2E]" data-billing-toggle-target="yearlyLabel">Год</span>
+      <span class="text-xs font-medium text-[#34C759] bg-[#34C759]/10 px-2 py-1 rounded-full whitespace-nowrap">
+        до -17%
+      </span>
+    </div>
+  </div>
+
+  <!-- Plans Grid (3 columns like landing page) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+    
+    <!-- Free Plan -->
+    <div class="bg-white rounded-2xl border border-[#E5E5E5] p-6 flex flex-col relative">
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-[#1A1A2E] mb-3">Бесплатно</h3>
+        <div class="flex items-baseline gap-1">
+          <span class="text-4xl font-bold text-[#1A1A2E]">0₽</span>
+        </div>
+        <p class="mt-2 text-sm text-[#999999]">Навсегда бесплатно</p>
+      </div>
+      
+      <ul class="space-y-3 mb-6 flex-grow">
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">До 50 вещей в каталоге</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">Ручной конструктор образов</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">3 AI-токена (бонус)</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="w-4 h-4 flex-shrink-0 text-center text-[#999999]">•</span>
+          <span class="text-sm text-[#999999]">Реклама в приложении</span>
+        </li>
+      </ul>
+      
+      <div class="mt-auto">
+        <span class="block w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-[#F5F5F5] text-[#999999]">
+          Текущий план
+        </span>
+      </div>
+    </div>
+
+    <!-- PRO Plan (Highlighted) -->
+    <div class="bg-[#1A1A2E] rounded-2xl p-6 flex flex-col relative ring-2 ring-[#1A1A2E] scale-[1.02] shadow-xl">
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <span class="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#1A1A2E]">
+          Популярный
+        </span>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-white mb-3">PRO</h3>
+        <div class="flex items-baseline gap-1">
+          <span class="text-4xl font-bold text-white" data-billing-toggle-target="proPrice">332₽</span>
+          <span class="text-white/70">/мес</span>
+        </div>
+        <p class="mt-2 text-sm text-white/60" data-billing-toggle-target="proSubtext">
+          3 990₽/год · <span class="text-[#34C759]">-17%</span>
+        </p>
+      </div>
+      
+      <ul class="space-y-3 mb-6 flex-grow">
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">100 AI-токенов ежемесячно</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">Virtual Try-On (примерка)</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">Fashion Models</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">Неограниченный гардероб</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">Без рекламы</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-white/90">Приоритетная поддержка</span>
+        </li>
+      </ul>
+      
+      <div class="mt-auto">
+        <%= link_to subscribe_dashboard_subscription_path(plan: 'pro_yearly'), 
+            class: "block w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-white text-[#1A1A2E] hover:bg-white/90 transition-colors",
+            data: { billing_toggle_target: "proButton" } do %>
+          Попробовать PRO
+        <% end %>
+      </div>
+    </div>
+
+    <!-- MAX Plan -->
+    <div class="bg-white rounded-2xl border border-[#E5E5E5] p-6 flex flex-col relative">
+      <div class="absolute top-4 right-4">
+        <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-2 py-1 text-xs font-medium text-[#666666]">
+          Максимум
+        </span>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-[#1A1A2E] mb-3">MAX</h3>
+        <div class="flex items-baseline gap-1">
+          <span class="text-4xl font-bold text-[#1A1A2E]" data-billing-toggle-target="maxPrice">665₽</span>
+          <span class="text-[#666666]">/мес</span>
+        </div>
+        <p class="mt-2 text-sm text-[#999999]" data-billing-toggle-target="maxSubtext">
+          7 990₽/год · <span class="text-[#34C759]">-17%</span>
+        </p>
+      </div>
+      
+      <ul class="space-y-3 mb-6 flex-grow">
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">200 AI-токенов ежемесячно</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">Virtual Try-On (примерка)</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">Fashion Models</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">Неограниченный гардероб</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">VIP-поддержка</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-[#34C759]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm text-[#666666]">Ранний доступ к функциям</span>
+        </li>
+      </ul>
+      
+      <div class="mt-auto">
+        <%= link_to subscribe_dashboard_subscription_path(plan: 'max_yearly'), 
+            class: "block w-full text-center rounded-full py-3 px-4 text-sm font-semibold bg-[#1A1A2E] text-white hover:opacity-90 transition-opacity",
+            data: { billing_toggle_target: "maxButton" } do %>
+          Выбрать MAX
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>
+<% end %>
+
 <!-- Payment History -->
-<div class="bg-white shadow rounded-xl overflow-hidden">
-  <div class="px-6 py-5 border-b border-gray-200">
-    <h2 class="text-lg font-semibold text-gray-900">История платежей</h2>
+<div class="bg-white rounded-2xl border border-[#E5E5E5] overflow-hidden">
+  <div class="px-6 py-5 border-b border-[#E5E5E5] flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[#1A1A2E]">История платежей</h2>
+      <p class="mt-1 text-sm text-[#666666]">Ваши платежи за подписку</p>
+    </div>
   </div>
   
   <% if @payment_history.any? %>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+      <table class="min-w-full divide-y divide-[#E5E5E5]">
+        <thead class="bg-[#FAFAFA]">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Дата
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Описание
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Сумма
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#999999] uppercase tracking-wider">
               Статус
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white divide-y divide-[#E5E5E5]">
           <% @payment_history.each do |payment| %>
-            <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <tr class="hover:bg-[#FAFAFA] transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-[#666666]">
                 <%= payment.created_at.strftime('%d.%m.%Y %H:%M') %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-[#1A1A2E]">
                 <% if payment.metadata.is_a?(Hash) && payment.metadata['plan'] %>
                   Подписка <%= payment.metadata['plan'] == 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly' %>
                 <% else %>
                   Платёж за подписку
                 <% end %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#1A1A2E]">
                 <%= number_to_currency(payment.amount / 100.0, unit: '₽', format: '%n %u') %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <% case payment.status %>
                 <% when 'succeeded' %>
-                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                  <span class="inline-flex items-center rounded-full bg-[#34C759]/10 px-2.5 py-0.5 text-xs font-medium text-[#34C759]">
                     Успешно
                   </span>
                 <% when 'pending' %>
-                  <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                  <span class="inline-flex items-center rounded-full bg-[#FF9500]/10 px-2.5 py-0.5 text-xs font-medium text-[#FF9500]">
                     Ожидание
                   </span>
                 <% when 'failed' %>
-                  <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                  <span class="inline-flex items-center rounded-full bg-[#FF3B30]/10 px-2.5 py-0.5 text-xs font-medium text-[#FF3B30]">
                     Ошибка
                   </span>
                 <% else %>
-                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                  <span class="inline-flex items-center rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-xs font-medium text-[#666666]">
                     <%= payment.status %>
                   </span>
                 <% end %>
@@ -208,11 +431,67 @@
     </div>
   <% else %>
     <div class="p-12 text-center">
-      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+      <svg class="mx-auto h-12 w-12 text-[#E5E5E5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
       </svg>
-      <h3 class="mt-2 text-sm font-semibold text-gray-900">Нет платежей</h3>
-      <p class="mt-1 text-sm text-gray-500">История платежей пуста</p>
+      <h3 class="mt-4 text-sm font-semibold text-[#1A1A2E]">Нет платежей</h3>
+      <p class="mt-1 text-sm text-[#666666]">История платежей пуста</p>
     </div>
   <% end %>
 </div>
+
+<script>
+  // Simple billing toggle without Stimulus (fallback)
+  document.addEventListener('DOMContentLoaded', function() {
+    const switchBtn = document.querySelector('[data-action="click->billing-toggle#toggle"]');
+    const knob = document.querySelector('[data-billing-toggle-target="knob"]');
+    const monthlyLabel = document.querySelector('[data-billing-toggle-target="monthlyLabel"]');
+    const yearlyLabel = document.querySelector('[data-billing-toggle-target="yearlyLabel"]');
+    const proPrice = document.querySelector('[data-billing-toggle-target="proPrice"]');
+    const proSubtext = document.querySelector('[data-billing-toggle-target="proSubtext"]');
+    const maxPrice = document.querySelector('[data-billing-toggle-target="maxPrice"]');
+    const maxSubtext = document.querySelector('[data-billing-toggle-target="maxSubtext"]');
+    const proButton = document.querySelector('[data-billing-toggle-target="proButton"]');
+    const maxButton = document.querySelector('[data-billing-toggle-target="maxButton"]');
+    
+    let isYearly = true;
+    
+    if (switchBtn) {
+      switchBtn.addEventListener('click', function() {
+        isYearly = !isYearly;
+        
+        // Toggle knob position
+        if (isYearly) {
+          knob.style.transform = 'translateX(0)';
+          knob.classList.remove('left-0.5');
+          knob.classList.add('right-0.5');
+        } else {
+          knob.style.transform = 'translateX(-26px)';
+        }
+        
+        // Update labels
+        monthlyLabel.classList.toggle('text-[#1A1A2E]', !isYearly);
+        monthlyLabel.classList.toggle('text-[#999999]', isYearly);
+        yearlyLabel.classList.toggle('text-[#1A1A2E]', isYearly);
+        yearlyLabel.classList.toggle('text-[#999999]', !isYearly);
+        
+        // Update prices
+        if (isYearly) {
+          proPrice.textContent = '332₽';
+          proSubtext.innerHTML = '3 990₽/год · <span class="text-[#34C759]">-17%</span>';
+          maxPrice.textContent = '665₽';
+          maxSubtext.innerHTML = '7 990₽/год · <span class="text-[#34C759]">-17%</span>';
+          proButton.href = proButton.href.replace('pro_monthly', 'pro_yearly');
+          maxButton.href = maxButton.href.replace('max_monthly', 'max_yearly');
+        } else {
+          proPrice.textContent = '399₽';
+          proSubtext.textContent = 'или 332₽/мес при оплате за год';
+          maxPrice.textContent = '799₽';
+          maxSubtext.textContent = 'или 665₽/мес при оплате за год';
+          proButton.href = proButton.href.replace('pro_yearly', 'pro_monthly');
+          maxButton.href = maxButton.href.replace('max_yearly', 'max_monthly');
+        }
+      });
+    }
+  });
+</script>

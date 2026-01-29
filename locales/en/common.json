@@ -48,5 +48,9 @@
     "daysAgo": "{{count}} days ago",
     "weeksAgo": "{{count}} weeks ago",
     "monthsAgo": "{{count}} months ago"
+  },
+  "profile": {
+    "defaultName": "User",
+    "noEmail": "No email"
   }
 }

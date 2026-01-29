@@ -5,9 +5,7 @@ require "securerandom"
 
 module Payments
   class YookassaService
-    API_BASE = "https://api.yookassa.ru".freeze
-
-    def initialize(shop_id: ENV["YOOKASSA_SHOP_ID"], secret_key: ENV["YOOKASSA_SECRET_KEY"])
+    def initialize(shop_id: YookassaConfig.shop_id, secret_key: YookassaConfig.secret_key)
       @shop_id = shop_id
       @secret_key = secret_key
     end
@@ -26,7 +24,7 @@ module Payments
     # or
     # { success: false, error: '...' }
     def create_payment(amount:, currency: "RUB", description:, metadata: {}, return_url:)
-      return { success: false, error: "YooKassa не настроена (нет YOOKASSA_SHOP_ID/YOOKASSA_SECRET_KEY)" } unless configured?
+      return { success: false, error: "YooKassa не настроена" } unless YookassaConfig.enabled?
 
       idempotence_key = SecureRandom.uuid
       payload = {
@@ -81,12 +79,8 @@ module Payments
 
     private
 
-    def configured?
-      @shop_id.present? && @secret_key.present?
-    end
-
     def connection
-      @connection ||= Faraday.new(url: API_BASE) do |f|
+      @connection ||= Faraday.new(url: YookassaConfig.api_base) do |f|
         f.request :authorization, :basic, @shop_id, @secret_key
         f.adapter Faraday.default_adapter
       end
