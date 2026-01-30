@@ -59,6 +59,7 @@ export default {
       'expo-camera',
       'expo-image-picker',
       'expo-web-browser',
+      'expo-apple-authentication',
       'react-native-iap',
       './modules/subject-lifter-plugin',
       './modules/obrazz-context-menu-plugin',
@@ -66,6 +67,7 @@ export default {
     experiments: {
       typedRoutes: true,
     },
+    newArchEnabled: true,
     extra: {
       router: {},
       eas: {

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '@services/auth/authService';
+import { oauthService } from '@services/auth/oauthService';
 import { validateEmail } from '@utils/validation/authValidation';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -25,6 +26,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
   const [error, setError] = useState('');
 
   const handleSignIn = async () => {
@@ -54,6 +56,42 @@ export default function SignInScreen() {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    Keyboard.dismiss();
+    setError('');
+    setOauthLoading('google');
+    try {
+      const result = await oauthService.signInWithGoogle();
+      if (result.success) {
+        router.replace('/(tabs)');
+      } else if (result.error && result.error !== 'Вход отменён') {
+        setError(result.error);
+      }
+    } catch {
+      setError('An unexpected error occurred');
+    } finally {
+      setOauthLoading(null);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    Keyboard.dismiss();
+    setError('');
+    setOauthLoading('apple');
+    try {
+      const result = await oauthService.signInWithApple();
+      if (result.success) {
+        router.replace('/(tabs)');
+      } else if (result.error && result.error !== 'Вход отменён') {
+        setError(result.error);
+      }
+    } catch {
+      setError('An unexpected error occurred');
+    } finally {
+      setOauthLoading(null);
     }
   };
 
@@ -140,9 +178,9 @@ export default function SignInScreen() {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, (loading || oauthLoading) && styles.buttonDisabled]}
               onPress={handleSignIn}
-              disabled={loading}
+              disabled={loading || oauthLoading !== null}
               activeOpacity={0.8}
             >
               {loading ? (
@@ -169,11 +207,35 @@ export default function SignInScreen() {
 
             {/* Social Buttons */}
             <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                <Ionicons name="logo-google" size={22} color="#000" />
+              <TouchableOpacity
+                style={[
+                  styles.socialButton,
+                  oauthLoading === 'google' && styles.socialButtonLoading,
+                ]}
+                activeOpacity={0.7}
+                onPress={handleGoogleSignIn}
+                disabled={loading || oauthLoading !== null}
+              >
+                {oauthLoading === 'google' ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Ionicons name="logo-google" size={22} color="#000" />
+                )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-                <Ionicons name="logo-apple" size={22} color="#000" />
+              <TouchableOpacity
+                style={[
+                  styles.socialButton,
+                  oauthLoading === 'apple' && styles.socialButtonLoading,
+                ]}
+                activeOpacity={0.7}
+                onPress={handleAppleSignIn}
+                disabled={loading || oauthLoading !== null}
+              >
+                {oauthLoading === 'apple' ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Ionicons name="logo-apple" size={22} color="#000" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -300,6 +362,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 8,
     width: 56,
+  },
+  socialButtonLoading: {
+    opacity: 0.7,
   },
   socialContainer: {
     flexDirection: 'row',

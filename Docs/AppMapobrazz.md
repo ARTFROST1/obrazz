@@ -2,10 +2,10 @@
 
 > This document is a comprehensive, developer- and designer-focused application map for **Obrazz** — a personal wardrobe + AI styling mobile app built with React Native. It covers every screen, interaction pattern, data flow, API considerations and functional details required to implement the MVP and extend it later.
 
-**Latest Update:** December 20, 2025
-**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)
-**Project Status:** Auth, Wardrobe Management (offline-first), 4-Tab Outfit Creator (offline-first), Shopping Browser - FULLY IMPLEMENTED
-**Next Stage:** Stage 5 - AI-анализ вещей при загрузке
+**Latest Update:** January 30, 2026
+**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First + OAuth)
+**Project Status:** Auth (Email + Google/Apple OAuth), Wardrobe Management (offline-first), 4-Tab Outfit Creator (offline-first), Shopping Browser - FULLY IMPLEMENTED
+**Next Stage:** Stage 5 - AI-функции (The New Black API)
 **Documentation Status:** ✅ Synchronized with actual implementation
 
 ---

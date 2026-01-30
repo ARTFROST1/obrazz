@@ -66,10 +66,22 @@ Rails.application.routes.draw do
   end
 
   # ==================== DASHBOARD (User Cabinet) ====================
-  # Authentication
+  # Authentication - Login
   get "login", to: "dashboard/sessions#new", as: :login
   post "login", to: "dashboard/sessions#create"
   delete "logout", to: "dashboard/sessions#destroy", as: :logout
+
+  # Authentication - Registration
+  get "signup", to: "dashboard/registrations#new", as: :signup
+  post "signup", to: "dashboard/registrations#create"
+
+  # Authentication - OAuth (Google, Apple)
+  post "auth/google", to: "dashboard/oauth#google", as: :auth_google
+  post "auth/apple", to: "dashboard/oauth#apple", as: :auth_apple
+  get "auth/oauth/callback", to: "dashboard/oauth#callback", as: :auth_oauth_callback
+  post "auth/token", to: "dashboard/oauth#token", as: :auth_token
+
+  # Legacy callback (for magic link)
   get "auth/callback", to: "dashboard/sessions#callback", as: :auth_callback
 
   # Dashboard namespace

@@ -1,8 +1,8 @@
 # 🚀 Obrazz - Полный технический стек
 
 > **Дата создания:** 12 января 2025  
-> **Последнее обновление:** 27 января 2026  
-> **Версия документа:** 1.3.0  
+> **Последнее обновление:** 30 января 2026  
+> **Версия документа:** 1.4.0  
 > **Статус:** Актуальный
 
 ## 📋 Оглавление
@@ -290,9 +290,9 @@ gem 'sentry-ruby'                  # Error tracking
 
 ```json
 {
-  "react-native-reanimated": "~4.1.1",
-  "react-native-worklets": "0.5.1",
-  "react-native-gesture-handler": "~2.28.0",
+  "react-native-reanimated": "~4.2.1",
+  "react-native-worklets": "0.7.2",
+  "react-native-gesture-handler": "~2.30.0",
   "react-native-draggable-flatlist": "^4.0.3",
   "react-native-reanimated-carousel": "^4.0.3",
   "react-native-haptic-feedback": "^2.3.3"
@@ -373,7 +373,67 @@ gem 'sentry-ruby'                  # Error tracking
 
 ## 💳 Платежи и подписки
 
-> **Статус:** 📋 Планируется (Stage 8+). В текущем проекте платежные SDK **не установлены**.
+> **Статус:** ✅ Частично реализовано (IAP инфраструктура готова)
+
+**✅ Установлено:**
+
+```json
+{
+  "react-native-iap": "^14.7.7"
+}
+```
+
+**Реализованные сервисы:**
+
+- `services/iap/iapService.ts` — In-App Purchases (iOS App Store / Google Play)
+- `services/subscription/subscriptionService.ts` — синхронизация с Rails backend
+- `store/subscription/subscriptionStore.ts` — локальное состояние подписок и токенов
+
+**Планы подписок (Rails backend):**
+
+| План | ID | Токенов/мес |
+|------|----|-------------|
+| Free | `free` | 5 |
+| Pro Monthly | `pro_monthly` | 30 |
+| Pro Yearly | `pro_yearly` | 30 |
+| Max Monthly | `max_monthly` | 50 |
+| Max Yearly | `max_yearly` | 50 |
+
+**Пакеты токенов:**
+
+- 10 токенов — `tokens_10`
+- 30 токенов — `tokens_30`
+- 100 токенов — `tokens_100`
+- 300 токенов — `tokens_300`
+
+**Документация:** [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md)
+
+---
+
+## 🔐 OAuth Authentication
+
+> **Статус:** ✅ Реализовано (Stage 4.13)
+
+**✅ Установлено:**
+
+```json
+{
+  "expo-apple-authentication": "~55.0.2",
+  "expo-auth-session": "~55.0.2",
+  "expo-web-browser": "~55.0.2"
+}
+```
+
+**Реализованные сервисы:**
+
+- `services/auth/oauthService.ts` — Google OAuth + Apple Sign In
+- Native Apple Authentication на iOS (Face ID/Touch ID)
+- Fallback на Supabase OAuth flow для других платформ
+
+**Поддерживаемые провайдеры:**
+
+- ✅ Google OAuth (все платформы)
+- ✅ Apple Sign In (iOS native + web fallback)
 
 ---
 
@@ -388,7 +448,7 @@ gem 'sentry-ruby'                  # Error tracking
   "@typescript-eslint/eslint-plugin": "^7.18.0",
   "@typescript-eslint/parser": "^7.18.0",
   "eslint": "^8.57.0",
-  "eslint-config-expo": "~10.0.0",
+  "eslint-config-expo": "~55.0.0",
   "eslint-plugin-import": "^2.31.0",
   "eslint-plugin-prettier": "^5.2.1",
   "eslint-plugin-react": "^7.37.2",

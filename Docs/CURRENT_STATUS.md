@@ -1,12 +1,12 @@
 # Obrazz — Current Status
 
-**Last Updated:** January 27, 2026  
+**Last Updated:** January 30, 2026  
 **Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor) + Expo SDK 55 migration ✅  
 **Next Stage:** Stage 5 — Rails Backend + AI Features
 
 ## What's Implemented (Stage 1–4.13)
 
-- Auth: Supabase email auth + session persistence
+- Auth: Supabase email auth + Google/Apple OAuth + session persistence
 - Wardrobe: add items (camera/gallery), crop 3:4, background removal via Pixian.ai, filters
 - Outfits: 2-step creator (selection → canvas), gestures (drag/scale/rotate), undo/redo, saved outfits
 - Shopping Browser (Web Capture): add items from online stores via in-app WebView

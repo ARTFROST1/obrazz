@@ -1,14 +1,30 @@
-<% content_for(:title) { 'Войти - Obrazz' } %>
+<% content_for(:title) { 'Регистрация - Obrazz' } %>
 
 <div class="space-y-6">
-  <!-- Email/Password Login -->
-  <%= form_with url: login_path, method: :post, class: "space-y-4", data: { turbo: false } do |f| %>
-    <!-- Email Input -->
+  <!-- Email/Password Registration -->
+  <%= form_with url: signup_path, method: :post, class: "space-y-4", data: { turbo: false } do |f| %>
+    <!-- Username Input -->
     <div>
       <div class="relative">
         <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
           <svg class="h-5 w-5 text-[#999999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+        </div>
+        <%= f.text_field :username, 
+            id: "username",
+            autocomplete: "username",
+            placeholder: "Username",
+            class: "block w-full rounded-xl border-0 bg-[#F5F5F5] py-4 pl-12 pr-4 text-[#000000] placeholder:text-[#999999] focus:ring-2 focus:ring-[#1A1A2E] text-base" %>
+      </div>
+    </div>
+
+    <!-- Email Input -->
+    <div>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+          <svg class="h-5 w-5 text-[#999999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
         </div>
         <%= f.email_field :email, 
@@ -30,14 +46,15 @@
         </div>
         <%= f.password_field :password,
             id: "password",
-            autocomplete: "current-password",
+            autocomplete: "new-password",
             required: true,
             placeholder: "Password",
+            minlength: 6,
             class: "block w-full rounded-xl border-0 bg-[#F5F5F5] py-4 pl-12 pr-12 text-[#000000] placeholder:text-[#999999] focus:ring-2 focus:ring-[#1A1A2E] text-base" %>
         <button type="button" 
-                onclick="togglePassword()" 
+                onclick="togglePassword('password', 'eye-icon-1')" 
                 class="absolute inset-y-0 right-0 flex items-center pr-4 text-[#999999] hover:text-[#666666]">
-          <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <svg id="eye-icon-1" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
@@ -45,25 +62,44 @@
       </div>
     </div>
 
-    <!-- Forgot Password -->
-    <div class="text-right">
-      <a href="#" class="text-sm text-[#666666] hover:text-[#1A1A2E] transition-colors">
-        Forgot password
-      </a>
+    <!-- Confirm Password Input -->
+    <div>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+          <svg class="h-5 w-5 text-[#999999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <%= f.password_field :password_confirmation,
+            id: "password_confirmation",
+            autocomplete: "new-password",
+            required: true,
+            placeholder: "Confirm Password",
+            minlength: 6,
+            class: "block w-full rounded-xl border-0 bg-[#F5F5F5] py-4 pl-12 pr-12 text-[#000000] placeholder:text-[#999999] focus:ring-2 focus:ring-[#1A1A2E] text-base" %>
+        <button type="button" 
+                onclick="togglePassword('password_confirmation', 'eye-icon-2')" 
+                class="absolute inset-y-0 right-0 flex items-center pr-4 text-[#999999] hover:text-[#666666]">
+          <svg id="eye-icon-2" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Login Button -->
+    <!-- Sign Up Button -->
     <div class="pt-2">
-      <%= f.submit "LOGIN", 
+      <%= f.submit "SIGN UP", 
           class: "flex w-full justify-center rounded-full bg-[#1A1A2E] py-4 text-sm font-semibold tracking-wider text-white shadow-sm hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A1A2E] transition-opacity cursor-pointer" %>
     </div>
   <% end %>
 
-  <!-- Sign Up Link -->
+  <!-- Login Link -->
   <div class="text-center pt-2">
-    <span class="text-sm text-[#666666]">Don't Have Account? </span>
-    <a href="<%= signup_path %>" class="text-sm font-semibold text-[#1A1A2E] hover:opacity-80 transition-opacity">
-      Sign Up
+    <span class="text-sm text-[#666666]">Already Have Account? </span>
+    <a href="<%= login_path %>" class="text-sm font-semibold text-[#1A1A2E] hover:opacity-80 transition-opacity">
+      Sign In
     </a>
   </div>
 
@@ -94,44 +130,21 @@
     <% end %>
   </div>
 
-  <!-- Download App Notice -->
-  <div class="mt-6 rounded-xl bg-[#F5F5F5] p-4">
-    <div class="flex items-start">
-      <div class="flex-shrink-0">
-        <svg class="h-5 w-5 text-[#1A1A2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-        </svg>
-      </div>
-      <div class="ml-3">
-        <h3 class="text-sm font-medium text-[#1A1A2E]">
-          Скачайте мобильное приложение
-        </h3>
-        <p class="mt-1 text-sm text-[#666666]">
-          Создавайте образы и управляйте гардеробом прямо со смартфона
-        </p>
-        <div class="mt-3 flex space-x-3">
-          <a href="#" class="inline-flex items-center rounded-full bg-[#1A1A2E] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-opacity">
-            <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-            </svg>
-            App Store
-          </a>
-          <a href="#" class="inline-flex items-center rounded-full border border-[#1A1A2E] px-3 py-1.5 text-xs font-medium text-[#1A1A2E] hover:bg-[#F5F5F5] transition-colors">
-            <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.802 8.99l-2.303 2.303-8.635-8.635z"/>
-            </svg>
-            Google Play
-          </a>
-        </div>
-      </div>
-    </div>
+  <!-- Terms Notice -->
+  <div class="mt-6 text-center">
+    <p class="text-xs text-[#999999]">
+      Регистрируясь, вы соглашаетесь с 
+      <a href="#" class="text-[#1A1A2E] hover:underline">Условиями использования</a> 
+      и 
+      <a href="#" class="text-[#1A1A2E] hover:underline">Политикой конфиденциальности</a>
+    </p>
   </div>
 </div>
 
 <script>
-  function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eye-icon');
+  function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(iconId);
     
     if (passwordInput.type === 'password') {
       passwordInput.type = 'text';

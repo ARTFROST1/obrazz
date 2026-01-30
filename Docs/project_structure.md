@@ -1,7 +1,7 @@
 # Project Structure - Obrazz
 
-**Last Updated:** January 26, 2026
-**Current Stage:** Stage 4.12 Complete ✅ (Offline-First Architecture реализована)
+**Last Updated:** January 30, 2026
+**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First + OAuth)
 **Documentation Status:** ✅ Synchronized with codebase
 
 ## Overview
@@ -77,11 +77,11 @@ obrazz/
 │       ├── client.ts ✅
 │       └── schema.sql ✅
 ├── services/ 📋               # Business logic services
-│   ├── auth/ ✅            # Authentication service (authService.ts)
-│   ├── wardrobe/ ✅        # Wardrobe management (Stage 3 + 4.12)
+│   ├── auth/ ✅            # Authentication service (authService.ts + oauthService.ts)
+│   ├── wardrobe/ ✅        # Wardrobe management (Stage 3 + 4.12 + 4.13)
 │   │   ├── itemService.ts ✅          # Legacy online-only service
 │   │   ├── itemServiceOffline.ts ✅   # Offline-first service (Stage 4.12)
-│   │   └── backgroundRemover.ts ✅     # Pixian.ai integration
+│   │   └── backgroundRemover.ts ✅     # Pixian.ai + Apple Vision (subject-lifter)
 │   ├── outfit/ ✅          # Outfit creation (Stage 4 + 4.12)
 │   │   ├── outfitService.ts ✅        # Legacy online-only service
 │   │   └── outfitServiceOffline.ts ✅ # Offline-first service (Stage 4.12)

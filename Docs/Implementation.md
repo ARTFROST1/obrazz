@@ -1,7 +1,7 @@
 # Implementation Plan for Obrazz
 
-**Last Updated:** January 27, 2026  
-**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First)  
+**Last Updated:** January 30, 2026  
+**Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First + OAuth)  
 **Next Stage:** Stage 5 - AI-функции (The New Black API)
 
 ---
@@ -138,6 +138,10 @@
 - [x] Базовый экран профиля с возможностью выхода
 - [x] Обработка ошибок авторизации с user-friendly сообщениями
 - [x] Создание онбординга для новых пользователей
+- [x] **OAuth интеграция** — Google OAuth + Apple Sign In (Stage 4.13)
+  - `services/auth/oauthService.ts` — реализация OAuth flow
+  - Native Apple Authentication на iOS (Face ID/Touch ID)
+  - expo-apple-authentication + expo-auth-session
 
 ### Stage 3: Wardrobe Management Core ✅
 
@@ -153,6 +157,10 @@
 - [x] Настройка локального хранения изображений (expo-file-system)
 - [x] Создание формы метаданных для вещей (категория, цвет, стиль, сезон)
 - [x] Интеграция Pixian.ai API для удаления фона
+- [x] **Apple Vision background removal** — бесплатное удаление фона на iOS 16+ (Stage 4.13)
+  - `modules/subject-lifter/` — нативный Expo модуль
+  - Автоматический fallback на Pixian для Android/старых iOS
+  - Скорость: 0.5-2 сек локально vs 2-10 сек через API
 - [x] Реализация просмотра детальной информации о вещи
 - [x] Функционал редактирования метаданных вещи
 - [x] Реализация удаления вещей с подтверждением
