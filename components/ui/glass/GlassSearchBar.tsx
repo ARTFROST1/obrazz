@@ -5,9 +5,10 @@ import React from 'react';
 import {
   Platform,
   PlatformColor,
+  Pressable,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
+  useColorScheme,
   View,
   ViewStyle,
 } from 'react-native';
@@ -25,8 +26,8 @@ interface GlassSearchBarProps {
  *
  * Features:
  * - iOS 26+: Native liquid glass effect with translucency
- * - iOS < 26 / Android: Standard search bar with gray background
- * - Auto-adapts to light/dark mode on iOS 26+
+ * - iOS < 26 / Android: Material Design 3 style search bar
+ * - Auto-adapts to light/dark mode
  * - Clear button when text is present
  *
  * Usage:
@@ -48,6 +49,8 @@ export const GlassSearchBar: React.FC<GlassSearchBarProps> = ({
   onClear,
 }) => {
   const supportsLiquidGlass = CAN_USE_LIQUID_GLASS;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   // CRITICAL: Delay mounting GlassView until component is stable
   const [mounted, setMounted] = React.useState(false);
@@ -69,10 +72,23 @@ export const GlassSearchBar: React.FC<GlassSearchBarProps> = ({
 
   // Dynamic colors that adapt to light/dark mode
   const iconColor =
-    Platform.OS === 'ios' && supportsLiquidGlass ? PlatformColor('secondaryLabel') : '#666';
-  const textColor = Platform.OS === 'ios' && supportsLiquidGlass ? PlatformColor('label') : '#000';
+    Platform.OS === 'ios' && supportsLiquidGlass
+      ? PlatformColor('secondaryLabel')
+      : isDark
+        ? '#8E8E93'
+        : '#666666';
+  const textColor =
+    Platform.OS === 'ios' && supportsLiquidGlass
+      ? PlatformColor('label')
+      : isDark
+        ? '#FFFFFF'
+        : '#000000';
   const placeholderColor =
-    Platform.OS === 'ios' && supportsLiquidGlass ? PlatformColor('tertiaryLabel') : '#999';
+    Platform.OS === 'ios' && supportsLiquidGlass
+      ? PlatformColor('tertiaryLabel')
+      : isDark
+        ? '#636366'
+        : '#999999';
 
   const content = (
     <>
@@ -86,14 +102,22 @@ export const GlassSearchBar: React.FC<GlassSearchBarProps> = ({
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
+        // Android-specific improvements
+        underlineColorAndroid="transparent"
+        selectionColor={isDark ? '#007AFF' : '#007AFF'}
       />
       {value.length > 0 && (
-        <TouchableOpacity
+        <Pressable
           onPress={handleClear}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          android_ripple={{
+            color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+            borderless: true,
+            radius: 16,
+          }}
         >
           <Ionicons name="close-circle" size={20} color={iconColor} />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -113,8 +137,18 @@ export const GlassSearchBar: React.FC<GlassSearchBarProps> = ({
     );
   }
 
-  // Fallback: Standard search bar for iOS < 26, Android, or during mount delay
-  return <View style={[styles.container, styles.fallbackContainer, style]}>{content}</View>;
+  // Fallback: Material Design 3 style search bar for iOS < 26, Android, or during mount delay
+  return (
+    <View
+      style={[
+        styles.container,
+        isDark ? styles.fallbackContainerDark : styles.fallbackContainerLight,
+        style,
+      ]}
+    >
+      {content}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -129,8 +163,21 @@ const styles = StyleSheet.create({
     // GlassView handles background automatically
     overflow: 'hidden',
   },
-  fallbackContainer: {
-    backgroundColor: '#F8F8F8',
+  fallbackContainerLight: {
+    backgroundColor: '#F2F2F7',
+    ...Platform.select({
+      android: {
+        elevation: 1,
+      },
+    }),
+  },
+  fallbackContainerDark: {
+    backgroundColor: '#1C1C1E',
+    ...Platform.select({
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   icon: {
     marginRight: 10,

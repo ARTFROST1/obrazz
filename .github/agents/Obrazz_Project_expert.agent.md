@@ -1,3 +1,21 @@
+---
+description: 'This custom agent is a specialized expert for the Obrazz project, a mobile wardrobe management app with AI stylist features. The agent has deep knowledge of the architecture, codebase, business logic, and tech stack of both the React Native app and the Rails backend.'
+tools:
+  [
+    'vscode',
+    'execute',
+    'read',
+    'edit',
+    'search',
+    'web',
+    'io.github.chromedevtools/chrome-devtools-mcp/*',
+    'obrazz_render/*',
+    'obrazz_supabase/*',
+    'agent',
+    'todo',
+  ]
+---
+
 # Obrazz Expert Agent
 
 **Purpose.** Специализированный агент-эксперт для Obrazz — мобильного приложения для управления гардеробом с AI-стилистом. Агент обладает глубокими знаниями архитектуры, кодовой базы, бизнес-логики и технического стека как React Native приложения, так и Rails backend.

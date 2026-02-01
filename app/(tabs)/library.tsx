@@ -49,6 +49,7 @@ const OUTFITS_BG_GLASS = 'transparent';
 // Segment control height for header offset calculation
 const SEGMENT_CONTROL_HEIGHT = 44;
 const SEGMENT_CONTROL_MARGIN = 12;
+const SEGMENT_CONTROL_EXTRA_SPACING = 12;
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
@@ -150,7 +151,8 @@ export default function LibraryScreen() {
   );
 
   // Calculate header offset for tabs (includes segment control)
-  const segmentControlOffset = SEGMENT_CONTROL_HEIGHT + SEGMENT_CONTROL_MARGIN;
+  const segmentControlOffset =
+    SEGMENT_CONTROL_HEIGHT + SEGMENT_CONTROL_MARGIN + SEGMENT_CONTROL_EXTRA_SPACING;
 
   return (
     <Animated.View
@@ -162,7 +164,7 @@ export default function LibraryScreen() {
         style={[
           styles.segmentControlContainer,
           {
-            top: insets.top + 60, // Below header (search bar height ~56 + padding)
+            top: insets.top + 60 + SEGMENT_CONTROL_EXTRA_SPACING,
           },
         ]}
       >

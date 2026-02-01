@@ -38,7 +38,7 @@ interface PurchaseModalProps {
 export function PurchaseModal({ visible, type, onClose }: PurchaseModalProps) {
   const { t } = useTranslation('profile');
   const insets = useSafeAreaInsets();
-  const { paymentRegion, subscription } = useSubscriptionStore();
+  const { paymentRegion } = useSubscriptionStore();
 
   const [products, setProducts] = useState<ProductInfo[]>([]);
   const [loading, setLoading] = useState(true);

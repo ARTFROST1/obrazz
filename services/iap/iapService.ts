@@ -122,7 +122,19 @@ class IAPService {
 
       this.isInitialized = true;
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      // Check if running on emulator without billing support (expected error)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isEmulatorError =
+        errorMessage.includes('Failed to initialize') ||
+        errorMessage.includes('billing') ||
+        errorMessage.includes('init-connection');
+
+      if (isEmulatorError && __DEV__) {
+        console.log('[IAPService] IAP not available (emulator/dev environment) - skipping');
+        return false;
+      }
+
       console.error('[IAPService] Failed to initialize:', error);
       return false;
     }
@@ -290,7 +302,7 @@ class IAPService {
   private async validateAndFinishPurchase(purchase: Purchase): Promise<void> {
     if (!this.iapModule) return;
 
-    const { transactionReceipt, transactionId, productId } = purchase;
+    const { transactionReceipt, productId } = purchase;
 
     if (!transactionReceipt) {
       console.warn('[IAPService] No receipt for purchase:', productId);

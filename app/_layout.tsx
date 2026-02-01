@@ -110,14 +110,22 @@ function RootLayoutNav() {
     });
 
     // Initialize IAP connection (only on native platforms)
+    // Skip error logging in dev mode as billing is not available on emulator
     if (Platform.OS !== 'web') {
       iapService
         .initialize()
-        .then(() => {
-          console.log('[RootLayoutNav] ✓ IAP service initialized');
+        .then((success) => {
+          if (success) {
+            console.log('[RootLayoutNav] ✓ IAP service initialized');
+          } else if (__DEV__) {
+            console.log('[RootLayoutNav] IAP skipped (dev/emulator)');
+          }
         })
-        .catch((error) => {
-          console.error('[RootLayoutNav] Failed to initialize IAP service:', error);
+        .catch(() => {
+          // Silently ignore in dev mode - expected on emulator
+          if (!__DEV__) {
+            console.error('[RootLayoutNav] Failed to initialize IAP service');
+          }
         });
     }
 

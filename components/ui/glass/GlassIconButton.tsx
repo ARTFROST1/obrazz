@@ -7,9 +7,10 @@ import {
   PlatformColor,
   Pressable,
   StyleSheet,
-  TouchableOpacity,
+  useColorScheme,
   ViewStyle,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 interface GlassIconButtonProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -20,15 +21,18 @@ interface GlassIconButtonProps {
   accessibilityLabel?: string;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 /**
  * GlassIconButton - Circular icon button with liquid glass effect on iOS 26+
  *
  * Features:
  * - iOS 26+: Native liquid glass effect with translucency (no wrapper)
- * - iOS < 26 / Android: Semi-transparent fallback
+ * - iOS < 26 / Android: Material Design 3 style with subtle shadow
  * - Auto-adapts to light/dark mode
  * - Three sizes: small (36), medium (44), large (56)
  * - Customizable icon from Ionicons
+ * - Press animation on all platforms
  *
  * Usage:
  * ```tsx
@@ -51,6 +55,9 @@ export const GlassIconButton: React.FC<GlassIconButtonProps> = ({
   accessibilityLabel,
 }) => {
   const supportsLiquidGlass = CAN_USE_LIQUID_GLASS;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const scale = useSharedValue(1);
 
   // Size configurations
   const sizeConfig = {
@@ -65,21 +72,38 @@ export const GlassIconButton: React.FC<GlassIconButtonProps> = ({
     borderRadius: sizeConfig.container / 2,
   };
 
-  // iOS 26+: use dynamic label color by default; older iOS/Android keep current black.
+  // iOS 26+: use dynamic label color by default; older iOS/Android keep theme-aware color.
   const defaultIconColor =
     iconColor ??
     (supportsLiquidGlass && Platform.OS === 'ios'
       ? (PlatformColor('label') as unknown as string)
-      : '#000000');
+      : isDark
+        ? '#FFFFFF'
+        : '#000000');
+
+  // Press animation handlers
+  const handlePressIn = () => {
+    scale.value = withSpring(0.92, { damping: 15, stiffness: 200 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   // iOS 26+: Native Liquid Glass with Pressable
   if (supportsLiquidGlass) {
     return (
-      <Pressable
+      <AnimatedPressable
         onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        style={style}
+        style={[animatedStyle, style]}
       >
         <GlassView
           style={[styles.glassContainer, containerStyle]}
@@ -88,21 +112,33 @@ export const GlassIconButton: React.FC<GlassIconButtonProps> = ({
         >
           <Ionicons name={icon} size={sizeConfig.icon} color={defaultIconColor} />
         </GlassView>
-      </Pressable>
+      </AnimatedPressable>
     );
   }
 
-  // Fallback: Semi-transparent button for iOS < 26 and Android
+  // Fallback: Material Design 3 style button for iOS < 26 and Android
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={onPress}
-      style={[styles.fallbackContainer, containerStyle, style]}
-      activeOpacity={0.7}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
+        styles.fallbackContainer,
+        containerStyle,
+        isDark ? styles.fallbackContainerDark : styles.fallbackContainerLight,
+        animatedStyle,
+        style,
+      ]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      android_ripple={{
+        color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+        borderless: true,
+        radius: sizeConfig.container / 2,
+      }}
     >
       <Ionicons name={icon} size={sizeConfig.icon} color={defaultIconColor} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -115,7 +151,10 @@ const styles = StyleSheet.create({
   fallbackContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    overflow: 'hidden',
+  },
+  fallbackContainerLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -124,7 +163,21 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
+      },
+    }),
+  },
+  fallbackContainerDark: {
+    backgroundColor: 'rgba(45, 45, 47, 0.9)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
       },
     }),
   },

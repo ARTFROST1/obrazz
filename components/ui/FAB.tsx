@@ -6,9 +6,10 @@ import React from 'react';
 import {
   Platform,
   PlatformColor,
+  Pressable,
   StyleProp,
   StyleSheet,
-  TouchableOpacity,
+  useColorScheme,
   ViewStyle,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -30,14 +31,14 @@ export interface FABProps {
   liquidGlassEnabled?: boolean;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedGlassView = Animated.createAnimatedComponent(GlassView);
 
 /**
  * Floating Action Button (FAB)
  *
- * Reusable FAB component following Material Design principles.
- * Uses native iOS 26 Liquid Glass on supported devices, with graceful fallback.
+ * Reusable FAB component following Material Design 3 principles.
+ * Uses native iOS 26 Liquid Glass on supported devices, with Material Design fallback.
  * Used for primary actions like creating new content.
  *
  * @example
@@ -62,7 +63,8 @@ export const FAB: React.FC<FABProps> = ({
   liquidGlassEnabled,
 }) => {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   // Check iOS 26+ support for native liquid glass
   const supportsLiquidGlass = liquidGlassEnabled ?? CAN_USE_LIQUID_GLASS;
@@ -80,27 +82,34 @@ export const FAB: React.FC<FABProps> = ({
     }
   }, [supportsLiquidGlass]);
 
-  // Dynamic icon color based on theme
+  // Dynamic icon color based on theme and platform
   const dynamicIconColor =
-    Platform.OS === 'ios' && supportsLiquidGlass ? PlatformColor('label') : iconColor;
+    Platform.OS === 'ios' && supportsLiquidGlass
+      ? PlatformColor('label')
+      : Platform.OS === 'android'
+        ? '#FFFFFF'
+        : iconColor;
+
+  // Android FAB background color (Material Design 3 - Primary Container)
+  const androidBgColor = isDark ? '#1C1C1E' : '#FFFFFF';
+  const androidIconColor = isDark ? '#FFFFFF' : '#000000';
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, {
+    scale.value = withSpring(0.92, {
       damping: 15,
-      stiffness: 150,
+      stiffness: 200,
     });
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, {
       damping: 15,
-      stiffness: 150,
+      stiffness: 200,
     });
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: opacity.value,
   }));
 
   const fabStyle: ViewStyle = {
@@ -112,11 +121,10 @@ export const FAB: React.FC<FABProps> = ({
   // iOS 26+: Native Liquid Glass Button
   if (supportsLiquidGlass && mounted) {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={0.95}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
         testID={testID}
@@ -129,32 +137,47 @@ export const FAB: React.FC<FABProps> = ({
         >
           <Ionicons name={icon as any} size={28} color={dynamicIconColor} />
         </AnimatedGlassView>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
-  // Fallback: Standard button for iOS < 26, Android, or during mount delay
+  // Fallback: Material Design 3 FAB for iOS < 26 and Android
   return (
-    <AnimatedTouchable
-      style={[styles.container, styles.fab, fabStyle, animatedStyle, { backgroundColor }, style]}
+    <AnimatedPressable
+      style={[
+        styles.container,
+        styles.fab,
+        fabStyle,
+        animatedStyle,
+        Platform.OS === 'android' ? { backgroundColor: androidBgColor } : { backgroundColor },
+        style,
+      ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      activeOpacity={0.9}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       testID={testID}
+      android_ripple={{
+        color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+        borderless: true,
+        radius: size / 2,
+      }}
     >
-      <Ionicons name={icon as any} size={28} color={dynamicIconColor} />
-    </AnimatedTouchable>
+      <Ionicons
+        name={icon as any}
+        size={28}
+        color={Platform.OS === 'android' ? androidIconColor : dynamicIconColor}
+      />
+    </AnimatedPressable>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : TAB_BAR_TOTAL_HEIGHT + 16,
-    right: 16,
+    bottom: Platform.OS === 'ios' ? 120 : TAB_BAR_TOTAL_HEIGHT + 20,
+    right: 20,
   },
   fab: {
     justifyContent: 'center',
@@ -167,7 +190,12 @@ const styles = StyleSheet.create({
         shadowRadius: 24,
       },
       android: {
-        elevation: 8,
+        elevation: 6,
+        // Material Design 3 shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
       web: {
         boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',

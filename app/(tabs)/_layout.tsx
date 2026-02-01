@@ -1,5 +1,4 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { FloatingTabBar } from '@components/navigation/FloatingTabBar';
 import { useTranslation } from '@hooks/useTranslation';
 import { IS_IOS_26_OR_NEWER } from '@utils/platform';
 import { Tabs, usePathname } from 'expo-router';
@@ -11,22 +10,6 @@ import Colors from '../../constants/Colors';
 
 // Shared platform detection (computed once per JS bundle load)
 const supportsLiquidGlass = IS_IOS_26_OR_NEWER;
-
-// Tab bar icon component for Android
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
-}
-
-// Tab bar icon component for Android (Ionicons)
-function TabBarIconIonic(props: {
-  name: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-}) {
-  return <Ionicons size={24} style={{ marginBottom: -3 }} {...props} />;
-}
 
 export default function TabLayout() {
   const { t } = useTranslation('navigation');
@@ -40,60 +23,20 @@ export default function TabLayout() {
   // Hide tab bar on add screen
   const shouldHideTabBar = pathname.includes('/add');
 
-  // Android: Floating bottom nav with Apple-inspired design (3 tabs + floating plus)
+  // Android: Custom floating tab bar with split layout (3 main tabs + action button)
   if (Platform.OS === 'android') {
-    const currentColorScheme = colorScheme === 'dark' ? 'dark' : 'light';
     return (
       <View style={styles.container}>
         <Tabs
+          tabBar={(props) => <FloatingTabBar {...props} />}
           screenOptions={{
-            tabBarActiveTintColor: Colors[currentColorScheme].tint,
             headerShown: false,
-            tabBarStyle: shouldHideTabBar
-              ? { display: 'none' } // Hide on add screen
-              : {
-                  // Floating nav styling - 4 tabs total
-                  position: 'absolute',
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  height: 65,
-                  paddingBottom: 8,
-                  paddingTop: 8,
-
-                  // Rounded corners and background
-                  backgroundColor: isDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                  borderRadius: 24,
-
-                  // Remove default border
-                  borderTopWidth: 0,
-
-                  // Shadow for floating effect
-                  elevation: 12,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: isDark ? 0.4 : 0.15,
-                  shadowRadius: 12,
-
-                  // Subtle border
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-                },
-            tabBarLabelStyle: {
-              fontSize: 11,
-              fontWeight: '600',
-              marginBottom: 2,
-            },
-            tabBarIconStyle: {
-              marginTop: 2,
-            },
           }}
         >
           <Tabs.Screen
             name="index"
             options={{
               title: t('tabs.home'),
-              tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
               headerShown: false,
             }}
           />
@@ -101,7 +44,6 @@ export default function TabLayout() {
             name="library"
             options={{
               title: t('tabs.library'),
-              tabBarIcon: ({ color }) => <TabBarIconIonic name="library" color={color} />,
               headerShown: false,
             }}
           />
@@ -109,14 +51,14 @@ export default function TabLayout() {
           <Tabs.Screen
             name="wardrobe"
             options={{
-              href: null, // Hide from tab bar
+              href: null,
               headerShown: false,
             }}
           />
           <Tabs.Screen
             name="outfits"
             options={{
-              href: null, // Hide from tab bar
+              href: null,
               headerShown: false,
             }}
           />
@@ -124,7 +66,6 @@ export default function TabLayout() {
             name="profile"
             options={{
               title: t('tabs.profile'),
-              tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
               headerShown: false,
             }}
           />
@@ -132,9 +73,6 @@ export default function TabLayout() {
             name="add"
             options={{
               title: '',
-              tabBarIcon: ({ color }) => (
-                <TabBarIcon name={isProfileTab ? 'gear' : 'plus'} color={color} />
-              ),
               headerShown: false,
             }}
           />

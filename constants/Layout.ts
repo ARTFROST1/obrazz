@@ -7,13 +7,13 @@ import { Platform } from 'react-native';
 // Bottom tab bar dimensions
 export const TAB_BAR_HEIGHT = Platform.select({
   ios: 0, // iOS uses native tab bar, no extra padding needed
-  android: 65, // Height of the floating tab bar
+  android: 68, // Height of the floating tab bar (M3 style)
   default: 0,
 });
 
 export const TAB_BAR_MARGIN_BOTTOM = Platform.select({
   ios: 0,
-  android: 16, // Bottom margin for floating effect
+  android: 20, // Bottom margin for floating effect (M3 style)
   default: 0,
 });
 
