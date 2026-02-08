@@ -20,16 +20,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLibraryStore } from '@store/library/libraryStore';
 import { router } from 'expo-router';
 import React from 'react';
-import {
-  Alert,
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function AddScreen() {
   const { activeTab, lastVisitedTab } = useLibraryStore();

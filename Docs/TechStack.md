@@ -1,8 +1,8 @@
 # 🚀 Obrazz - Полный технический стек
 
 > **Дата создания:** 12 января 2025  
-> **Последнее обновление:** 30 января 2026  
-> **Версия документа:** 1.4.0  
+> **Последнее обновление:** 8 февраля 2026  
+> **Версия документа:** 1.5.0  
 > **Статус:** Актуальный
 
 ## 📋 Оглавление
@@ -104,47 +104,44 @@
 
 ---
 
-## 🗄️ Backend - Rails & Supabase & Node.js
+## 🗄️ Backend - Node.js/Hono & Rails & Supabase
 
-### Ruby on Rails Backend (Fullstack - Бизнес-логика)
+### obrazz-api (Node.js + Hono — основной бэкенд API)
 
-**📋 Для Stage 8 (Подписки и биллинг):**
+> **Статус:** ✅ Реализовано. Основной бэкенд для мобильного приложения.
 
-```ruby
-# Gemfile - основные зависимости (ориентир)
-gem 'rails', '~> 8.0'
-gem 'puma', '~> 6.0'
-gem 'pg', '~> 1.5'                 # PostgreSQL (Supabase)
-
-# Background Jobs (Rails 8)
-gem 'solid_queue'                  # database-backed jobs (без Redis)
-gem 'mission_control-jobs'         # Web UI для очередей (опционально)
-
-# (опционально) если понадобится Redis/Sidekiq позже
-gem 'redis', '~> 5.0'
-gem 'sidekiq', '~> 7.2'
-
-# Auth (интеграция с Supabase)
-gem 'jwt'                          # JWT валидация
-
-# Payments
-gem 'stripe', '~> 10.0'            # (опционально) Stripe
-gem 'faraday'                      # HTTP клиент (в т.ч. для YooKassa API)
-gem 'pay', '~> 7.0'                # (опционально) абстракция платежей
-
-# Frontend (Dashboard)
-gem 'turbo-rails'                  # Hotwire Turbo
-gem 'stimulus-rails'               # Hotwire Stimulus
-gem 'tailwindcss-rails'            # Стили
-
-# Admin & Monitoring
-gem 'administrate'                 # Admin панель (опционально)
-gem 'sentry-ruby'                  # Error tracking
+```json
+{
+  "hono": "^4.7.0",
+  "@hono/node-server": "^1.13.0",
+  "@supabase/supabase-js": "^2.51.0",
+  "jsonwebtoken": "^9.0.2",
+  "dotenv": "^16.4.0"
+}
 ```
 
-**Примечание (актуально для `obrazz-rails`):** сейчас используется Rails 8 + Solid Queue (без Redis), YooKassa интеграция сделана через сервис на Faraday, а админка реализована как custom Rails views (HTTP Basic). Administrate можно подключать позже при необходимости.
+**Назначение:** AI-генерации (proxy к FASHN AI), токены, платежи (YooKassa), подписки, пользователи.
 
-**Документация:** [Extra/Features/Backend.md](./Extra/Features/Backend.md)
+**Деплой:** Docker на Render (Frankfurt).
+
+### obrazz-admin (Rails 8 — админ-панель)
+
+> **Статус:** ✅ Реализовано. Отдельная Rails-приложение для администрирования.
+
+```ruby
+# Gemfile - основные зависимости
+gem 'rails', '~> 8.0.4'
+gem 'puma', '>= 5.0'
+gem 'pg', '~> 1.1'
+gem 'kaminari', '~> 1.2'
+gem 'bcrypt', '~> 3.1.7'
+gem 'sentry-ruby', '~> 5.21'
+gem 'sentry-rails', '~> 5.21'
+```
+
+**Примечание:** Админка использует HTTP Basic Auth, Kaminari для пагинации. Деплой — Docker на Render (Frankfurt).
+
+> ⚠️ **Архивированный проект `obrazz-rails`** (`archived/obrazz-rails/`) — старый Rails-монолит, который ранее совмещал API + Dashboard + Admin. Заменён на образ-api (Hono) + образ-admin (Rails 8). **Не используется.**
 
 ### Supabase клиент и библиотеки
 
@@ -160,22 +157,24 @@ gem 'sentry-ruby'                  # Error tracking
 
 `@supabase/auth-helpers-react` — отдельный пакет и в текущем проекте не используется.
 
-### The New Black AI (Внешний API)
+### FASHN AI (Внешний API)
 
-> **Статус:** 📋 Планируется (Stage 5+). Интеграция в текущей кодовой базе ещё не реализована.
+> **Статус:** ✅ Интеграция реализована в obrazz-api (Stage 5).
 
-> **Примечание:** Вместо отдельного NestJS микросервиса используем готовый The New Black Fashion AI API.
-> Rails backend выступает proxy и сохраняет результаты в Supabase Storage.
+> **Архитектура:** Mobile → obrazz-api (Hono) → FASHN AI (api.fashn.ai/v1).
+> Мобильный клиент **не** обращается к FASHN AI напрямую.
+> obrazz-api выступает proxy: проверяет токены, дебитует баланс, отправляет запрос в FASHN AI, сохраняет результат.
 
-**API Endpoints:**
+**API Endpoints (FASHN AI):**
 
-- Virtual Try-On: `POST /api/1.1/wf/vto_stream` (1 credit)
-- AI Fashion Models: `POST /api/1.1/wf/ai-fashion-models-items` (1 credit)
-- Clothing Variation: `POST /api/1.1/wf/variation` (1 credit)
-- Fashion Design: `POST /api/1.1/wf/clothing` (1 credit)
+- Virtual Try-On: `POST https://api.fashn.ai/v1/run` (1 токен)
+- Статус: `GET https://api.fashn.ai/v1/status/{pred_id}`
+- AI Fashion Models: через тот же endpoint с другими параметрами (1 токен)
+- Clothing Variation: через тот же endpoint (1 токен)
 
-**Pricing:** $5-80 за пакеты от 40 до 1000 credits
-**Документация:** https://thenewblack.ai/clothing_fashion_api_integrations
+**Реализация в obrazz-api:** `src/services/ai/fashn.service.ts` (API-клиент), `src/services/ai/generation.service.ts` (оркестрация)
+
+**Документация:** https://docs.fashn.ai/
 
 ````
 
@@ -340,9 +339,11 @@ gem 'sentry-ruby'                  # Error tracking
 
 ### Обработка изображений и удаление фона
 
-> **Реализовано:** Pixian.ai API через `fetch` (без отдельного npm SDK).
+> **Реализовано:** Двойной pipeline:
+> - **Primary:** Apple Vision через native module `subject-lifter` (iOS 16+, on-device, бесплатно)
+> - **Fallback:** Pixian.ai API через `fetch` (для Android или старых iOS)
 >
-> **Код:** `services/wardrobe/backgroundRemover.ts`.
+> **Код:** `services/wardrobe/backgroundRemover.ts`, `modules/subject-lifter/`.
 
 **📋 Опционально для будущих стадий (не установлено):** локальная сегментация/фильтры/редакторы.
 
@@ -352,9 +353,9 @@ gem 'sentry-ruby'                  # Error tracking
 
 ### AI интеграции (Stage 5+)
 
-> **Статус:** 📋 Планируется. В текущей мобильной кодовой базе SDK для OpenAI/Anthropic/Google и др. **не установлены**.
+> **Статус:** ✅ Частично реализовано (Stage 5). В мобильной кодовой базе SDK для OpenAI/Anthropic/Google **не установлены** (не нужны).
 >
-> **Архитектура:** Mobile → Rails API → The New Black API (клиент **не ходит** в The New Black напрямую).
+> **Архитектура:** Mobile → obrazz-api (Hono) → FASHN AI (api.fashn.ai/v1). Клиент **не ходит** в FASHN AI напрямую.
 
 ### Обработка стилей и цветов
 
@@ -386,27 +387,46 @@ gem 'sentry-ruby'                  # Error tracking
 **Реализованные сервисы:**
 
 - `services/iap/iapService.ts` — In-App Purchases (iOS App Store / Google Play)
-- `services/subscription/subscriptionService.ts` — синхронизация с Rails backend
+- `services/subscription/subscriptionService.ts` — синхронизация статуса подписки/токенов с backend API (**env var сейчас называется `EXPO_PUBLIC_RAILS_API_URL` — историческое имя**)
 - `store/subscription/subscriptionStore.ts` — локальное состояние подписок и токенов
 
-**Планы подписок (Rails backend):**
+### Планы/пакеты: backend vs mobile
 
-| План | ID | Токенов/мес |
-|------|----|-------------|
-| Free | `free` | 5 |
-| Pro Monthly | `pro_monthly` | 30 |
-| Pro Yearly | `pro_yearly` | 30 |
-| Max Monthly | `max_monthly` | 50 |
-| Max Yearly | `max_yearly` | 50 |
+В репозитории сейчас есть **два источника правды**, которые нужно привести к одному:
 
-**Пакеты токенов:**
+1) **Backend entitlements (реально в `obrazz-api`)** — что сервер поддерживает сегодня.
+2) **Mobile product IDs (реально в `obrazz/`)** — какие IAP-продукты и цены ожидает текущий код UI/сервисов.
 
-- 10 токенов — `tokens_10`
-- 30 токенов — `tokens_30`
-- 100 токенов — `tokens_100`
-- 300 токенов — `tokens_300`
+#### 1) Backend entitlements (`obrazz-api`)
 
-**Документация:** [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md)
+| План | ID | Токенов/мес | Цена (RUB) |
+|------|----|-------------|------------|
+| Free | `free` | 0 | 0 |
+| Pro Monthly | `pro_monthly` | 100 | 499 |
+| Pro Yearly | `pro_yearly` | 100 | 3 999 |
+
+> **Бонус при регистрации:** 3 токена (срок действия 30 дней).
+
+**Пакеты токенов (единоразовая покупка, `obrazz-api`):**
+
+| Пакет | ID | Токенов | Цена (RUB) |
+|-------|----|---------|------------|
+| 10 токенов | `pack_10` | 10 | 99 |
+| 50 токенов | `pack_50` | 50 | 399 |
+| 100 токенов | `pack_100` | 100 | 699 |
+| 500 токенов | `pack_500` | 500 | 2 999 |
+
+#### 2) Mobile IAP product IDs (текущее состояние кода)
+
+> ⚠️ В мобильном коде сейчас всё ещё присутствуют **legacy** продукты (`max_*`, `tokens_30`, `tokens_300`) и формулировки про “Rails backend”.
+> Серверная часть `obrazz-api` **не поддерживает** `max_*` и использует **`pack_*`** вместо **`tokens_*`**.
+
+- Subscriptions (mobile): `com.obrazz.pro_monthly`, `com.obrazz.pro_yearly`, **legacy:** `com.obrazz.max_monthly`, `com.obrazz.max_yearly`
+- Token packs (mobile): `com.obrazz.tokens_10`, `com.obrazz.tokens_30`, `com.obrazz.tokens_100`, `com.obrazz.tokens_300`
+
+**Рекомендуемая цель для унификации:** mobile → `pro_monthly`/`pro_yearly` и token packs → `pack_10`/`pack_50`/`pack_100`/`pack_500` (как в `obrazz-api`).
+
+**Документация:** см. [Docs/Implementation.md](obrazz/Docs/Implementation.md) и API README: [obrazz-api/README.md](obrazz-api/README.md)
 
 ---
 

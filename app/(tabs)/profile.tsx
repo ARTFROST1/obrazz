@@ -33,7 +33,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   Platform,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -41,6 +40,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const { user } = useAuthStore();

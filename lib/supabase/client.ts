@@ -129,7 +129,12 @@ const storage = Platform.OS === 'web' ? WebStorage : createSafeStorage(AsyncStor
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage,
-    autoRefreshToken: true,
+    // In dev (especially emulator/offline), Supabase's background token refresh can
+    // trigger unhandled fetch errors ("Network request failed") that show as redboxes.
+    // Keep it enabled for production; allow explicit opt-in for dev when needed.
+    autoRefreshToken: __DEV__
+      ? process.env.EXPO_PUBLIC_ENABLE_SUPABASE_AUTO_REFRESH_DEV === 'true'
+      : true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
   },

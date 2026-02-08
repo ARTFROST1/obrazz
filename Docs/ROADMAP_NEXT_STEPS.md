@@ -1,23 +1,21 @@
 # 🚀 Obrazz — Roadmap & Next Steps
 
-> **Дата обновления:** 30 января 2026  
+> **Дата обновления:** 8 февраля 2026  
 > **Автор:** AI Assistant (анализ документации и кода)  
-> **Статус:** Stage 4.13 завершён (Navigation Refactor + OAuth + Expo SDK 55 migration). Следующий этап: Stage 5 (AI + Rails Backend).
+> **Статус:** Stage 4.13 завершён (Navigation Refactor + OAuth + Expo SDK 55 migration). Следующий этап: Stage 5 (AI Features + Backend Integration).
 
 ---
 
-## 🆕 Новый документ: Rails Backend Implementation Plan
+## 🆕 Бэкенд экосистема
 
-> **Создан:** 27 января 2026  
-> **Путь:** [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md)
+> **Актуально:** Монолитный Rails backend (`obrazz-rails`) архивирован и заменён на два отдельных сервиса:
 
-Полный план реализации Ruby on Rails backend с:
+| Сервис          | Стек                        | Назначение                                                         |
+| --------------- | --------------------------- | ------------------------------------------------------------------ |
+| `obrazz-api/`   | Node.js + Hono + TypeScript | API для мобильного: AI (FASHN AI proxy), токены, платежи, подписки |
+| `obrazz-admin/` | Rails 8.0.4                 | Админ-панель: аналитика, модерация, управление пользователями      |
 
-- **Solid Queue** вместо Redis/Sidekiq (работает на Render Free Tier)
-- AI-интеграция (The New Black API)
-- Система токенов и биллинг (YooKassa + IAP)
-- Личный кабинет пользователя (Hotwire + Tailwind)
-- Админ-панель (custom Rails views; Administrate/ActiveAdmin опционально)
+> ℹ️ Документ [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md) описывает **архивированный** Rails-монолит. Актуальная архитектура — см. obrazz-api/ и obrazz-admin/.
 
 ---
 
@@ -31,14 +29,14 @@ Obrazz находится на ключевом этапе развития. **�
 - ✅ Shopping Browser (Web Capture) — добавление вещей из интернет-магазинов
 - ✅ Offline-first архитектура — локальное хранение, очередь синхронизации
 
-**🎯 Текущий приоритет:** Stage 5 — AI-функции (через Rails proxy)
+**🎯 Текущий приоритет:** Stage 5 — AI-функции (через obrazz-api → FASHN AI)
 
 **Ближайшие этапы:**
 
 1. ✅ **Stage 4.13: Navigation Refactor** — объединение Гардероба и Образов, кнопка "+" (завершено)
-2. **Stage 5: AI-функции** — интеграция The New Black API
-3. **Stage 6: Rails Backend** — подписки, токены, AI proxy
-4. **Stage 7: Платежи** — IAP + веб-биллинг
+2. **Stage 5: AI-функции** — интеграция FASHN AI (api.fashn.ai/v1)
+3. **Stage 6: Backend Integration** — подписки, токены, AI proxy (через obrazz-api)
+4. **Stage 7: Платежи** — IAP + YooKassa
 
 ---
 
@@ -124,17 +122,17 @@ Obrazz находится на ключевом этапе развития. **�
 
 ### Высокий приоритет (Core для MVP/релиза):
 
-| Функция                    | Статус       | Зависимости  |
-| -------------------------- | ------------ | ------------ |
-| **Navigation Refactor**    | ✅ Завершён  | —            |
-| **Rails Backend**          | 📋 Не начато | Nav Refactor |
-| **AI Virtual Try-On**      | 📋 Не начато | Backend      |
-| **AI Fashion Models**      | 📋 Не начато | Backend      |
-| **Система токенов**        | 📋 Не начато | Backend      |
-| **Подписки (IAP)**         | 📋 Не начато | Backend      |
-| **Веб-биллинг (YooMoney)** | 📋 Не начато | Backend      |
-| **Onboarding**             | 📋 Не начато | —            |
-| **Paywall**                | 📋 Не начато | Подписки     |
+| Функция                      | Статус         | Зависимости  |
+| ---------------------------- | -------------- | ------------ |
+| **Navigation Refactor**      | ✅ Завершён    | —            |
+| **Backend API (obrazz-api)** | ✅ Реализовано | Nav Refactor |
+| **AI Virtual Try-On**        | 📋 Не начато   | Backend      |
+| **AI Fashion Models**        | 📋 Не начато   | Backend      |
+| **Система токенов**          | 📋 Не начато   | Backend      |
+| **Подписки (IAP)**           | 📋 Не начато   | Backend      |
+| **Веб-биллинг (YooMoney)**   | 📋 Не начато   | Backend      |
+| **Onboarding**               | 📋 Не начато   | —            |
+| **Paywall**                  | 📋 Не начато   | Подписки     |
 
 ### Средний приоритет (Should-have):
 
@@ -296,35 +294,31 @@ async removeBackground(imageUri: string): Promise<string> {
 
 ---
 
-### Этап C: Rails Backend Foundation (1-2 недели)
+### Этап C: Backend API (реализовано)
 
-**Почему Rails:**
+> ✅ **Реализовано в obrazz-api/** (Node.js + Hono + TypeScript)
 
-- Быстрая разработка (convention over configuration)
-- Отличная экосистема для платежей (pay gem, yookassa, stripe)
-- Hotwire для dashboard без отдельного SPA
-- Solid Queue для background jobs (Rails 8, без Redis; Sidekiq опционально)
-- Зрелые решения для биллинга и админки
+**Почему Hono (Node.js):**
 
-**Но есть альтернативы** (см. раздел "Анализ Backend стека" ниже).
+- Единый язык с мобильным приложением (TypeScript)
+- Меньше памяти, быстрый cold start на Render free tier
+- Hono — лёгкий фреймворк с отличной производительностью
+- JWT верификация через jsonwebtoken
 
-**Минимальный MVP Backend:**
+**MVP Backend (реализован):**
 
-```ruby
-# Модели
-User           # sync с Supabase Auth (supabase_id, email)
-Subscription   # plan: free/pro/max, status, provider, expires_at
-TokenBalance   # purchased, subscription_tokens
-TokenTransaction # spend, purchase, refund, subscription_grant
-AiGeneration   # type, status, input_data, result_url
-
-# Сервисы
-Supabase::AuthService    # JWT validation
-Supabase::SyncService    # Upload to Storage, signed URLs
-TheNewBlack::Client      # HTTP client к AI API
-TheNewBlack::VirtualTryon, FashionModels, Variations
-Tokens::BalanceService   # Check/spend tokens
-Payments::YookassaService, IapService
+```typescript
+// obrazz-api структура
+src / routes / ai.routes.ts; // AI генерации (proxy к FASHN AI)
+tokens.routes.ts; // Баланс и история токенов
+payments.routes.ts; // YooKassa платежи
+subscriptions.routes.ts; // Подписки
+users.routes.ts; // Профиль пользователя
+webhooks.routes.ts; // YooKassa + FASHN AI коллбэки
+services / ai / fashn.service.ts; // HTTP клиент к FASHN AI
+ai / generation.service.ts; // Оркестрация AI-генераций
+tokens / balance.service.ts; // Check/spend токены
+payments / yookassa.service.ts; // YooKassa интеграция
 ```
 
 ---
@@ -394,12 +388,13 @@ Payments::YookassaService, IapService
 
 ### 🏆 Рекомендация по Backend
 
-**Для текущего проекта Rails остаётся оптимальным выбором:**
+> ✅ **Решение принято:** Разделение на два сервиса:
 
-1. **Нужен Dashboard** (личный кабинет) — Rails + Hotwire идеально
-2. **Нужны платежи** — Ruby gems самые зрелые
-3. **Нужны background jobs** — Sidekiq проверен годами
-4. **AI интеграция простая** — HTTP запросы к The New Black, Rails справится
+1. **obrazz-api** (Node.js + Hono) — API для мобильного приложения (AI, токены, платежи)
+2. **obrazz-admin** (Rails 8) — Админ-панель (аналитика, модерация)
+3. **AI интеграция** — HTTP запросы к FASHN AI (api.fashn.ai/v1), obrazz-api выступает proxy
+
+**Хостинг:** Render Frankfurt (Docker, free tier для старта).
 
 **Хостинг:**
 
@@ -432,21 +427,14 @@ Payments::YookassaService, IapService
 │  4. Poll GET /api/v1/ai/generations/:id until completed                │
 │  5. Display resultUrl                                                   │
 │                                                                         │
-│  Rails Backend                                                          │
-│  ─────────────                                                          │
+│  obrazz-api (Node.js + Hono)                                           │
+│  ───────────────────────────                                           │
 │  1. Validate JWT (Supabase Auth)                                       │
 │  2. Check token balance (can_generate?)                                │
-│  3. Create AiGeneration record (status: pending)                       │
-│  4. Enqueue ProcessAiGenerationJob                                     │
-│                                                                         │
-│  Sidekiq Job                                                            │
-│  ───────────                                                            │
-│  1. Spend tokens (idempotent via token_transaction_id)                 │
-│  2. Upload user images to temporary public URLs (Supabase signed)      │
-│  3. Call The New Black API                                             │
-│  4. Download result (TNB deletes in 48h!)                              │
-│  5. Save to Supabase Storage                                           │
-│  6. Update AiGeneration (status: completed, result_url)                │
+│  3. Debit tokens                                                       │
+│  4. Call FASHN AI (api.fashn.ai/v1/run)                                │
+│  5. Save result to Supabase Storage                                    │
+│  6. Return generation status                                           │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -560,7 +548,7 @@ components/
 
 services/
 ├── ai/
-│   ├── aiService.ts         # API calls to Rails backend
+│   ├── aiService.ts         # API calls to obrazz-api backend
 │   └── types.ts             # AI-related types
 
 store/
@@ -720,11 +708,11 @@ npx expo run:ios
 
 ### Политика хранения AI-генераций
 
-**Проблема:** The New Black удаляет изображения через 48 часов.
+**Проблема:** FASHN AI удаляет изображения через ограниченное время.
 
 **Решение:**
 
-1. **Rails скачивает результат сразу** после генерации
+1. **obrazz-api скачивает результат сразу** после генерации
 2. **Сохраняет в Supabase Storage** (bucket: `ai-generations`)
 3. **На сервере храним 3 дня** (политика retention)
 4. **Пользователь может сохранить** в свою коллекцию (тогда хранится дольше)
@@ -756,7 +744,7 @@ cleanup_ai_generations:
 1. **Фото пользователей:**
    - Временные (для AI) — хранятся max 3 дня
    - При удалении аккаунта — всё удаляется
-   - Не передаём третьим лицам (кроме The New Black для генерации)
+   - Не передаём третьим лицам (кроме FASHN AI для генерации)
 
 2. **Supabase RLS:**
    - Users видят только свои данные
@@ -772,19 +760,17 @@ cleanup_ai_generations:
 
 ### Stage 5: AI Functions (2-3 недели)
 
-#### 5.1 Rails Backend Foundation (1 неделя)
+#### 5.1 obrazz-api Backend (✅ реализовано)
 
-- [ ] Инициализация Rails 8 проекта
-- [ ] JWT authentication (Supabase integration)
-- [ ] Модели: User, Subscription, TokenBalance, TokenTransaction, AiGeneration
-- [ ] API endpoints: /subscription, /tokens
-- [ ] Деплой на Render (free tier)
+- [x] Инициализация Node.js + Hono проекта
+- [x] JWT authentication (Supabase integration)
+- [x] API endpoints: /tokens, /subscriptions, /payments, /users
+- [x] Деплой на Render (Docker, Frankfurt)
 
-#### 5.2 The New Black Integration (1 неделя)
+#### 5.2 FASHN AI Integration (1 неделя)
 
-- [ ] The New Black API client
-- [ ] VirtualTryon, FashionModels, Variations services
-- [ ] ProcessAiGenerationJob (Solid Queue; Sidekiq опционально)
+- [x] FASHN AI API client (fashn.service.ts)
+- [ ] VirtualTryon, FashionModels, Variations эндпоинты
 - [ ] Сохранение результатов в Supabase Storage
 - [ ] API endpoints: /ai/virtual_tryon, /ai/fashion_model, /ai/generations/:id
 
@@ -811,7 +797,7 @@ cleanup_ai_generations:
 
 - [ ] iOS StoreKit configuration
 - [ ] Android Play Billing configuration
-- [ ] Receipt validation on Rails
+- [ ] Receipt validation on obrazz-api
 - [ ] Server-to-Server notifications
 - [ ] Mobile IAP screens
 
@@ -916,7 +902,7 @@ cleanup_ai_generations:
 ## 📚 Связанные документы
 
 - [Backend.md](./Extra/Features/Backend.md) — Детальная архитектура backend
-- [THE_NEW_BLACK_AI_SERVICE_ANALYSIS.md](./Extra/Features/THE_NEW_BLACK_AI_SERVICE_ANALYSIS.md) — Анализ AI API
+- [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md) — ⚠️ Архивный документ (старый Rails-монолит)
 - [iOS_OnDevice_Background_Removal_Plan.md](./Features/iOS_OnDevice_Background_Removal_Plan.md) — Apple Vision план
 - [Implementation.md](./Implementation.md) — Общий roadmap проекта
 - [TechStack.md](./TechStack.md) — Технический стек
@@ -924,4 +910,4 @@ cleanup_ai_generations:
 
 ---
 
-> **Следующий шаг:** Начать с создания development build для iOS, затем параллельно работать над Rails backend и Apple Vision модулем.
+> **Следующий шаг:** Завершить AI-интеграцию в obrazz-api (FASHN AI endpoints), реализовать AI UI в мобильном приложении, затем платежи (YooKassa + IAP).

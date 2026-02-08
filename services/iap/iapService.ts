@@ -13,6 +13,7 @@
 
 import { subscriptionService } from '@services/subscription/subscriptionService';
 import { useSubscriptionStore } from '@store/subscription/subscriptionStore';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // Product IDs must match App Store Connect / Google Play Console
@@ -108,6 +109,27 @@ class IAPService {
       return false;
     }
 
+    const enableIapInDev = process.env.EXPO_PUBLIC_ENABLE_IAP_DEV === 'true';
+    const isExpoGo = Constants.appOwnership === 'expo';
+    const isPhysicalDevice = typeof Constants.isDevice === 'boolean' ? Constants.isDevice : true;
+
+    // Avoid triggering RN-IAP init errors in environments without billing.
+    // - Expo Go: native modules are limited
+    // - Emulator/simulator: Play Billing / StoreKit often unavailable
+    // By default, skip IAP in dev to avoid noisy init errors on emulators/dev clients.
+    // Enable explicitly when testing purchases on a real device.
+    if (__DEV__ && !enableIapInDev) {
+      console.log(
+        '[IAPService] IAP disabled in dev (set EXPO_PUBLIC_ENABLE_IAP_DEV=true to enable)',
+      );
+      return false;
+    }
+
+    if (__DEV__ && (isExpoGo || !isPhysicalDevice)) {
+      console.log('[IAPService] IAP not available (expo-go / emulator) - skipping');
+      return false;
+    }
+
     try {
       // Dynamic import to avoid crashes if not installed
       this.iapModule = await import('react-native-iap');
@@ -132,6 +154,12 @@ class IAPService {
 
       if (isEmulatorError && __DEV__) {
         console.log('[IAPService] IAP not available (emulator/dev environment) - skipping');
+        return false;
+      }
+
+      // Avoid redbox noise for known dev limitations.
+      if (__DEV__) {
+        console.warn('[IAPService] Failed to initialize (dev):', errorMessage);
         return false;
       }
 

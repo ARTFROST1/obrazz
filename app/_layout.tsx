@@ -25,6 +25,23 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+if (__DEV__) {
+  const originalConsoleError = console.error;
+  // Reduce redbox noise on emulators/offline: keep real errors, drop known network spam.
+  console.error = (...args: unknown[]) => {
+    const first = args[0];
+    const message = first instanceof Error ? first.message : String(first);
+    if (
+      message.includes('Network request failed') ||
+      message.includes('AuthRetryableFetchError') ||
+      message.includes('Failed to initialize billing connection')
+    ) {
+      return;
+    }
+    originalConsoleError(...args);
+  };
+}
+
 // Import diagnostics (only in DEV mode)
 if (__DEV__) {
   import('../scripts/wardrobeDiagnostics').catch(() => {
@@ -131,6 +148,7 @@ function RootLayoutNav() {
 
     return () => {
       unsubscribeNetwork();
+      authService.cleanupAuthListener();
       // Cleanup IAP on unmount
       if (Platform.OS !== 'web') {
         iapService.cleanup();

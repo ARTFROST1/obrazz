@@ -1,12 +1,16 @@
 # Project Structure - Obrazz
 
-**Last Updated:** January 30, 2026
+**Last Updated:** February 8, 2026
 **Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First + OAuth)
 **Documentation Status:** ✅ Synchronized with codebase
 
 ## Overview
 
 This document defines the folder structure and organization guidelines for the Obrazz React Native application.
+
+> ℹ️ **Ecosystem context:** This document covers only the mobile app (`obrazz/`).
+> The ecosystem also includes: `obrazz-api/` (Node.js + Hono), `obrazz-admin/` (Rails 8),
+> `LandingPageObrazz/` (Next.js 15). See `.github/copilot-instructions.md` for full overview.
 
 **Легенда:**
 
@@ -99,7 +103,7 @@ obrazz/
 │   ├── region/ ✅          # Region detection (Stage 5)
 │   │   └── regionService.ts ✅        # RU/Global detection for payments
 │   └── subscription/ ✅    # Payment handling (Stage 5)
-│       └── subscriptionService.ts ✅  # Rails backend API
+│       └── subscriptionService.ts ✅  # obrazz-api backend API
 ├── store/ 📋                  # Zustand stores
 │   ├── auth/ ✅            # Auth store with persistence (authStore.ts)
 │   ├── wardrobe/ ✅        # Wardrobe store (Stage 3)

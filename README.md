@@ -115,15 +115,17 @@ npx expo start
 ### Backend
 
 - **Supabase** (PostgreSQL + Auth + Storage)
-- **Ruby on Rails** 7.x (единый backend: API, админка, биллинг)
-- **The New Black AI API** (Virtual Try-On, Fashion Models, Variations)
-- **Apple Vision (on-device)** for background removal on iOS (primary)
-- **Pixian.ai API** for background removal (fallback)
+- **Backend API (separate repo):** Node.js/TypeScript — см. [obrazz-api/](../obrazz-api/)
+- **Admin (separate repo):** Rails — см. [obrazz-admin/](../obrazz-admin/)
+- **Legacy:** Rails backend (API+Dashboard+Admin в одном приложении) заархивирован в [archived/obrazz-rails/](../archived/obrazz-rails/)
+- **The New Black AI API** is replaced by **[FASHN AI](https://docs.fashn.ai/)** (Virtual Try-On, Fashion Models, Variations)
+- **Apple Vision (on-device)** for background removal on iOS 16+ (primary)
+- **Pixian.ai API** for background removal (fallback for Android/older iOS)
 
 ### Tools & Services
 
-- **YooKassa** for Russian payments
-- **Stripe** for global payments
+- **YooKassa** for Russian payments (via obrazz-api)
+- **react-native-iap** for App Store / Google Play subscriptions
 - **Sentry** for error tracking
 - **Expo EAS** for builds and OTA updates
 

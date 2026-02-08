@@ -1,8 +1,8 @@
 # Implementation Plan for Obrazz
 
-**Last Updated:** January 30, 2026  
+**Last Updated:** February 8, 2026  
 **Current Stage:** Stage 4.13 Complete ✅ (Navigation Refactor + Offline-First + OAuth)  
-**Next Stage:** Stage 5 - AI-функции (The New Black API)
+**Next Stage:** Stage 5 - AI-функции (FASHN AI + obrazz-api)
 
 ---
 
@@ -21,7 +21,7 @@
 
 ### Планируемые функции (Stage 5+):
 
-8. 🚧 **AI-функции (The New Black API)** - Virtual Try-On / Fashion Models / Variations
+8. 🚧 **AI-функции (FASHN AI)** - Virtual Try-On / Fashion Models / Variations
 9. 🚧 **AI-стилист** - автоматический подбор образов
 10. 🚧 **Подписки и биллинг** - токены (подписка + докупка), YooMoney (РФ), IAP (глобально)
 11. 🚧 **Push-уведомления** - напоминания, streak, новости
@@ -93,10 +93,11 @@
 - **Image Processing:** Pixian.ai API - Автоматическое удаление фона
 - **Documentation:** [https://ru.pixian.ai/api](https://ru.pixian.ai/api)
 
-- **AI Services:** The New Black Fashion AI API - Virtual Try-On, Fashion Models, Variations
-- **Documentation:** [https://thenewblack.ai/clothing_fashion_api_integrations](https://thenewblack.ai/clothing_fashion_api_integrations)
+- **AI Services:** FASHN AI (api.fashn.ai/v1) - Virtual Try-On, Fashion Models, Variations
+- **Documentation:** [https://docs.fashn.ai/](https://docs.fashn.ai/)
 
-- **Backend:** Ruby on Rails 7.x - Единый backend (подписки, токены, AI proxy, admin)
+- **Backend API:** Node.js + Hono (obrazz-api) - AI proxy, токены, платежи, подписки
+- **Admin Panel:** Rails 8.0.4 (obrazz-admin) - Аналитика, модерация
 - **Documentation:** [Docs/Extra/Features/Backend.md](./Extra/Features/Backend.md)
 
 ## Implementation Stages
@@ -972,13 +973,13 @@ components/
 
 ---
 
-### Stage 5: AI-функции (The New Black API)
+### Stage 5: AI-функции (FASHN AI)
 
 **Dependencies:** Stage 4.12 completion
 **Timeline:** 2-3 недели
-**Status:** PLANNED
+**Status:** IN PROGRESS
 
-**Цель:** Интеграция AI-генерации через The New Black Fashion API
+**Цель:** Интеграция AI-генерации через FASHN AI (api.fashn.ai/v1) через obrazz-api proxy
 
 **Документация:** [Backend.md](./Extra/Features/Backend.md) — полная архитектура
 
@@ -988,7 +989,7 @@ components/
   - [ ] Virtual Try-On экран
   - [ ] AI Fashion Model экран
   - [ ] Clothing Variations экран
-- [ ] Интеграция с Rails Backend API:
+- [ ] Интеграция с obrazz-api Backend:
   - [ ] POST /api/v1/ai/virtual_tryon
   - [ ] POST /api/v1/ai/fashion_model
   - [ ] POST /api/v1/ai/variation
@@ -998,57 +999,50 @@ components/
 - [ ] Обработка ошибок и retry logic
 - [ ] Интеграция с системой токенов (проверка баланса)
 
-**API:** The New Black (1 токен/генерация)
+**API:** FASHN AI (1 токен/генерация)
 
 ---
 
-### Stage 6: Ruby on Rails Backend
+### Stage 6: Backend API (obrazz-api + obrazz-admin)
 
 **Dependencies:** Stage 5 (можно параллельно)
 **Timeline:** 4-6 недель
-**Status:** IN PROGRESS (частично реализовано: Dashboard + custom Admin)
+**Status:** ✅ PARTIALLY COMPLETE (obrazz-api реализован, obrazz-admin реализован)
 
-**Цель:** Единый backend для подписок, токенов, AI proxy, admin
+**Цель:** Backend экосистема: obrazz-api (AI, токены, платежи) + obrazz-admin (аналитика, модерация)
 
 **Документация:**
 
 - [Backend.md](./Extra/Features/Backend.md) — Архитектура
-- [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md) — **Полный план реализации с Solid Queue**
+- [RAILS_BACKEND_IMPLEMENTATION_PLAN.md](./RAILS_BACKEND_IMPLEMENTATION_PLAN.md) — ⚠️ Архивный (старый Rails-монолит)
 
 **Ключевые решения:**
 
-- **Solid Queue** вместо Sidekiq/Redis (работает на Render Free Tier)
-- **PostgreSQL only** — никакого Redis для MVP
-- **Hotwire + Tailwind** для Dashboard
-- **Admin panel:** custom Rails views (Administrate опционально)
+- **Node.js + Hono** для API (единый язык TypeScript с мобильным приложением)
+- **Rails 8** для admin panel (быстрая разработка веб-интерфейса)
+- **Docker** деплой на Render Frankfurt
 
 #### Sub-steps:
 
-**Phase 1: Foundation (1-2 недели)**
+**Phase 1: obrazz-api (✅ реализовано)**
 
-- [ ] Инициализация Rails 8 проекта
-- [ ] JWT аутентификация (Supabase интеграция)
-- [ ] Модели: User, Subscription, TokenBalance, TokenTransaction
-- [ ] API endpoints: /subscription, /tokens
+- [x] Инициализация Node.js + Hono проекта
+- [x] JWT аутентификация (Supabase интеграция)
+- [x] API routes: tokens, subscriptions, payments, users, webhooks
+- [x] Деплой на Render (Docker)
 
-**Phase 2: The New Black Integration (1-2 недели)**
+**Phase 2: FASHN AI Integration (🚧 в процессе)**
 
-- [ ] HTTP клиент к The New Black API
-- [ ] Wrapper services: VirtualTryon, FashionModels, Variations
-- [ ] Background jobs (Solid Queue; Sidekiq опционально) для AI генерации
+- [x] HTTP клиент к FASHN AI (fashn.service.ts)
+- [ ] AI generation endpoints (virtual_tryon, fashion_model, variation)
 - [ ] Сохранение результатов в Supabase Storage
 
-**Phase 3: Dashboard (1 неделя)**
+**Phase 3: obrazz-admin (✅ реализовано)**
 
-- [ ] Hotwire + Tailwind setup
-- [ ] Личный кабинет: профиль, подписка, токены
-- [ ] История генераций
-
-**Phase 4: Admin (3-5 дней)**
-
-- [ ] Admin setup (custom уже есть; Administrate опционально)
-- [ ] CRUD для Curated Collections
-- [ ] Управление пользователями
+- [x] Rails 8 admin panel
+- [x] HTTP Basic Auth
+- [x] Управление пользователями, подписками, платежами
+- [x] Деплой на Render (Docker)
 
 ---
 
@@ -1064,18 +1058,22 @@ components/
 
 #### Система токенов:
 
-| План | Токенов/мес | Подписка/мес |
-| ---- | ----------- | ------------ |
-| FREE | 5           | бесплатно    |
-| PRO  | 50          | 399₽         |
-| MAX  | 150         | 799₽         |
+| План        | ID            | Токенов/мес | Подписка   |
+| ----------- | ------------- | ----------- | ---------- |
+| Free        | `free`        | 0           | бесплатно  |
+| Pro Monthly | `pro_monthly` | 100         | 499₽/мес   |
+| Pro Yearly  | `pro_yearly`  | 100         | 3 999₽/год |
+
+> **Бонус при регистрации:** 3 токена (срок 30 дней)
 
 **Пакеты токенов (докупка):**
 
-- 10 токенов — 99₽
-- 30 токенов — 249₽
-- 100 токенов — 699₽
-- 300 токенов — 1799₽
+| Пакет       | ID         | Токенов | Цена   |
+| ----------- | ---------- | ------- | ------ |
+| 10 токенов  | `pack_10`  | 10      | 99₽    |
+| 50 токенов  | `pack_50`  | 50      | 399₽   |
+| 100 токенов | `pack_100` | 100     | 699₽   |
+| 500 токенов | `pack_500` | 500     | 2 999₽ |
 
 #### Sub-steps:
 
@@ -1103,7 +1101,7 @@ components/
 #### Sub-steps:
 
 - [ ] Expo Notifications setup
-- [ ] Push-воркеры (Rails Solid Queue; Sidekiq опционально)
+- [ ] Push-воркеры (obrazz-api webhooks)
 - [ ] Streak система (ежедневный вход)
 - [ ] Бонусные токены за streak
 - [ ] Настройки уведомлений в профиле
@@ -1126,17 +1124,17 @@ components/
 │ Web Billing │ In-App Purchase │
 │ (YooMoney ~3.5%) │ (Apple/Google 15-30%) │
 │ Личный кабинет │ Нативный IAP flow │
-│ на Rails │ Валидация на Rails │
+│ на obrazz-api │ Валидация на obrazz-api │
 └─────────────────────────────────────────────────────────────────┘
 
 ```
 
 #### Sub-steps:
 
-**Ruby on Rails Backend (Fullstack):**
+**Backend (obrazz-api + obrazz-admin):**
 
-- [ ] Инициализация Rails 8 проекта
-- [ ] Интеграция с Supabase Auth (JWT валидация)
+- [x] Инициализация obrazz-api (Node.js + Hono)
+- [x] Интеграция с Supabase Auth (JWT валидация)
 - [ ] Модели: User, Subscription, Payment, UsageLimit
 - [ ] API endpoints для мобильного приложения
 - [ ] Личный кабинет пользователя (Hotwire + Tailwind):
@@ -1157,8 +1155,8 @@ components/
 **Для глобального рынка (IAP):**
 
 - [ ] React Native Purchases (RevenueCat) или expo-in-app-purchases
-- [ ] App Store receipt validation на Rails
-- [ ] Google Play purchase validation на Rails
+- [ ] App Store receipt validation на obrazz-api
+- [ ] Google Play purchase validation на obrazz-api
 - [ ] Server-to-Server notifications
 - [ ] Настройка продуктов в App Store Connect
 - [ ] Настройка продуктов в Google Play Console

@@ -1,8 +1,8 @@
 # Obrazz Documentation
 
-**Last Updated:** January 26, 2026  
+**Last Updated:** February 8, 2026  
 **Current Version:** 1.0.0  
-**Stage:** 4.12 Complete (Offline-First Architecture + iOS 26+ Liquid Glass updates)
+**Stage:** 4.13 Complete (Navigation Refactor + Offline-First)
 
 ---
 
@@ -238,7 +238,7 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 ## 📊 Project Overview
 
-### Current Status (January 2026)
+### Current Status (February 2026)
 
 **Completed Stages:**
 
@@ -258,8 +258,8 @@ See [Extra/Archive/README.md](Extra/Archive/README.md) for complete index.
 
 **Planned Stages:**
 
-- 🚧 Stage 5: AI-функции (The New Black API)
-- 🚧 Далее: токены/подписки/биллинг, push-уведомления, геймификация, onboarding/paywall
+- 🚧 Stage 5: AI-функции (FASHN AI через `obrazz-api`)
+- 🚧 Далее: paywall/подписки/токены (полная интеграция), push-уведомления, геймификация, onboarding
 
 ### Key Statistics
 

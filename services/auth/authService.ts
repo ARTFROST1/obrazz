@@ -1,4 +1,5 @@
 import { clearAuthStorage, supabase } from '@lib/supabase/client';
+import { isOnline } from '@services/sync/networkMonitor';
 import { useAuthStore } from '@store/auth/authStore';
 import { useOutfitStore } from '@store/outfit/outfitStore';
 import { useWardrobeStore } from '@store/wardrobe/wardrobeStore';
@@ -24,6 +25,9 @@ export interface AuthResponse {
 }
 
 class AuthService {
+  private authListenerInitialized = false;
+  private authListenerUnsubscribe: (() => void) | null = null;
+
   /**
    * Sign up a new user with email and password
    */
@@ -205,14 +209,26 @@ class AuthService {
    */
   async getSession() {
     try {
-      // Create timeout promise to prevent hanging
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Session fetch timeout')), 2500);
+      if (!isOnline()) {
+        logger.info('Offline - skipping session fetch');
+        return null;
+      }
+
+      // Important: supabase.auth.getSession() may still reject later even if a timeout
+      // wins Promise.race. Wrap it so it always resolves, preventing unhandled rejections
+      // (which show up as "TypeError: Network request failed" redboxes).
+      const sessionPromise = supabase.auth
+        .getSession()
+        .then((result) => result)
+        .catch((error) => ({ data: { session: null }, error }));
+
+      const timeoutPromise = new Promise<{ data: { session: null }; error: Error }>((resolve) => {
+        setTimeout(() => {
+          resolve({ data: { session: null }, error: new Error('Session fetch timeout') });
+        }, 2500);
       });
 
-      const sessionPromise = supabase.auth.getSession();
-
-      // Race between session fetch and timeout
+      // Race between session fetch and timeout (both promises resolve)
       const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
 
       if (error) {
@@ -234,13 +250,25 @@ class AuthService {
       return data.session;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error getting session:', errorMessage);
 
-      // If it's a timeout or network error, just return null
-      if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+      // Offline-first: timeouts and network failures are expected.
+      // Avoid console.error here to prevent RN redbox noise.
+      const isTimeoutOrNetworkError =
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.includes('Network request failed') ||
+        errorMessage.includes('Failed to fetch') ||
+        errorMessage.includes('TypeError: Network request failed') ||
+        errorMessage.includes('ECONN') ||
+        errorMessage.includes('ENOTFOUND');
+
+      if (isTimeoutOrNetworkError) {
         logger.warn('Session fetch timeout/network error - returning null');
+        logger.warn('Session error details:', errorMessage);
         return null;
       }
+
+      logger.error('Error getting session:', errorMessage);
 
       // If it's a refresh token error, ensure storage is cleared
       if (
@@ -262,7 +290,22 @@ class AuthService {
    * Initialize auth state listener
    */
   initializeAuthListener() {
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    if (this.authListenerInitialized) return;
+
+    const enableListenerInDev =
+      process.env.EXPO_PUBLIC_ENABLE_SUPABASE_AUTH_LISTENER_DEV === 'true';
+
+    // In dev (especially on emulators/offline), the INITIAL_SESSION flow can
+    // trigger retryable fetch errors that show as redboxes. Keep listener enabled
+    // for production; allow explicit opt-in for dev when needed.
+    if (__DEV__ && !enableListenerInDev) {
+      logger.info('Auth state listener disabled in dev');
+      return;
+    }
+
+    this.authListenerInitialized = true;
+
+    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         logger.info('Auth state changed:', event);
 
@@ -296,6 +339,24 @@ class AuthService {
         }
       }
     });
+
+    // Store unsubscribe so RootLayout can clean up on unmount
+    this.authListenerUnsubscribe = () => {
+      try {
+        data?.subscription?.unsubscribe();
+      } catch {
+        // ignore
+      }
+    };
+  }
+
+  /**
+   * Cleanup auth state listener
+   */
+  cleanupAuthListener() {
+    this.authListenerUnsubscribe?.();
+    this.authListenerUnsubscribe = null;
+    this.authListenerInitialized = false;
   }
 
   /**
